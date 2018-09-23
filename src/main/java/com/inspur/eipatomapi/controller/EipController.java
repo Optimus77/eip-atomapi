@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
-@Api(value = "eips", description = "eip API")
+@Api(value = "eips", description = "eipatomapi API")
 public class EipController {
 
     private final static Log log = LogFactory.getLog(EipController.class);

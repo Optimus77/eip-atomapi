@@ -490,7 +490,7 @@ public class EipService {
                 eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
                 eipJSON.put("chargetype", "THIS IS EMPTY");
                 eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                returnjs.put("eip", eipJSON);
+                returnjs.put("eipatomapi", eipJSON);
             } else {
                 returnjs.put("error", "can not find EIP instance use this id:" + id+"");
             }
