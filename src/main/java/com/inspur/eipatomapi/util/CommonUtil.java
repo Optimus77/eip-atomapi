@@ -1,6 +1,6 @@
 package com.inspur.eipatomapi.util;
 
-import com.inspur.eip.service.EipService;
+import com.inspur.eipatomapi.service.EipService;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
