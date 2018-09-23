@@ -9,6 +9,8 @@ import com.inspur.eipatomapi.entity.EipPool;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.network.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * @Auther: jiasirui
@@ -41,9 +42,14 @@ public class EipService {
     private NeutronService neutronService;
 
 
-    private final static Logger log = Logger.getLogger(EipService.class.getName());
+    private final static Log log = LogFactory.getLog(EipService.class);
 
-
+    /**
+     * allocate eipatomapi
+     * @param region     region
+     * @param networkId  network id
+     * @return           result
+     */
     private synchronized EipPool allocateEip(String region, String networkId){
 
         List<EipPool> eipList = eipPoolRepository.findAll();
@@ -56,11 +62,15 @@ public class EipService {
                 }
             }
         }
-        log.warning("Failed to allocate eipatomapi in network"+networkId);
+        log.warn("Failed to allocate eipatomapi in network："+networkId);
         return null;
     }
 
-
+    /**
+     * find eipatomapi by id
+     * @param eipId  eipatomapi id
+     * @return  eipatomapi entity
+     */
     private Eip findEipEntryById(String eipId){
         Eip eipEntity = null;
         Optional<Eip> eip = eipRepository.findById(eipId);
@@ -70,8 +80,16 @@ public class EipService {
         return eipEntity;
     }
 
+    /**
+     * create a eipatomapi
+     * @param eipConfig          config
+     * @param externalNetWorkId  external network id
+     * @param portId             port id
+     * @return                   json info of eipatomapi
+     * @throws Exception         e
+     */
     public JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) throws Exception {
-        Eip eipMo = null;
+        //Eip eipMo;
 
         JSONObject eipWrapper=new JSONObject();
         JSONObject eipInfo = new JSONObject();
@@ -80,13 +98,16 @@ public class EipService {
         if (null != eip) {
             NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(),externalNetWorkId,portId);
             if(null != floatingIP) {
-                eipMo = new Eip();
+                Eip eipMo = new Eip();
                 eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
                 eipMo.setFixedIp(floatingIP.getFixedIpAddress());
                 eipMo.setEip(eip.getIp());
+                eipMo.setState("DOWN");
+                eipMo.setLinkType(eipConfig.getIpType());
                 eipMo.setFirewallId(eip.getFireWallId());
                 eipMo.setFloatingIpId(floatingIP.getId());
                 eipMo.setBanWidth(eipConfig.getBanWidth());
+                //eipMo.set
                 eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipRepository.save(eipMo);
 
@@ -99,7 +120,7 @@ public class EipService {
                 eipWrapper.put("eipatomapi", eipInfo);
                 return eipWrapper;
             }else {
-                log.warning("Failed to create floating ip in external network:"+externalNetWorkId);
+                log.warn("Failed to create floating ip in external network:"+externalNetWorkId);
             }
         }
         eipInfo.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -108,37 +129,45 @@ public class EipService {
     }
 
 
-    public Boolean deleteEip(String name, String eipId){
+
+    /**
+     * 1.delete  floatingIp
+     * 2.Determine if Snate and Qos is deleted
+     * 3.delete eipatomapi
+     *
+     * @param name  name
+     * @param eipId  eipatomapi ip
+     * @return       result: true/false
+     */
+
+    public Boolean deleteEip(String name, String eipId) throws Exception {
         Boolean result = false;
-        try {
-            Eip eipEntity = findEipEntryById(eipId);
-            if (null != eipEntity) {
+        Eip eipEntity = findEipEntryById(eipId);
+        if (null != eipEntity) {
+            if ((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null != eipEntity.getSnatId())) {
+                log.warn("Failed to delete eipatomapi,Eip is bind to port.");
+            } else {
                 result = neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId());
-                if((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null!=eipEntity.getSnatId())){
-                    log.warning("Failed to delete eipatomapi,eipatomapi is bind to port.");
-                    return false;
-                }
                 EipPool eipPoolMo = new EipPool();
                 eipPoolMo.setFireWallId(eipEntity.getFirewallId());
                 eipPoolMo.setIp(eipEntity.getEip());
                 eipPoolMo.setState("0");
                 eipPoolRepository.save(eipPoolMo);
+                eipRepository.deleteById(eipId);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            log.warn("eipid errors");
         }
-
         return result;
     }
 
     /**
      *  list the eipatomapi
-     * @param vpcId
      * @param currentPage  the current page
      * @param limit  element of per page
-     * @return
+     * @return       result
      */
-    public String listEips(String vpcId,int currentPage,int limit){
+    public String listEips(int currentPage,int limit){
         log.info("listEips  service start execute");
         JSONObject returnjs = new JSONObject();
 
@@ -184,12 +213,24 @@ public class EipService {
 
     }
 
+    /**
+     * associate port with eipatomapi
+     * @param eip          eipatomapi
+     * @param portId       port id
+     * @param instanceType instance type
+     * @return             true or false
+     * @throws Exception   e
+     */
     private Boolean associatePortWithEip(Eip eip, String portId, String instanceType) throws Exception{
-        if(null != neutronService.associatePortWithFloatingIp(eip.getFloatingIpId(),portId)){
-            String dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
-            String snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
+        NetFloatingIP netFloatingIP = neutronService.associatePortWithFloatingIp(eip.getFloatingIpId(),portId);
+        String dnatRuleId = null;
+        String snatRuleId = null;
+        String pipId;
+        if(null != netFloatingIP){
+            dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
+            snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             if((null != dnatRuleId) && (null != snatRuleId)){
-                String pipId = firewallService.addQos(eip.getFloatingIp(),
+                pipId = firewallService.addQos(eip.getFloatingIp(),
                         eip.getEip(),
                         eip.getBanWidth(),
                         eip.getFirewallId());
@@ -203,17 +244,34 @@ public class EipService {
                     eipRepository.save(eip);
                     return true;
                 } else {
-                    log.warning("Failed to add qos in firewall"+eip.getFirewallId());
+                    log.warn("Failed to add qos in firewall"+eip.getFirewallId());
                 }
             } else {
-                log.warning("Failed to add snat and dnat in firewall"+eip.getFirewallId());
+                log.warn("Failed to add snat and dnat in firewall"+eip.getFirewallId());
+
             }
         } else {
-            log.warning("Failed to associate port with eipatomapi, portId:"+portId);
+            log.warn("Failed to associate port with eipatomapi, portId:"+portId);
         }
+        if(null != netFloatingIP){
+            neutronService.disassociateFloatingIpFromPort(netFloatingIP.getFloatingNetworkId());
+        }
+        if(null != snatRuleId){
+            firewallService.delSnat(snatRuleId, eip.getFirewallId());
+        }
+        if(null != dnatRuleId){
+            firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+        }
+
         return false;
     }
 
+    /**
+     * disassociate port with eipatomapi
+     * @param eipEntity    eipatomapi entity
+     * @return             reuslt, true or false
+     * @throws Exception   e
+     */
     private Boolean disassociatePortWithEip(Eip eipEntity) throws Exception  {
         if(null != neutronService.disassociateFloatingIpFromPort(eipEntity.getFloatingIpId())){
             Boolean result1 = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
@@ -229,13 +287,13 @@ public class EipService {
                     eipRepository.save(eipEntity);
                     return true;
                 } else {
-                    log.warning("Failed to del qos"+eipEntity.getPipId());
+                    log.warn("Failed to del qos"+eipEntity.getPipId());
                 }
             } else {
-                log.warning("Failed to del snat and dnat in firewall"+eipEntity.getFirewallId());
+                log.warn("Failed to del snat and dnat in firewall"+eipEntity.getFirewallId());
             }
         } else {
-            log.warning("Failed to disassociate port with eipatomapi, floatingipid:"+eipEntity.getFloatingIpId());
+            log.warn("Failed to disassociate port with eipatomapi, floatingipid:"+eipEntity.getFloatingIpId());
         }
         return false;
     }
@@ -299,9 +357,10 @@ public class EipService {
     }
 
     /**
-     * bandWidth
-     * @param
-     * @return
+     * update eipatomapi band width
+     * @param id    id
+     * @param param param
+     * @return      result
      */
     public String updateEipBandWidth(String id, EipUpdateParamWrapper param) {
 
@@ -376,10 +435,10 @@ public class EipService {
     }
 
     /**
-     *
-     * @param id
-     * @param portId
-     * @return
+     * eipatomapi bind with port
+     * @param id      id
+     * @param portId  port id
+     * @return        result
      */
 
     public String eipbindPort(String id,String portId){
@@ -393,7 +452,7 @@ public class EipService {
                     case "1":
                         // 1：ecs
                         if(!associatePortWithEip(eipEntity, portId, instanceType)){
-                            log.warning("Failed to associate port with eipatomapi:%s."+ id);
+                            log.warn("Failed to associate port with eipatomapi:%s."+ id);
                         }
                         break;
                     case "2":
@@ -403,7 +462,7 @@ public class EipService {
                         // 3：slb
                         break;
                     default:
-                        log.warning("Unhandled instance type.");
+                        log.warn("Unhandled instance type.");
                         break;
                 }
                 JSONObject eipJSON = new JSONObject();
@@ -434,9 +493,9 @@ public class EipService {
     }
 
     /**
-     *
-     * @param id
-     * @return
+     * un bind port
+     * @param id    id
+     * @return      result
      */
     public String unBindPort(String id){
 
@@ -450,7 +509,7 @@ public class EipService {
                     case "1":
                         // 1：ecs
                         if(!disassociatePortWithEip(eipEntity)){
-                            log.warning("Failed to disassociate port with eipatomapi"+id);
+                            log.info("Failed to disassociate port with eipatomapi"+id);
                         }
                         break;
                     case "2":
@@ -461,7 +520,7 @@ public class EipService {
                         break;
                     default:
                         //default ecs
-                        log.warning("Unhandled instance type.");
+                        log.info("Unhandled instance type.");
                         break;
                 }
                 JSONObject eipJSON = new JSONObject();
@@ -491,6 +550,9 @@ public class EipService {
         return returnjs.toString();
     }
 
+    /**
+     * add eipatomapi into eipatomapi pool for test
+     */
     public void addEipPool() {
         for (int i = 0; i < 10; i++) {
             EipPool eipPoolMo = new EipPool();
