@@ -2,7 +2,7 @@
 server:
   tomcat:
     uri-encoding: UTF-8
-  port: 8080
+  port: 8088
   servlet:
     context-path: /bss
 # 环境 dev|prod
