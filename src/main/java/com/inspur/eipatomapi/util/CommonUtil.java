@@ -1,12 +1,20 @@
 package com.inspur.eipatomapi.util;
 
+import com.inspur.eip.service.EipService;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
 import com.inspur.icp.common.util.QueryUtil;
+import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.openstack4j.api.OSClient.OSClientV3;
+import org.openstack4j.api.exceptions.ResponseException;
+import org.openstack4j.core.transport.Config;
+import org.openstack4j.model.common.Identifier;
+import org.openstack4j.openstack.OSFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -17,6 +25,8 @@ import java.util.logging.Logger;
 
 public class CommonUtil {
 
+    private final static Log log = LogFactory.getLog(CommonUtil.class);
+
     public static String getDate() {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -26,27 +36,34 @@ public class CommonUtil {
     @Setter
     private static JSONObject KeyClockInfo;
 
-    private final static Logger log = Logger.getLogger(CommonUtil.class.getName());
 
-//    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
-//    private static String user = "vpc";
-//    private static String password = "123456a?";
-//    private static String projectId = "65a859f362f749ce95237cbd08c30edf";
-//    private static String userDomainId = "default";
-//    private static Config config = Config.newConfig().withSSLVerificationDisabled();
 
-//    public static OSClientV3 getOsClientV3(){
-//        String token = getKeycloackToken();
-//        return OSFactory.builderV3()
-//                .endpoint(authUrl)
-//                .credentials(user, password, Identifier.byId(userDomainId))
-//                .withConfig(config)
-//                .scopeToProject(Identifier.byId(projectId))
-//                .authenticate();
-//    }
+    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
+    private static String user = "vpc";
+    private static String password = "123456a?";
+    private static String projectId = "65a859f362f749ce95237cbd08c30edf";
+    private static String userDomainId = "default";
+    private static Config config = Config.newConfig().withSSLVerificationDisabled();
+
+    private static OSClientV3 getOsClientV3(){
+        //String token = getKeycloackToken();
+        return OSFactory.builderV3()
+                .endpoint(authUrl)
+                .credentials(user, password, Identifier.byId(userDomainId))
+                .withConfig(config)
+                .scopeToProject(Identifier.byId(projectId))
+                .authenticate();
+    }
 
 
     public static OSClientV3 getOsClientV3Util() throws Exception {
+
+        //cancle the auth
+        if(1==1){
+            return getOsClientV3();
+        }
+
+
         String token = getKeycloackToken();
         log.info(token);
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
