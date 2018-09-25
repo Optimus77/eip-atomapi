@@ -499,7 +499,7 @@ public class EipServiceImpl implements IEipService {
                 eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
                 eipJSON.put("chargetype", "THIS IS EMPTY");
                 eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                returnjs.put("eipatomapi", eipJSON);
+                returnjs.put("eip", eipJSON);
             } else {
                 returnjs.put("error", "can not find EIP instance use this id:" + id+"");
             }

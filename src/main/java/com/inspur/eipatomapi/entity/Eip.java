@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-@Table(name="eipatomapi")
+@Table(name="eip")
 @Getter
 @Setter
 public class Eip implements Serializable {
