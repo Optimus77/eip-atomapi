@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
-import com.inspur.eipatomapi.service.EipService;
+import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.FastjsonUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
@@ -29,7 +29,7 @@ public class EipController {
 
 
     @Autowired
-    private EipService eipService;
+    private EipServiceImpl eipService;
 
     //Todo: find the external net id
     private String floatingnetworkId = "d9c00a35-fea8-4162-9de1-b8100494a11d";

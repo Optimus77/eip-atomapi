@@ -1,17 +1,14 @@
 package com.inspur.eipatomapi.util;
 
-import com.inspur.eipatomapi.service.EipService;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
 import com.inspur.icp.common.util.QueryUtil;
-import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.openstack4j.api.OSClient.OSClientV3;
-import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
@@ -21,7 +18,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Logger;
 
 public class CommonUtil {
 

@@ -1,13 +1,8 @@
 package com.inspur.eipatomapi.service;
 
-import com.inspur.eipatomapi.entity.Firewall;
+import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
-import com.inspur.icp.innet.security.hillstone.http.NATServiceImpl;
-import com.inspur.icp.innet.security.hillstone.http.QosServiceImpl;
-import com.inspur.icp.innet.security.inspur.object.base.ResponseBody;
-import com.inspur.icp.innet.security.inspur.object.policy.RmdPortMapResult;
-import com.inspur.icp.innet.security.inspur.object.policy.RmdSecurityDnatVo;
-import com.inspur.icp.innet.security.inspur.object.policy.RmdSecuritySnatVo;
+import com.inspur.eipatomapi.service.impl.NatServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,7 +15,7 @@ import java.util.Optional;
 
 
 @Service
-class FirewallService {
+public class FirewallService {
 
     private final static Log log = LogFactory.getLog(FirewallService.class);
     @Autowired
@@ -37,11 +32,11 @@ class FirewallService {
         return fireWallEntity;
     }
 
-    String addDnat(String innerip, String extip, String equipid) {
+    public String addDnat(String innerip, String extip, String equipid) {
         String ruleid = null;
 
         //添加弹性IP
-        RmdSecurityDnatVo dnatVo = new RmdSecurityDnatVo();
+        FwDnatVo dnatVo = new FwDnatVo();
         Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
         if(accessFirewallBeanByNeid != null) {
             dnatVo.setManageIP(accessFirewallBeanByNeid.getIp());
@@ -63,11 +58,11 @@ class FirewallService {
             dnatVo.setIstransferport("1");
             dnatVo.setHa("0");
 
-            NATServiceImpl dnatimpl = new NATServiceImpl();
-            ResponseBody body = dnatimpl.addPDnat(dnatVo);
+            NatServiceImpl dnatimpl = new NatServiceImpl();
+            FwResponseBody body = dnatimpl.addPDnat(dnatVo);
             if (body.isSuccess()) {
                 // 创建成功
-                RmdPortMapResult result = (RmdPortMapResult) body.getObject();
+                FwPortMapResult result = (FwPortMapResult) body.getObject();
                 ruleid = result.getRule_id();
                 log.info(innerip + "--DNAT添加成功");
             } else {
@@ -77,12 +72,12 @@ class FirewallService {
         return ruleid;
     }
 
-    String addSnat(String innerip, String extip, String equipid) {
+    public String addSnat(String innerip, String extip, String equipid) {
         String ruleid = null;
         //String srcIP = innerip;
         //String destIP = extip;
 
-        RmdSecuritySnatVo vo = new RmdSecuritySnatVo();
+        FwSnatVo vo = new FwSnatVo();
         Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
         if(accessFirewallBeanByNeid != null) {
             vo.setManageIP(accessFirewallBeanByNeid.getIp());
@@ -108,11 +103,11 @@ class FirewallService {
 
             vo.setFlag("1");
 
-            NATServiceImpl dnatimpl = new NATServiceImpl();
-            ResponseBody body = dnatimpl.addPSnat(vo);
+            NatServiceImpl dnatimpl = new NatServiceImpl();
+            FwResponseBody body = dnatimpl.addPSnat(vo);
             if (body.isSuccess()) {
                 // 创建成功
-                RmdSecuritySnatVo result = (RmdSecuritySnatVo) body.getObject();
+                FwSnatVo result = (FwSnatVo) body.getObject();
                 ruleid = result.getSnatid();
                 log.info(innerip + "--SNAT添加成功");
             } else {
@@ -124,12 +119,12 @@ class FirewallService {
 
 
 
-    String addQos(String innerip, String eipid, String bandwidth, String equipid) {
+    public String addQos(String innerip, String eipid, String bandwidth, String equipid) {
         String pipid = null;
 
         Firewall fwBean = getFireWallById(equipid);
         if(fwBean != null) {
-            QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
+            QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> map = new HashMap<>();
             map.put("pipeName", eipid);
             map.put("ip", innerip);
@@ -159,11 +154,11 @@ class FirewallService {
      * @param bindwidth   bind width
      * @return            result
      */
-    boolean updateQosBandWidth(String firewallId,String pipId, String pipNmae,String bindwidth){
+    public boolean updateQosBandWidth(String firewallId,String pipId, String pipNmae,String bindwidth){
 
         Firewall fwBean = getFireWallById(firewallId);
         if(fwBean != null) {
-            QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
+            QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> result = qs.updateQosPipe(pipId, pipNmae, bindwidth);
             log.info(result.toString());
             String successTag = "true";
@@ -181,11 +176,11 @@ class FirewallService {
     /**
      * 删除管道
      */
-    boolean delQos(String pipid, String devId) {
+    public boolean delQos(String pipid, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
             Firewall fwBean = getFireWallById(devId);
             if(null != fwBean) {
-                QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
+                QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 qs.delQosPipe(pipid);
             } else {
                 log.info("删除管道失败:"+"dev【"+devId+"】,pipid【"+pipid+"】");
@@ -197,7 +192,7 @@ class FirewallService {
         return true;
     }
 
-    boolean delDnat(String ruleid, String devId) {
+    public boolean delDnat(String ruleid, String devId) {
         boolean bSuccess = false;
         if ("offline".equals(ruleid)) {
             // 离线模式
@@ -205,7 +200,7 @@ class FirewallService {
         }
 
         if (StringUtils.isNotEmpty(ruleid)) {
-            RmdSecurityDnatVo vo = new RmdSecurityDnatVo();
+            FwDnatVo vo = new FwDnatVo();
             Firewall accessFirewallBeanByNeid = getFireWallById(devId);
             if(accessFirewallBeanByNeid != null) {
                 vo.setManageIP(accessFirewallBeanByNeid.getIp());
@@ -217,8 +212,8 @@ class FirewallService {
                 vo.setVrid("trust-vr");
                 vo.setVrname("trust-vr");
 
-                NATServiceImpl dnatimpl = new NATServiceImpl();
-                ResponseBody body = dnatimpl.delPDnat(vo);
+                NatServiceImpl dnatimpl = new NatServiceImpl();
+                FwResponseBody body = dnatimpl.delPDnat(vo);
                 if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
                     // 删除成功
                     bSuccess = true;
@@ -230,14 +225,14 @@ class FirewallService {
         }
         return bSuccess;
     }
-    boolean delSnat(String ruleid, String devId) {
+    public boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = false;
         if ("offline".equals(ruleid)) {
             // 离线模式
             return bSuccess;
         }
         if (StringUtils.isNotEmpty(ruleid)) {
-            RmdSecuritySnatVo vo = new RmdSecuritySnatVo();
+            FwSnatVo vo = new FwSnatVo();
 
             Firewall accessFirewallBeanByNeid = getFireWallById(devId);
             if(accessFirewallBeanByNeid != null) {
@@ -250,8 +245,8 @@ class FirewallService {
                 vo.setVrid("trust-vr");
                 vo.setSnatid(ruleid);
 
-                NATServiceImpl dnatimpl = new NATServiceImpl();
-                ResponseBody body = dnatimpl.delPSnat(vo);
+                NatServiceImpl dnatimpl = new NatServiceImpl();
+                FwResponseBody body = dnatimpl.delPSnat(vo);
 
                 if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
                     // 删除成功

@@ -3,9 +3,6 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.util.CommonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import com.inspur.eipatomapi.util.CommonUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -13,10 +10,7 @@ import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * @Auther: jiasirui
@@ -35,12 +29,12 @@ public  class NeutronService {
      * @param id   id
      * @return NetFloatingIP entity
      */
-    NetFloatingIP getFloatingIp(String id) throws Exception {
+    public NetFloatingIP getFloatingIp(String id) throws Exception {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         return osClientV3.networking().floatingip().get(id);
     }
 
-    synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws Exception   {
+    public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws Exception   {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         //osClientV3.networking().router().get().getExternalGatewayInfo().getNetworkId();
@@ -63,25 +57,25 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
-    synchronized Boolean deleteFloatingIp(String name, String eipId) throws Exception{
+    public synchronized Boolean deleteFloatingIp(String name, String eipId) throws Exception{
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         return osClientV3.networking().floatingip().delete(eipId).isSuccess();
     }
 
-    synchronized NetFloatingIP associatePortWithFloatingIp(String netFloatingIpId, String portId) throws Exception  {
+    public synchronized NetFloatingIP associatePortWithFloatingIp(String netFloatingIpId, String portId) throws Exception  {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         return osClientV3.networking().floatingip().associateToPort(netFloatingIpId, portId);
     }
 
-    synchronized NetFloatingIP disassociateFloatingIpFromPort( String netFloatingIpId) throws Exception {
+    public synchronized NetFloatingIP disassociateFloatingIpFromPort( String netFloatingIpId) throws Exception {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         return osClientV3.networking().floatingip().disassociateFromPort(netFloatingIpId);
     }
 
 
-    List<? extends NetFloatingIP> listFloatingIps() throws Exception{
+    public List<? extends NetFloatingIP> listFloatingIps() throws Exception{
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         //Map<String, String> filteringParams = new HashMap<>();
