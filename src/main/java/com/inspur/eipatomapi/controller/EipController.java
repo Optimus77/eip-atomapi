@@ -149,4 +149,11 @@ public class EipController {
         return new ResponseEntity<>("True", HttpStatus.OK);
     }
 
+
+    @ICPControllerLog
+    @GetMapping(value = "/servers/")
+    @ApiOperation(value = "show all servers", notes = "")
+    public String getServerList() {
+        return eipService.listServer();
+    }
 }

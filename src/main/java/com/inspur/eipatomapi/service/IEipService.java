@@ -80,4 +80,9 @@ public interface IEipService {
      */
     void addEipPool();
 
+    /**
+     * list all server of current users
+     */
+    String listServer();
+
 }

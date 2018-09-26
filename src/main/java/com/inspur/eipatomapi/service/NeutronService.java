@@ -5,12 +5,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
+import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
+import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Auther: jiasirui
@@ -81,6 +85,16 @@ public  class NeutronService {
         //Map<String, String> filteringParams = new HashMap<>();
         //filteringParams.put("tenant_id",CommonUtil.getTokenInfo().getString("project"));
         return  osClientV3.networking().floatingip().list();
+    }
+
+   
+
+    public List<? extends Server> listServer()throws Exception{
+
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
+        Map<String, String> filteringParams = new HashMap<>();
+        //filteringParams.put("tenant_id",CommonUtil.getTokenInfo().getString("project"));
+        return osClientV3.compute().servers().list(filteringParams);
     }
 
 }
