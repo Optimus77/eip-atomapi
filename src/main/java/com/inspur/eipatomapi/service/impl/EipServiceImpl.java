@@ -11,6 +11,7 @@ import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.service.FirewallService;
+import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -115,6 +116,7 @@ public class EipServiceImpl implements IEipService {
                 eipMo.setFirewallId(eip.getFireWallId());
                 eipMo.setFloatingIpId(floatingIP.getId());
                 eipMo.setBanWidth(eipConfig.getBanWidth());
+                eipMo.setProjectId(CommonUtil.getProjectId());
                 eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipRepository.save(eipMo);
 
@@ -463,9 +465,6 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public String eipbindPort(String id,String type,String portId){
-        log.info("bindPort param:");
-        log.info(id);
     public String eipbindPort(String id, String type,String serverId){
         JSONObject returnjs = new JSONObject();
         try {
@@ -474,12 +473,10 @@ public class EipServiceImpl implements IEipService {
                 Eip eipEntity = eip.get();
                 switch(type){
                     case "1":
-                        log.info(portId);
+                        log.info(serverId);
                         // 1：ecs
                         if(!associateInstanceWithEip(eipEntity, serverId, type)){
                             log.warn("Failed to associate port with eip:%s."+ id);
-                        if(!associatePortWithEip(eipEntity, portId, type)){
-                            log.info("Failed to associate port with eip:%s."+ id);
                             returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
                             returnjs.put("data","{}");
                             returnjs.put("msg", "can't associate  port with eip"+ id);
@@ -489,13 +486,13 @@ public class EipServiceImpl implements IEipService {
                             eipJSON.put("status", eipEntity.getState());
                             eipJSON.put("iptype", eipEntity.getLinkType());
                             eipJSON.put("eip_address", eipEntity.getEip());
-                            eipJSON.put("port_id", portId);
+                            eipJSON.put("instanceid", serverId);
                             eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
                             eipJSON.put("chargetype", "THIS IS EMPTY");
                             eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                             JSONObject eipjs=new JSONObject();
                             eipjs.put("eip",eipJSON);
-                            ;                           returnjs.put("code",HttpStatus.SC_OK);
+                            returnjs.put("code",HttpStatus.SC_OK);
                             returnjs.put("data",eipjs);
                             returnjs.put("msg", "success");
                         }

@@ -108,18 +108,9 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    //@Forword
     public String eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
 
-        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getPortId());
-
-        if(param.getEipUpdateParam().getServerId()!=null){
-            String result=eipService.eipbindPort(eipId, param.getEipUpdateParam().getType(),
-                    param.getEipUpdateParam().getServerId());
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>("{error:\"port_id is not null\"}", HttpStatus.OK);
-        }
+        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getServerId());
     }
 
     @ICPControllerLog

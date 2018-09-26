@@ -1,25 +1,21 @@
-package com.inspur.eipatomapi.service.impl;
+package com.inspur.eipatomapi.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.inspur.eipatomapi.entity.*;
-import com.inspur.eipatomapi.service.BaseService;
-import com.inspur.eipatomapi.service.INatService;
 import com.inspur.eipatomapi.util.HsHttpClient;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class NatServiceImpl extends BaseService implements INatService {
-    public NatServiceImpl() {
-    }
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class NatService extends BaseService {
 
     public List<FwSnatVo> getSnat(FwQuery query, FwBaseObject manage) {
         List<FwSnatVo> snats = new ArrayList();

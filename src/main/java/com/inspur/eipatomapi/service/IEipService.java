@@ -62,7 +62,6 @@ public interface IEipService {
      * eip bind with port
      * @param id      id
      * @param serverId  server id
-     * @param portId  port id
      * @param type   //1：ecs // 2：cps // 3：slb
      * @return        result
      */

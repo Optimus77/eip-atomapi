@@ -111,7 +111,7 @@ public class CommonUtil {
         //important
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String keyCloackToken  = (String) request.getHeader("authorization");
-        log.info(keyCloackToken); ;
+        log.info(keyCloackToken);
         if(keyCloackToken==null){
             throw new Exception("ERROR:request authorization info is null,");
         }else{
@@ -136,6 +136,8 @@ public class CommonUtil {
         }
     }
 
-
+    public static String getProjectId(){
+        return projectId;
+    }
 
 }

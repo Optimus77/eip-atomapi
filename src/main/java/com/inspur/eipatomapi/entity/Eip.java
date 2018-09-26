@@ -74,6 +74,9 @@ public class Eip implements Serializable {
     @Column(name="state",nullable = false)
     private String state ="0";
 
+    @Column(name="project_id")
+    private String projectId;
+
     @Column(name="create_time" ,nullable = false)
     private Date createTime=new Date();
 

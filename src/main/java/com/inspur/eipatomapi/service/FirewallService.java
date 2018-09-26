@@ -2,7 +2,6 @@ package com.inspur.eipatomapi.service;
 
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
-import com.inspur.eipatomapi.service.impl.NatServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,7 +57,7 @@ public class FirewallService {
             dnatVo.setIstransferport("1");
             dnatVo.setHa("0");
 
-            NatServiceImpl dnatimpl = new NatServiceImpl();
+            NatService dnatimpl = new NatService();
             FwResponseBody body = dnatimpl.addPDnat(dnatVo);
             if (body.isSuccess()) {
                 // 创建成功
@@ -103,7 +102,7 @@ public class FirewallService {
 
             vo.setFlag("1");
 
-            NatServiceImpl dnatimpl = new NatServiceImpl();
+            NatService dnatimpl = new NatService();
             FwResponseBody body = dnatimpl.addPSnat(vo);
             if (body.isSuccess()) {
                 // 创建成功
@@ -212,7 +211,7 @@ public class FirewallService {
                 vo.setVrid("trust-vr");
                 vo.setVrname("trust-vr");
 
-                NatServiceImpl dnatimpl = new NatServiceImpl();
+                NatService dnatimpl = new NatService();
                 FwResponseBody body = dnatimpl.delPDnat(vo);
                 if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
                     // 删除成功
@@ -245,7 +244,7 @@ public class FirewallService {
                 vo.setVrid("trust-vr");
                 vo.setSnatid(ruleid);
 
-                NatServiceImpl dnatimpl = new NatServiceImpl();
+                NatService dnatimpl = new NatService();
                 FwResponseBody body = dnatimpl.delPSnat(vo);
 
                 if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
