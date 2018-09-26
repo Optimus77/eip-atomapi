@@ -5,11 +5,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
+import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 /**
@@ -45,7 +46,7 @@ public  class NeutronService {
         }
         NetFloatingIP netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
         if (netFloatingIP != null) {
-            log.info("Allocated Floating ip: " + netFloatingIP.getId() + " To server with Id: ");
+            log.info("Allocated Floating ip: " + netFloatingIP.getId());
         } else {
             String message = String.format(
                     "Cannot create floating ip under network: %s in region: %s",
@@ -62,16 +63,20 @@ public  class NeutronService {
         return osClientV3.networking().floatingip().delete(eipId).isSuccess();
     }
 
-    public synchronized NetFloatingIP associatePortWithFloatingIp(String netFloatingIpId, String portId) throws Exception  {
+    public synchronized ActionResponse associaInstanceWithFloatingIp(String floatingIp, String serverId)
+            throws Exception  {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
-        return osClientV3.networking().floatingip().associateToPort(netFloatingIpId, portId);
+        Server server = osClientV3.compute().servers().get(serverId);
+        return osClientV3.compute().floatingIps().addFloatingIP(server, floatingIp);
     }
 
-    public synchronized NetFloatingIP disassociateFloatingIpFromPort( String netFloatingIpId) throws Exception {
+    public synchronized ActionResponse disassociateInstanceWithFloatingIp( String floatingIp, String serverId)
+            throws Exception {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
-        return osClientV3.networking().floatingip().disassociateFromPort(netFloatingIpId);
+        Server server = osClientV3.compute().servers().get(serverId);
+        return  osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 
 

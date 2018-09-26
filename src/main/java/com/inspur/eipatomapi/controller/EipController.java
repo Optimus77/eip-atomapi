@@ -88,7 +88,7 @@ public class EipController {
     /**
      * get eip instance detail
      * @param eipId  the id of eip
-     * @return
+     * @return  retrun
      */
     @ICPControllerLog
     @GetMapping(value = "/eips/{eip_id}")
@@ -111,8 +111,9 @@ public class EipController {
     })
     public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
 
-        if(param.getEipUpdateParam().getPortId()!=null){
-            String result=eipService.eipbindPort(eipId,param.getEipUpdateParam().getPortId());
+        if(param.getEipUpdateParam().getServerId()!=null){
+            String result=eipService.eipbindPort(eipId, param.getEipUpdateParam().getType(),
+                    param.getEipUpdateParam().getServerId());
             return new ResponseEntity<>(result, HttpStatus.OK);
         }else{
             return new ResponseEntity<>("{error:\"port_id is not null\"}", HttpStatus.OK);

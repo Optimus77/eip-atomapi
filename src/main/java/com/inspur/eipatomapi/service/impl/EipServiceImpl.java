@@ -15,6 +15,7 @@ import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
+import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -223,17 +224,17 @@ public class EipServiceImpl implements IEipService {
     /**
      * associate port with eip
      * @param eip          eip
-     * @param portId       port id
+     * @param serverId     server id
      * @param instanceType instance type
      * @return             true or false
      * @throws Exception   e
      */
-    private Boolean associatePortWithEip(Eip eip, String portId, String instanceType) throws Exception{
-        NetFloatingIP netFloatingIP = neutronService.associatePortWithFloatingIp(eip.getFloatingIpId(),portId);
+    private Boolean associateInstanceWithEip(Eip eip, String serverId, String instanceType) throws Exception{
+        ActionResponse actionResponse = neutronService.associaInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
         String dnatRuleId = null;
         String snatRuleId = null;
         String pipId;
-        if(null != netFloatingIP){
+        if(actionResponse.isSuccess()){
             dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             if((null != dnatRuleId) && (null != snatRuleId)){
@@ -242,7 +243,7 @@ public class EipServiceImpl implements IEipService {
                         eip.getBanWidth(),
                         eip.getFirewallId());
                 if(null != pipId) {
-                    eip.setInstanceId(portId);
+                    eip.setInstanceId(serverId);
                     eip.setInstanceType(instanceType);
                     eip.setDnatId(dnatRuleId);
                     eip.setSnatId(snatRuleId);
@@ -258,10 +259,10 @@ public class EipServiceImpl implements IEipService {
 
             }
         } else {
-            log.warn("Failed to associate port with eip, portId:"+portId);
+            log.warn("Failed to associate port with eip, serverId:"+serverId);
         }
-        if(null != netFloatingIP){
-            neutronService.disassociateFloatingIpFromPort(netFloatingIP.getFloatingNetworkId());
+        if(actionResponse.isSuccess() ){
+            neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
         }
         if(null != snatRuleId){
             firewallService.delSnat(snatRuleId, eip.getFirewallId());
@@ -279,38 +280,39 @@ public class EipServiceImpl implements IEipService {
      * @return             reuslt, true or false
      * @throws Exception   e
      */
-    private Boolean disassociatePortWithEip(Eip eipEntity) throws Exception  {
-        NetFloatingIP netFloatingIP= neutronService.disassociateFloatingIpFromPort(eipEntity.getFloatingIpId());
-        if(null != netFloatingIP) {
-            log.warn("Failed to disassociate port with eip, floatingipid:" + eipEntity.getFloatingIpId());
-        } else {
+    private Boolean disassociateInstanceWithEip(Eip eipEntity) throws Exception  {
+        ActionResponse actionResponse= neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
+                                                                                         eipEntity.getInstanceId());
+        if(actionResponse.isSuccess()) {
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);
+        } else {
+            log.warn("Failed to disassociate port with eip, floatingipid:" + eipEntity.getFloatingIpId());
         }
         Boolean delDnatResult = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
-        if(!delDnatResult){
-            log.warn("Failed to del dnat in firewall" + eipEntity.getFirewallId());
-        }else{
+        if(delDnatResult){
             eipEntity.setDnatId(null);
+        }else{
+            log.warn("Failed to del dnat in firewall" + eipEntity.getFirewallId());
         }
         Boolean delSnatResult = firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId());
-        if(!delSnatResult) {
-            log.warn("Failed to del snat in firewall" + eipEntity.getFirewallId());
-        }else {
+        if(delSnatResult) {
             eipEntity.setSnatId(null);
+        }else {
+            log.warn("Failed to del snat in firewall" + eipEntity.getFirewallId());
         }
 
         Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-        if(!delQosResult) {
-            log.warn("Failed to del qos" + eipEntity.getPipId());
-        } else {
+        if(delQosResult) {
             eipEntity.setPipId(null);
+        } else {
+            log.warn("Failed to del qos" + eipEntity.getPipId());
         }
 
         eipEntity.setState("0");
         eipRepository.save(eipEntity);
 
-        return delDnatResult && delSnatResult && delQosResult && (null == netFloatingIP);
+        return delDnatResult && delSnatResult && delQosResult && (actionResponse.isSuccess());
     }
 
 
@@ -455,22 +457,21 @@ public class EipServiceImpl implements IEipService {
     /**
      * eip bind with port
      * @param id      id
-     * @param portId  port id
+     * @param serverId  server id
      * @return        result
      */
     @Override
     @ICPServiceLog
-    public String eipbindPort(String id,String portId){
+    public String eipbindPort(String id, String type,String serverId){
         JSONObject returnjs = new JSONObject();
         try {
             Optional<Eip> eip = eipRepository.findById(id);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
-                String instanceType = eipEntity.getInstanceType();
-                switch(instanceType){
+                switch(type){
                     case "1":
                         // 1：ecs
-                        if(!associatePortWithEip(eipEntity, portId, instanceType)){
+                        if(!associateInstanceWithEip(eipEntity, serverId, type)){
                             log.warn("Failed to associate port with eip:%s."+ id);
                         }
                         break;
@@ -529,7 +530,7 @@ public class EipServiceImpl implements IEipService {
                 switch(instanceType){
                     case "1":
                         // 1：ecs
-                        if(!disassociatePortWithEip(eipEntity)){
+                        if(!disassociateInstanceWithEip(eipEntity)){
                             log.info("Failed to disassociate port with eip"+id);
                         }
                         break;

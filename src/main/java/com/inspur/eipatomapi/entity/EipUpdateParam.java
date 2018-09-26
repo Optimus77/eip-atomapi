@@ -12,6 +12,10 @@ public class EipUpdateParam {
     @JsonProperty("charge_type")
     private String chargeType;
 
-    @JsonProperty("port_id")
-    private String portId;
+    @JsonProperty("server_id")
+    private String serverId;
+
+    //1：ecs // 2：cps // 3：slb
+    @JsonProperty("type")
+    private String type;
 }

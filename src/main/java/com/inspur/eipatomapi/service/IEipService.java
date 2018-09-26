@@ -61,10 +61,10 @@ public interface IEipService {
     /**
      * eip bind with port
      * @param id      id
-     * @param portId  port id
+     * @param serverId  server id
      * @return        result
      */
-    String eipbindPort(String id,String portId);
+    String eipbindPort(String id,String type, String serverId);
 
     /**
      * un bind port
