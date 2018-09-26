@@ -7,7 +7,6 @@ import com.inspur.eipatomapi.service.BaseService;
 import com.inspur.eipatomapi.service.INatService;
 import com.inspur.eipatomapi.util.HsHttpClient;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

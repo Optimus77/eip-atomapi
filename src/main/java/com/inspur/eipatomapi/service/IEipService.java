@@ -62,6 +62,8 @@ public interface IEipService {
      * eip bind with port
      * @param id      id
      * @param serverId  server id
+     * @param portId  port id
+     * @param type   //1：ecs // 2：cps // 3：slb
      * @return        result
      */
     String eipbindPort(String id,String type, String serverId);
@@ -78,5 +80,10 @@ public interface IEipService {
      * add eip into eip pool for test
      */
     void addEipPool();
+
+    /**
+     * list all server of current users
+     */
+    String listServer();
 
 }

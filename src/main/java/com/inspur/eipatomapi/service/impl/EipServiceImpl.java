@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -462,6 +463,9 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
+    public String eipbindPort(String id,String type,String portId){
+        log.info("bindPort param:");
+        log.info(id);
     public String eipbindPort(String id, String type,String serverId){
         JSONObject returnjs = new JSONObject();
         try {
@@ -470,48 +474,66 @@ public class EipServiceImpl implements IEipService {
                 Eip eipEntity = eip.get();
                 switch(type){
                     case "1":
+                        log.info(portId);
                         // 1：ecs
                         if(!associateInstanceWithEip(eipEntity, serverId, type)){
                             log.warn("Failed to associate port with eip:%s."+ id);
+                        if(!associatePortWithEip(eipEntity, portId, type)){
+                            log.info("Failed to associate port with eip:%s."+ id);
+                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                            returnjs.put("data","{}");
+                            returnjs.put("msg", "can't associate  port with eip"+ id);
+                        }else{
+                            JSONObject eipJSON = new JSONObject();
+                            eipJSON.put("eipid", eipEntity.getId());
+                            eipJSON.put("status", eipEntity.getState());
+                            eipJSON.put("iptype", eipEntity.getLinkType());
+                            eipJSON.put("eip_address", eipEntity.getEip());
+                            eipJSON.put("port_id", portId);
+                            eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                            eipJSON.put("chargetype", "THIS IS EMPTY");
+                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                            JSONObject eipjs=new JSONObject();
+                            eipjs.put("eip",eipJSON);
+                            ;                           returnjs.put("code",HttpStatus.SC_OK);
+                            returnjs.put("data",eipjs);
+                            returnjs.put("msg", "success");
                         }
                         break;
                     case "2":
                         // 2：cps
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support type param "+type);
                         break;
                     case "3":
                         // 3：slb
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support type param "+type);
                         break;
                     default:
-                        log.warn("Unhandled instance type.");
+                        log.info("no support type");
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support type param "+type);
                         break;
                 }
-                JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());
-                NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
-                if(bandingFloatIp!=null){
-                    log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());
-                }else{
-                    eipJSON.put("status", "ERROR GET INFO");
-                }
-                eipJSON.put("iptype", eipEntity.getLinkType());
-                eipJSON.put("eip_address", eipEntity.getEip());
-                eipJSON.put("port_id","portId" );
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                eipJSON.put("chargetype", "THIS IS EMPTY");
-                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                returnjs.put("eip", eipJSON);
+
             } else {
-                returnjs.put("error", "can not find EIP instance use this id:" + id+"");
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data",null);
+                returnjs.put("msg", "can find eip wiht id ："+id);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnjs.put("error", e.getMessage()+"");
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data",null);
+            returnjs.put("msg", e.getMessage()+"");
         }
         log.info(returnjs.toString());
         return returnjs.toString();
     }
-
     /**
      * un bind port
      * @param id    id
@@ -532,45 +554,60 @@ public class EipServiceImpl implements IEipService {
                         // 1：ecs
                         if(!disassociateInstanceWithEip(eipEntity)){
                             log.info("Failed to disassociate port with eip"+id);
+                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                            returnjs.put("data","{}");
+                            returnjs.put("msg", "can't associate  port with eip"+ id);
+                        }else{
+                            JSONObject eipJSON = new JSONObject();
+                            eipJSON.put("eipid", eipEntity.getId());
+                            eipJSON.put("status", eipEntity.getState());
+                            eipJSON.put("iptype", eipEntity.getLinkType());
+                            eipJSON.put("eip_address", eipEntity.getEip());
+                            eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                            eipJSON.put("chargetype", "THIS IS EMPTY");
+                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                            JSONObject eipjs=new JSONObject();
+                            eipjs.put("eip",eipJSON);
+                            returnjs.put("code",HttpStatus.SC_OK);
+                            returnjs.put("data",eipjs);
+                            returnjs.put("msg", "success");
                         }
                         break;
                     case "2":
                         // 2：cps
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support cps ");
                         break;
                     case "3":
                         // 3：slb
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support slb ");
                         break;
                     default:
                         //default ecs
                         log.info("Unhandled instance type.");
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support instance type. ");
                         break;
                 }
-                JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());
-                NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
-                if(bandingFloatIp!=null){
-                    log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());
-                }else{
-                    eipJSON.put("status", "ERROR GET INFO");
-                }
-                eipJSON.put("iptype", eipEntity.getLinkType());
-                eipJSON.put("eip_address", eipEntity.getEip());
-                eipJSON.put("port_id","portI " );
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                eipJSON.put("chargetype", "THIS IS EMPTY");
-                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                returnjs.put("eip", eipJSON);
             } else {
-                returnjs.put("error", "can not find EIP instance use this id:" + id+"");
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data","{}");
+                returnjs.put("msg", "can find eip wiht id ："+id);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnjs.put("error", e.getMessage()+"");
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data","{}");
+            returnjs.put("msg", e.getMessage()+"");
         }
 
         return returnjs.toString();
     }
+
 
     /**
      * add eip into eip pool for test
@@ -585,4 +622,33 @@ public class EipServiceImpl implements IEipService {
             eipPoolRepository.save(eipPoolMo);
         }
     }
+
+
+    @Override
+    public String listServer(){
+        log.info("listServer start execute");
+        JSONObject returnjs = new JSONObject();
+        try {
+            List<Server> serverList= (List<Server>) neutronService.listServer();
+            JSONArray dataArray=new JSONArray();
+            for(Server server:serverList){
+                JSONObject data=new JSONObject();
+                data.put("id",server.getId());
+                data.put("name",server.getName());
+                dataArray.add(data);
+            }
+            returnjs.put("code",HttpStatus.SC_OK);
+            returnjs.put("data",dataArray);
+            returnjs.put("msg", "success");
+        }catch (Exception e){
+            e.printStackTrace();
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data","{}");
+            returnjs.put("msg", e.getMessage()+"");
+        }
+
+
+        return returnjs.toJSONString();
+    }
+
 }

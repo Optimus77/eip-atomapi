@@ -105,11 +105,13 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipBindWithPort", notes = "")
-    @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
+    //@Forword
+    public String eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
+
+        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getPortId());
 
         if(param.getEipUpdateParam().getServerId()!=null){
             String result=eipService.eipbindPort(eipId, param.getEipUpdateParam().getType(),
@@ -123,20 +125,16 @@ public class EipController {
     @ICPControllerLog
     @DeleteMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipUnbinWithPort", notes = "")
-    @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
-        String result=eipService.unBindPort(eipId);
-        return new ResponseEntity<>(result, HttpStatus.OK);
-
+    public String eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+        return eipService.unBindPort(eipId);
     }
 
     @ICPControllerLog
     @PutMapping(value = "/eips/{eip_id}/bindwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "update eip bandWidth", notes = "")
-    @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
@@ -158,4 +156,11 @@ public class EipController {
         return new ResponseEntity<>("True", HttpStatus.OK);
     }
 
+
+    @ICPControllerLog
+    @GetMapping(value = "/servers/")
+    @ApiOperation(value = "show all servers", notes = "")
+    public String getServerList() {
+        return eipService.listServer();
+    }
 }
