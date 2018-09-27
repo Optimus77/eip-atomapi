@@ -136,7 +136,9 @@ public class EipServiceImpl implements IEipService {
                 eipInfo.put("chargemode", eipMo.getChargeMode());
                 eipInfo.put("chargetime", eipMo.getPuchaseTime());
                 eipInfo.put("eip_address", eipMo.getEip());
-                eipInfo.put("bandwidth", Integer.parseInt(eipMo.getBanWidth()));
+                if(null != eipMo.getBanWidth()) {
+                    eipInfo.put("bandwidth", Integer.parseInt(eipMo.getBanWidth()));
+                }
                 eipInfo.put("sharedbandwidth_id", eipMo.getSharedBandWidthId());
                 eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipMo.getCreateTime()));
                 eipWrapper.put("eip", eipInfo);

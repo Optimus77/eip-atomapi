@@ -13,7 +13,7 @@ public class EipAllocateParam implements Serializable {
     private String region;
 
     @NonNull
-    @JsonProperty("iptpye")
+    @JsonProperty("iptype")
     private String ipType;
 
     @JsonProperty("chargetype")
