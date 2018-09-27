@@ -47,7 +47,16 @@ public class Eip implements Serializable {
     @Column(name="vpc_id")
     private String vpcId;
 
-    @Column(name="bandwidth")
+    @Column(name="charge_type")
+    private String chargeType = "PrePaid";
+
+    @Column(name="charge_mode")
+    private String chargeMode = "BandWidth";
+
+    @Column(name="puchase_time")
+    private String puchaseTime;
+
+    @Column(name="band_width")
     private String banWidth;
 
     @Column(name="link_type")
