@@ -78,7 +78,7 @@ public interface IEipService {
     /**
      * add eip into eip pool for test
      */
-    void addEipPool();
+    void addEipPool(String ip);
 
     /**
      * list all server of current users

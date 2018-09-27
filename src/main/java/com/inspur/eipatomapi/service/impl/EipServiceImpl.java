@@ -2,12 +2,10 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eipatomapi.entity.Eip;
-import com.inspur.eipatomapi.entity.EipAllocateParam;
-import com.inspur.eipatomapi.entity.EipPool;
-import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
+import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
+import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.service.FirewallService;
@@ -47,6 +45,8 @@ public class EipServiceImpl implements IEipService {
     private FirewallService firewallService;
     @Autowired
     private NeutronService neutronService;
+    @Autowired
+    private FirewallRepository firewallRepository;
 
 
     private final static Log log = LogFactory.getLog(EipServiceImpl.class);
@@ -115,16 +115,29 @@ public class EipServiceImpl implements IEipService {
                 eipMo.setLinkType(eipConfig.getIpType());
                 eipMo.setFirewallId(eip.getFireWallId());
                 eipMo.setFloatingIpId(floatingIP.getId());
-                eipMo.setBanWidth(eipConfig.getBanWidth());
+
+                eipMo.setChargeType(eipConfig.getChargeType());
+                if(eipConfig.getChargeType().equals("PrePaid")){
+                    eipMo.setPuchaseTime(eipConfig.getPuchaseTime());
+                }
+                eipMo.setChargeMode(eipConfig.getChargeMode());
+                if(eipConfig.getChargeMode().equals("BandWidth")){
+                    eipMo.setBanWidth(eipConfig.getBanWidth());
+                }else{
+                    eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
+                }
                 eipMo.setProjectId(CommonUtil.getProjectId());
-                eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipRepository.save(eipMo);
 
                 eipInfo.put("eipid", eip.getId());
-                eipInfo.put("status", eipMo.getState());
+                eipInfo.put("state", eipMo.getState());
                 eipInfo.put("iptype", eipMo.getLinkType());
+                eipInfo.put("charge_type", eipMo.getChargeType());
+                eipInfo.put("charge_mode", eipMo.getChargeMode());
+                eipInfo.put("puchase_time", eipMo.getPuchaseTime());
                 eipInfo.put("eip_address", eipMo.getEip());
-                eipInfo.put("bandwidth", Integer.parseInt(eipMo.getBanWidth()));
+                eipInfo.put("band_width", Integer.parseInt(eipMo.getBanWidth()));
+                eipInfo.put("shared_bandwidth_id", eipMo.getSharedBandWidthId());
                 eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipMo.getCreateTime()));
                 eipWrapper.put("eip", eipInfo);
                 return eipWrapper;
@@ -610,14 +623,30 @@ public class EipServiceImpl implements IEipService {
      * add eip into eip pool for test
      */
     @Override
-    public void addEipPool() {
+    public void addEipPool(String ip) {
+        String id = "firewall_id1";
+        Firewall firewall = new Firewall();
+        firewall.setIp(ip);
+        firewall.setPort("443");
+        firewall.setUser("hillstone");
+        firewall.setPasswd("hillstone");
+        firewall.setParam1("eth0/0/0");
+        firewall.setParam2("eth0/0/1");
+        firewall.setParam3("eth0/0/2");
+        firewallRepository.save(firewall);
+        List<Firewall> firewalls = firewallRepository.findAll();
+        for(Firewall fw : firewalls){
+            id = fw.getId();
+        }
+
         for (int i = 0; i < 10; i++) {
             EipPool eipPoolMo = new EipPool();
-            eipPoolMo.setFireWallId("firewall_id1");
+            eipPoolMo.setFireWallId(id);
             eipPoolMo.setIp("1.2.3."+i);
             eipPoolMo.setState("0");
             eipPoolRepository.save(eipPoolMo);
         }
+
     }
 
 
