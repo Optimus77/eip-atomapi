@@ -17,8 +17,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.compute.Address;
+import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
+import org.openstack4j.openstack.compute.domain.NovaAddresses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +31,9 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @Auther: jiasirui
@@ -629,10 +634,29 @@ public class EipServiceImpl implements IEipService {
             List<Server> serverList= (List<Server>) neutronService.listServer();
             JSONArray dataArray=new JSONArray();
             for(Server server:serverList){
-                JSONObject data=new JSONObject();
-                data.put("id",server.getId());
-                data.put("name",server.getName());
-                dataArray.add(data);
+
+                boolean bindFloatingIpFlag=true;
+                Addresses addresses =server.getAddresses();
+                Map<String, List<? extends Address>>  novaAddresses= addresses.getAddresses();
+                Set<String> keySet =novaAddresses.keySet();
+                for (String netname:keySet) {
+                    List<? extends Address> address=novaAddresses.get(netname);
+                    for(Address addr:address){
+                        log.debug(server.getId()+server.getName()+"   "+addr.getType());
+                        if (addr.getType().equals("floating")){
+                            log.debug("===get this =======");
+                            bindFloatingIpFlag=false;
+                            break;
+                        }
+                    }
+
+                }
+                if(bindFloatingIpFlag){
+                    JSONObject data=new JSONObject();
+                    data.put("id",server.getId());
+                    data.put("name",server.getName());
+                    dataArray.add(data);
+                }
             }
             returnjs.put("code",HttpStatus.SC_OK);
             returnjs.put("data",dataArray);
