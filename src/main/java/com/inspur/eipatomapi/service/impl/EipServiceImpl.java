@@ -141,9 +141,7 @@ public class EipServiceImpl implements IEipService {
                 eipInfo.put("chargemode", eipMo.getChargeMode());
                 eipInfo.put("chargetime", eipMo.getPuchaseTime());
                 eipInfo.put("eip_address", eipMo.getEip());
-                if(null != eipMo.getBanWidth()) {
-                    eipInfo.put("bandwidth", Integer.parseInt(eipMo.getBanWidth()));
-                }
+                eipInfo.put("bandwidth", eipMo.getBanWidth());
                 eipInfo.put("sharedbandwidth_id", eipMo.getSharedBandWidthId());
                 eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipMo.getCreateTime()));
                 eipWrapper.put("eip", eipInfo);
@@ -263,7 +261,7 @@ public class EipServiceImpl implements IEipService {
             if((null != dnatRuleId) && (null != snatRuleId)){
                 pipId = firewallService.addQos(eip.getFloatingIp(),
                         eip.getEip(),
-                        eip.getBanWidth(),
+                        String.valueOf(eip.getBanWidth()),
                         eip.getFirewallId());
                 if(null != pipId) {
                     eip.setInstanceId(serverId);
@@ -360,7 +358,7 @@ public class EipServiceImpl implements IEipService {
                 eipInfo.put("iptype", eipEntity.getLinkType());
                 eipInfo.put("eip_address", eipEntity.getEip());
                 eipInfo.put("private_ip_address", eipEntity.getFloatingIp());
-                eipInfo.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                eipInfo.put("bandwidth", eipEntity.getBanWidth());
                 eipInfo.put("chargetype", eipEntity.getChargeType());
                 eipInfo.put("chargemode", eipEntity.getChargeMode());
                 eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
@@ -405,39 +403,39 @@ public class EipServiceImpl implements IEipService {
             Optional<Eip> eip = eipRepository.findById(id);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
-                if(param.getEipUpdateParam().getBandWidth()!=null && param.getEipUpdateParam().getChargeType()!=null){
-                    Integer.parseInt(param.getEipUpdateParam().getBandWidth());
-                    String width=param.getEipUpdateParam().getBandWidth();
-                    log.info(width);
-                    //TODO UpdateQos
-                    boolean updateStatus=firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
-                            eipEntity.getPipId(),eipEntity.getId(),width);
-                    if(updateStatus){
-                        log.info("before change："+eipEntity.getBanWidth());
-                        eipEntity.setBanWidth(width);
-                        log.info("after  change："+eipEntity.getBanWidth());
-                        eipRepository.save(eipEntity);
-                        JSONObject eipJSON = new JSONObject();
-                        eipJSON.put("eipid", eipEntity.getId());
-                        eipJSON.put("status",eipEntity.getState());
-                        eipJSON.put("iptype", eipEntity.getLinkType());
-                        eipJSON.put("eip_address", eipEntity.getEip());
-                        eipJSON.put("port_id", eipEntity.getFloatingIp());
-                        eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                        eipJSON.put("chargetype", eipEntity.getChargeType());
-                        eipJSON.put("chargemode", eipEntity.getChargeMode());
-                        eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                        eipJSON.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
-                        returnjs.put("eip",eipJSON);
-                        returnjs.put("code",HttpStatus.SC_OK);
-                        returnjs.put("data",new JSONObject().put("data",returnjs));
-                        returnjs.put("msg", "");
-
-
+                if(param.getEipUpdateParam().getChargeType()!=null){
+                    if(param.getEipUpdateParam().getBandWidth()==0){
+                        log.info("=====error==>>========="+param.getEipUpdateParam().getBandWidth());
+                        returnjs.put("code",HttpStatus.SC_BAD_REQUEST);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "bindwidth is null");
                     }else{
-                        returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                        returnjs.put("data",null);
-                        returnjs.put("msg", "the qos set is not success,please contact the dev");
+                        boolean updateStatus=firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(),eipEntity.getId(),String.valueOf(param.getEipUpdateParam().getBandWidth()));
+                        if(updateStatus){
+                            log.info("before change："+eipEntity.getBanWidth());
+                            eipEntity.setBanWidth(param.getEipUpdateParam().getBandWidth());
+                            log.info("after  change："+eipEntity.getBanWidth());
+                            eipRepository.save(eipEntity);
+                            JSONObject eipJSON = new JSONObject();
+                            eipJSON.put("eipid", eipEntity.getId());
+                            eipJSON.put("status",eipEntity.getState());
+                            eipJSON.put("iptype", eipEntity.getLinkType());
+                            eipJSON.put("eip_address", eipEntity.getEip());
+                            eipJSON.put("port_id", eipEntity.getFloatingIp());
+                            eipJSON.put("bandwidth", eipEntity.getBanWidth());
+                            eipJSON.put("chargetype", eipEntity.getChargeType());
+                            eipJSON.put("chargemode", eipEntity.getChargeMode());
+                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                            eipJSON.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
+                            returnjs.put("eip",eipJSON);
+                            returnjs.put("code",HttpStatus.SC_OK);
+                            returnjs.put("data",new JSONObject().put("data",returnjs));
+                            returnjs.put("msg", "");
+                        }else{
+                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                            returnjs.put("data",null);
+                            returnjs.put("msg", "the qos set is not success,please contact the dev");
+                        }
                     }
                 }else{
                     returnjs.put("code",HttpStatus.SC_BAD_REQUEST);
@@ -495,7 +493,7 @@ public class EipServiceImpl implements IEipService {
                             eipJSON.put("iptype", eipEntity.getLinkType());
                             eipJSON.put("eip_address", eipEntity.getEip());
                             eipJSON.put("instanceid", serverId);
-                            eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                            eipJSON.put("bandwidth", eipEntity.getBanWidth());
                             eipJSON.put("chargetype", "THIS IS EMPTY");
                             eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                             eipJSON.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
@@ -569,8 +567,8 @@ public class EipServiceImpl implements IEipService {
                             eipJSON.put("status", eipEntity.getState());
                             eipJSON.put("iptype", eipEntity.getLinkType());
                             eipJSON.put("eip_address", eipEntity.getEip());
-                            eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                            eipJSON.put("chargetype", "THIS IS EMPTY");
+                            eipJSON.put("bandwidth", eipEntity.getBanWidth());
+                            eipJSON.put("chargetype", eipEntity.getChargeType());
                             eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                             eipJSON.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
                             JSONObject eipjs=new JSONObject();

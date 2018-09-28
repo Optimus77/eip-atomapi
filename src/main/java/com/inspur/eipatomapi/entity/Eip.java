@@ -57,7 +57,7 @@ public class Eip implements Serializable {
     private String puchaseTime;
 
     @Column(name="band_width")
-    private String banWidth;
+    private int banWidth;
 
     @Column(name="link_type")
     private String linkType;

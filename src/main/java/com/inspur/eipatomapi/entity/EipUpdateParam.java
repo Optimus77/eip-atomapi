@@ -7,7 +7,7 @@ import lombok.Data;
 public class EipUpdateParam {
 
     @JsonProperty("band_width")
-    private String bandWidth;
+    private int bandWidth;
 
     @JsonProperty("charge_type")
     private String chargeType;

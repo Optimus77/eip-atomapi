@@ -27,7 +27,7 @@ public class EipAllocateParam implements Serializable {
     private String puchaseTime;
 
     @JsonProperty("bandwidth")
-    private String banWidth;
+    private int banWidth;
 
     @JsonProperty("sharedbandwidthid")
     private String sharedBandWidthId;
