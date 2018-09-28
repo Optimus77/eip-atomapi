@@ -191,7 +191,7 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    public String listEips(int currentPage,int limit){
+    public String listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         JSONObject returnjs = new JSONObject();
 
@@ -203,6 +203,10 @@ public class EipServiceImpl implements IEipService {
             JSONArray eips=new JSONArray();
             for(Eip eip:page.getContent()){
                 JSONObject eipJson=new JSONObject();
+                if(returnFloatingip){
+                    eipJson.put("floating_ip",eip.getFloatingIp());
+                    eipJson.put("floating_ipId",eip.getFloatingIpId());
+                }
                 eipJson.put("eipid",eip.getId());
                 eipJson.put("status",eip.getState());
                 eipJson.put("iptype",eip.getLinkType());
