@@ -23,8 +23,8 @@ public class EipAllocateParam implements Serializable {
     @JsonProperty("chargemode")
     private String chargeMode = "BandWidth";
 
-    @JsonProperty("puchasetime")
-    private String puchaseTime;
+    @JsonProperty("purchasetime")
+    private String purchaseTime;
 
     @JsonProperty("bandwidth")
     private int banWidth;

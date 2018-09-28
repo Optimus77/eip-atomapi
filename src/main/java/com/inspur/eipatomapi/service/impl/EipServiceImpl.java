@@ -122,15 +122,11 @@ public class EipServiceImpl implements IEipService {
                 eipMo.setFloatingIpId(floatingIP.getId());
 
                 eipMo.setChargeType(eipConfig.getChargeType());
-                if(eipConfig.getChargeType().equals("PrePaid")){
-                    eipMo.setPuchaseTime(eipConfig.getPuchaseTime());
-                }
+                eipMo.setPurchaseTime(eipConfig.getPurchaseTime());
+
                 eipMo.setChargeMode(eipConfig.getChargeMode());
-                if(eipConfig.getChargeMode().equals("BandWidth")){
-                    eipMo.setBanWidth(eipConfig.getBanWidth());
-                }else{
-                    eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                }
+                eipMo.setBanWidth(eipConfig.getBanWidth().toString());
+                eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipMo.setProjectId(CommonUtil.getProjectId());
                 eipRepository.save(eipMo);
 
@@ -139,7 +135,7 @@ public class EipServiceImpl implements IEipService {
                 eipInfo.put("iptype", eipMo.getLinkType());
                 eipInfo.put("chargetype", eipMo.getChargeType());
                 eipInfo.put("chargemode", eipMo.getChargeMode());
-                eipInfo.put("chargetime", eipMo.getPuchaseTime());
+                eipInfo.put("purchasetime", eipMo.getPurchaseTime());
                 eipInfo.put("eip_address", eipMo.getEip());
                 eipInfo.put("bandwidth", eipMo.getBanWidth());
                 eipInfo.put("sharedbandwidth_id", eipMo.getSharedBandWidthId());
@@ -201,7 +197,7 @@ public class EipServiceImpl implements IEipService {
         JSONObject returnjs = new JSONObject();
 
         try {
-            Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+            Sort sort = new Sort(Sort.Direction.DESC, "create_time");
             Pageable pageable =PageRequest.of(currentPage,limit,sort);
             Page<Eip> page = eipRepository.findAll(pageable);
             JSONObject data=new JSONObject();

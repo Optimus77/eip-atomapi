@@ -53,8 +53,8 @@ public class Eip implements Serializable {
     @Column(name="charge_mode")
     private String chargeMode = "BandWidth";
 
-    @Column(name="puchase_time")
-    private String puchaseTime;
+    @Column(name="purchase_time")
+    private String purchaseTime;
 
     @Column(name="band_width")
     private int banWidth;
