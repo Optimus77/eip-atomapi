@@ -122,7 +122,7 @@ public class EipServiceImpl implements IEipService {
                 eipMo.setFloatingIpId(floatingIP.getId());
 
                 eipMo.setChargeType(eipConfig.getChargeType());
-                eipMo.setPuchaseTime(eipConfig.getPuchaseTime());
+                eipMo.setPurchaseTime(eipConfig.getPurchaseTime());
 
                 eipMo.setChargeMode(eipConfig.getChargeMode());
                 eipMo.setBanWidth(eipConfig.getBanWidth().toString());
@@ -135,7 +135,7 @@ public class EipServiceImpl implements IEipService {
                 eipInfo.put("iptype", eipMo.getLinkType());
                 eipInfo.put("chargetype", eipMo.getChargeType());
                 eipInfo.put("chargemode", eipMo.getChargeMode());
-                eipInfo.put("chargetime", eipMo.getPuchaseTime());
+                eipInfo.put("purchasetime", eipMo.getPurchaseTime());
                 eipInfo.put("eip_address", eipMo.getEip());
                 eipInfo.put("bandwidth", eipConfig.getBanWidth());
                 eipInfo.put("sharedbandwidth_id", eipMo.getSharedBandWidthId());
