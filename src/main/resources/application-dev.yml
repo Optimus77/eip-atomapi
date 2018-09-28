@@ -15,9 +15,12 @@ spring:
       maxActive: 200
       maxWait: 60000
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
+  data:
+    rest:
+      base-path: /dbstructapi
 
 springfox:
   documentation:

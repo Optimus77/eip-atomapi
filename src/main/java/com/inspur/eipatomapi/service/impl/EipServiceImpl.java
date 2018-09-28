@@ -216,8 +216,8 @@ public class EipServiceImpl implements IEipService {
                 eipJson.put("eip_address",eip.getEip());
                 eipJson.put("private_ip_address",eip.getFixedIp());
                 eipJson.put("bandwidth",eip.getBanWidth());
-                eipJson.put("chargetype","null");
-                eipJson.put("chargemode","null");
+                eipJson.put("chargetype",eip.getChargeType());
+                eipJson.put("chargemode",eip.getChargeMode());
                 eipJson.put("create at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
                 JSONObject resourceset=new JSONObject();
                 resourceset.put("resourcetype",eip.getInstanceType());
@@ -355,22 +355,14 @@ public class EipServiceImpl implements IEipService {
                 Eip eipEntity = eip.get();
                 JSONObject eipWrapper=new JSONObject();
                 JSONObject eipInfo = new JSONObject();
-
                 eipInfo.put("eipid", eipEntity.getId());
-                NetFloatingIP bandingFloatIp = neutronService.getFloatingIp(eipEntity.getFloatingIpId());
-                if(bandingFloatIp!=null){
-                    log.info(bandingFloatIp.toString());
-                    eipInfo.put("status", bandingFloatIp.getStatus());
-                }else{
-                    eipInfo.put("status", "ERROR GET INFO");
-                }
                 eipInfo.put("status",eipEntity.getState());
                 eipInfo.put("iptype", eipEntity.getLinkType());
                 eipInfo.put("eip_address", eipEntity.getEip());
                 eipInfo.put("private_ip_address", eipEntity.getFloatingIp());
                 eipInfo.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                eipInfo.put("chargetype", "THIS IS EMPTY");
-                eipInfo.put("chargemode", "THIS IS EMPTY");
+                eipInfo.put("chargetype", eipEntity.getChargeType());
+                eipInfo.put("chargemode", eipEntity.getChargeMode());
                 eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                 JSONObject resourceset = new JSONObject();
                 resourceset.put("resourcetype", eipEntity.getInstanceType());
