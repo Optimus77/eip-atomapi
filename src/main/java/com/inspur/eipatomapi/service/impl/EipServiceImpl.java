@@ -19,7 +19,6 @@ import org.openstack4j.model.compute.Address;
 import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
-import org.openstack4j.openstack.compute.domain.NovaAddresses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -125,7 +124,7 @@ public class EipServiceImpl implements IEipService {
                 eipMo.setPurchaseTime(eipConfig.getPurchaseTime());
 
                 eipMo.setChargeMode(eipConfig.getChargeMode());
-                eipMo.setBanWidth(eipConfig.getBanWidth().toString());
+                eipMo.setBanWidth(eipConfig.getBanWidth());
                 eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipMo.setProjectId(CommonUtil.getProjectId());
                 eipRepository.save(eipMo);
@@ -197,7 +196,7 @@ public class EipServiceImpl implements IEipService {
         JSONObject returnjs = new JSONObject();
 
         try {
-            Sort sort = new Sort(Sort.Direction.DESC, "create_time");
+            Sort sort = new Sort(Sort.Direction.DESC, "createTime");
             Pageable pageable =PageRequest.of(currentPage,limit,sort);
             Page<Eip> page = eipRepository.findAll(pageable);
             JSONObject data=new JSONObject();
