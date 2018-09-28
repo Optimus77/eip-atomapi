@@ -122,15 +122,11 @@ public class EipServiceImpl implements IEipService {
                 eipMo.setFloatingIpId(floatingIP.getId());
 
                 eipMo.setChargeType(eipConfig.getChargeType());
-                if(eipConfig.getChargeType().equals("PrePaid")){
-                    eipMo.setPuchaseTime(eipConfig.getPuchaseTime());
-                }
+                eipMo.setPuchaseTime(eipConfig.getPuchaseTime());
+
                 eipMo.setChargeMode(eipConfig.getChargeMode());
-                if(eipConfig.getChargeMode().equals("BandWidth")){
-                    eipMo.setBanWidth(eipConfig.getBanWidth());
-                }else{
-                    eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                }
+                eipMo.setBanWidth(eipConfig.getBanWidth().toString());
+                eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipMo.setProjectId(CommonUtil.getProjectId());
                 eipRepository.save(eipMo);
 
@@ -141,9 +137,7 @@ public class EipServiceImpl implements IEipService {
                 eipInfo.put("chargemode", eipMo.getChargeMode());
                 eipInfo.put("chargetime", eipMo.getPuchaseTime());
                 eipInfo.put("eip_address", eipMo.getEip());
-                if(null != eipMo.getBanWidth()) {
-                    eipInfo.put("bandwidth", Integer.parseInt(eipMo.getBanWidth()));
-                }
+                eipInfo.put("bandwidth", eipConfig.getBanWidth());
                 eipInfo.put("sharedbandwidth_id", eipMo.getSharedBandWidthId());
                 eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipMo.getCreateTime()));
                 eipWrapper.put("eip", eipInfo);
