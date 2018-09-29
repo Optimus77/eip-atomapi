@@ -3,6 +3,7 @@ package com.inspur.eipatomapi.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.HsHttpClient;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -34,129 +35,36 @@ public class NatService extends BaseService {
         }
     }
 
-    public FwResponseBody addDnat(FwDnatVo dnat) {
-        Gson gson = new Gson();
-        FwResponseBody body = new FwResponseBody();
-
-        try {
-            String retr = HsHttpClient.hsHttpPost(dnat.getManageIP(), dnat.getManagePort(), "/rest/Dnat?target=dnat_rule", this.getPayload(dnat));
-            JSONObject jo = new JSONObject(retr);
-            body.setSuccess(jo.getBoolean("success"));
-            if (!body.isSuccess()) {
-                body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
-                return body;
-            } else {
-                JSONArray jo_result = jo.getJSONArray("result");
-                JSONObject jo_vr = jo_result.getJSONObject(0);
-                JSONObject jo_vr_item = jo_vr.getJSONObject("vr");
-                JSONObject jo_vrouter = jo_vr_item.getJSONObject("vrouter");
-                body.setObject(gson.fromJson(jo_vrouter.getString("dnat_rule"), FwPortMapResult.class));
-                FwPortMapResult result = (FwPortMapResult) body.getObject();
-                return body;
-            }
-        } catch (Exception var11) {
-            this.logger.error(var11);
-            body.setSuccess(false);
-            FwResponseException ex = new FwResponseException();
-            ex.setCode("-1");
-            ex.setMessage(var11.getMessage());
-            body.setException(ex);
-            return body;
-        }
-    }
-
-    public FwResponseBody delDnat(FwDnatVo dnat) {
-        Gson gson = new Gson();
-        FwResponseBody body = new FwResponseBody();
-
-        try {
-            String retr = HsHttpClient.hsHttpDelete(dnat.getManageIP(), dnat.getManagePort(), "/rest/Dnat?target=dnat_rule", this.getPayload(dnat));
-            JSONObject jo = new JSONObject(retr);
-            body.setSuccess(jo.getBoolean("success"));
-            if (!body.isSuccess()) {
-                body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
-            }
-
-            return body;
-        } catch (Exception var6) {
-            this.logger.error(var6);
-            body.setSuccess(false);
-            FwResponseException ex = new FwResponseException();
-            ex.setCode("-1");
-            ex.setMessage(var6.getMessage());
-            body.setException(ex);
-            return body;
-        }
-    }
-
-    public FwResponseBody addSnat(FwSnatVo snat) {
-        FwResponseBody body = new FwResponseBody();
-        FwSnatVo resultVo = new FwSnatVo();
-        Gson gson = new Gson();
-
-        try {
-            String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), null, "/rest/Snat?target=snat_rule", this.addSnatPayload("add", snat));
-            JSONObject jo = new JSONObject(retr);
-            if (jo.getBoolean("success")) {
-                FwSnat fwSnat = (FwSnat)gson.fromJson(jo.getJSONArray("result").getJSONObject(0).getJSONObject("vr").getJSONObject("vrouter").getString("snat_rule"), FwSnat.class);
-                resultVo.setSnatid(fwSnat.getRule_id());
-                body.setObject(resultVo);
-            }
-
-            body.setSuccess(jo.getBoolean("success"));
-            body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
-        } catch (Exception var8) {
-            var8.printStackTrace();
-        }
-
-        return body;
-    }
-
-
-    public FwResponseBody delSnat(FwSnatVo snat) {
-        FwResponseBody body = new FwResponseBody();
-        Gson gson = new Gson();
-
-        try {
-            Map<String, Object> payloadMap = new HashMap();
-            Map<String, String> idMap = new HashMap();
-            idMap.put("rule_id", snat.getSnatid());
-            payloadMap.put("vr_name", snat.getVrid());
-            payloadMap.put("snat_rule", idMap);
-            String retr = HsHttpClient.hsHttpDelete(snat.getManageIP(), (String)null, "/rest/Snat?target=snat_rule", gson.toJson(payloadMap));
-            JSONObject jo = new JSONObject(retr);
-            body.setSuccess(jo.getBoolean("success"));
-            body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
-        } catch (Exception var8) {
-            var8.printStackTrace();
-        }
-
-        return body;
-    }
-
     public FwResponseBody addPSnat(FwSnatVo snat) {
         FwResponseBody body = new FwResponseBody();
         FwSnatVo resultVo = new FwSnatVo();
         Gson gson = new Gson();
-
         try {
-            String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), snat.getManagePort(), snat.getManageUser(), snat.getManagePwd(), "/rest/Snat?target=snat_rule", this.addSnatPayload("add", snat));
+//            System.out.println(HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE);
+            String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), snat.getManagePort(), snat.getManageUser(), snat.getManagePwd(),
+                    HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE, addSnatPayload("add",snat));
+            //String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), null,
+            //		HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE, addSnatPayload("add",snat));
+
             JSONObject jo = new JSONObject(retr);
             if (jo.getBoolean("success")) {
-                FwSnat hsSnat = (FwSnat)gson.fromJson(jo.getJSONArray("result").getJSONObject(0).getJSONObject("vr").getJSONObject("vrouter").getString("snat_rule"), FwSnat.class);
+                FwSnat hsSnat = gson.fromJson(jo.getJSONArray("result").getJSONObject(0)
+                        .getJSONObject("vr").getJSONObject("vrouter")
+                        .getJSONObject("snat_rule").toString(), FwSnat.class);
                 resultVo.setSnatid(hsSnat.getRule_id());
                 body.setObject(resultVo);
             }
 
             body.setSuccess(jo.getBoolean("success"));
-            body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
-        } catch (Exception var8) {
-            var8.printStackTrace();
+            body.setException((gson.fromJson(jo.getJSONObject("exception").toString(),
+                    FwResponseException.class)));
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return body;
     }
-
     public FwResponseBody delPSnat(FwSnatVo snat) {
         FwResponseBody body = new FwResponseBody();
         Gson gson = new Gson();
@@ -170,7 +78,8 @@ public class NatService extends BaseService {
             String retr = HsHttpClient.hsHttpDelete(snat.getManageIP(), snat.getManagePort(), snat.getManageUser(), snat.getManagePwd(), "/rest/Snat?target=snat_rule", gson.toJson(payloadMap));
             JSONObject jo = new JSONObject(retr);
             body.setSuccess(jo.getBoolean("success"));
-            body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
+            body.setException(gson.fromJson(jo.getJSONObject("exception").toString(),
+                    FwResponseException.class));
         } catch (Exception var8) {
             var8.printStackTrace();
         }
@@ -187,14 +96,15 @@ public class NatService extends BaseService {
             JSONObject jo = new JSONObject(retr);
             body.setSuccess(jo.getBoolean("success"));
             if (!body.isSuccess()) {
-                body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
+                body.setException(gson.fromJson(jo.getJSONObject("exception").toString(),
+                        FwResponseException.class));
                 return body;
             } else {
                 JSONArray jo_result = jo.getJSONArray("result");
                 JSONObject jo_vr = jo_result.getJSONObject(0);
                 JSONObject jo_vr_item = jo_vr.getJSONObject("vr");
                 JSONObject jo_vrouter = jo_vr_item.getJSONObject("vrouter");
-                body.setObject(gson.fromJson(jo_vrouter.getString("dnat_rule"), FwPortMapResult.class));
+                body.setObject(gson.fromJson(jo_vrouter.getJSONObject("dnat_rule").toString(), FwPortMapResult.class));
                 FwPortMapResult result = (FwPortMapResult) body.getObject();
                 return body;
             }
@@ -214,11 +124,14 @@ public class NatService extends BaseService {
         FwResponseBody body = new FwResponseBody();
 
         try {
-            String retr = HsHttpClient.hsHttpDelete(dnat.getManageIP(), dnat.getManagePort(), dnat.getManageUser(), dnat.getManagePwd(), "/rest/Dnat?target=dnat_rule", this.getPayload(dnat));
+            String retr = HsHttpClient.hsHttpDelete(dnat.getManageIP(), dnat.getManagePort(),
+                    dnat.getManageUser(), dnat.getManagePwd(),
+                    "/rest/Dnat?target=dnat_rule", this.getPayload(dnat));
             JSONObject jo = new JSONObject(retr);
             body.setSuccess(jo.getBoolean("success"));
             if (!body.isSuccess()) {
-                body.setException((FwResponseException)gson.fromJson(jo.getString("exception"), FwResponseException.class));
+                body.setException(gson.fromJson(jo.getJSONObject("exception").toString(),
+                        FwResponseException.class));
             }
 
             return body;
@@ -257,23 +170,26 @@ public class NatService extends BaseService {
         return payload;
     }
 
-    private String addSnatPayload(String operator, FwSnatVo vo)  {
-        Gson gson = null;
+    private String addSnatPayload(String operator,FwSnatVo vo) throws Exception{
+
+        Gson gson;
         FwSnatParam snatParam = new FwSnatParam();
         snatParam.setVr_name(vo.getVrid());
+
         FwSnat snat = new FwSnat();
+
         if ("add".equals(operator)) {
             gson = new Gson();
             snat.setPos_flag(vo.getPos_flag());
             snat.setTrans_to_is_ip("1");
         }else if ("update".equals(operator)) {
-            gson = (new GsonBuilder()).serializeNulls().create();
+            gson = new GsonBuilder().serializeNulls().create();
             snat.setTrans_to("");
             snat.setTrans_to_is_ip("");
             snat.setEvr("");
             snat.setPos_flag("");
-        } else{
-            return "[]";
+        }else {
+            return null;
         }
 
         snat.setDescription(vo.getDescription());
@@ -289,8 +205,15 @@ public class NatService extends BaseService {
         snat.setTo(vo.getDaddr());
         snat.setTrans_to(vo.getTransferaddr());
         snat.setTo_is_ip(vo.getDaddrtype());
+
         snatParam.getSnat_rule().add(snat);
-        return "update".equals(operator) ? "[" + gson.toJson(snatParam) + "]" : gson.toJson(snatParam);
+
+        if ("update".equals(operator)) {
+            return "["+gson.toJson(snatParam)+"]";
+        }
+        System.out.println("-----------------------------");
+        System.out.println(snatParam.toString());
+        return gson.toJson(snatParam);
     }
 
 }
