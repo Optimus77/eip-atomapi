@@ -60,7 +60,7 @@ public class EipController {
         if(limit==null){
             limit="10";
         }
-        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit));
+        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
 
 
@@ -154,4 +154,21 @@ public class EipController {
     public String getServerList() {
         return eipService.listServer();
     }
+
+    @ICPControllerLog
+    @GetMapping(value = "/eips_ext")
+    @ApiOperation(value="listeip",notes="list")
+    public String listEipExt(@RequestParam String currentPage , @RequestParam String limit) {
+        log.info("EipController listEip ext");
+        if(currentPage==null){
+            currentPage="1";
+        }
+        if(limit==null){
+            limit="10";
+        }
+        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),true);
+    }
+
+
+
 }
