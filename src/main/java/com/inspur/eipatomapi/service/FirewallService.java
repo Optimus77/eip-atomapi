@@ -21,14 +21,25 @@ public class FirewallService {
     private FirewallRepository firewallRepository;
 
     private Firewall getFireWallById(String id){
-        Firewall fireWallEntity = null;
-        Optional<Firewall> firewall = firewallRepository.findById(id);
-        if(firewall.isPresent()){
-            fireWallEntity =  firewall.get();
-        } else {
-            log.warn("Failed to find the firewall by id:"+ id);
-        }
-        return fireWallEntity;
+        Firewall firewall = null;
+
+        firewall = new Firewall();
+        firewall.setIp("10.110.26.93");
+        firewall.setPort("443");
+        firewall.setUser("hillstone");
+        firewall.setPasswd("hillstone");
+        firewall.setParam1("eth0/0/0");
+        firewall.setParam2("eth0/0/1");
+        firewall.setParam3("eth0/0/2");
+        return firewall;
+//
+//        Optional<Firewall> firewall = firewallRepository.findById(id);
+//        if(firewall.isPresent()){
+//            fireWallEntity =  firewall.get();
+//        } else {
+//            log.warn("Failed to find the firewall by id:"+ id);
+//        }
+//        return fireWallEntity;
     }
 
     public String addDnat(String innerip, String extip, String equipid) {
@@ -90,7 +101,7 @@ public class FirewallService {
             vo.setSaddr(innerip);  //内网IP地址
             vo.setSaddrtype("1");
             vo.setHa("0");
-            vo.setSnatlog("false");
+            vo.setSnatlog("true");
             //vo.setPos_flag("0"); // 列表最后
             vo.setPos_flag("1");   // 列表最前
             vo.setSnatid("0");
