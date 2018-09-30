@@ -169,6 +169,15 @@ public class EipController {
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),true);
     }
 
-
+    @ICPControllerLog
+    @GetMapping(value = "/instance/{instance_id}")
+    @ApiOperation(value="get eip by instance ",notes="get")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "instance_id", value = "the id of instance", required = true, dataType = "String"),
+    })
+    public JSONObject getEipByInstanceId(@PathVariable String instance_id) {
+        log.info("EipController get eip by instance id.");
+        return  eipService.getEipByInstanceId(instance_id);
+    }
 
 }

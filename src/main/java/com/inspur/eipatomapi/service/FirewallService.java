@@ -26,8 +26,8 @@ public class FirewallService {
         firewall = new Firewall();
         firewall.setIp("10.110.26.93");
         firewall.setPort("443");
-        firewall.setUser("hillstone");
-        firewall.setPasswd("hillstone");
+        firewall.setUser("InnetAdmin");
+        firewall.setPasswd("innetadmin");
         firewall.setParam1("eth0/0/0");
         firewall.setParam2("eth0/0/1");
         firewall.setParam3("eth0/0/2");

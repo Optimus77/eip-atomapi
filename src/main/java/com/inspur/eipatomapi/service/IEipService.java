@@ -85,4 +85,9 @@ public interface IEipService {
      */
     String listServer();
 
+    /**
+     * get eip by floating ip
+     */
+    JSONObject getEipByInstanceId(String instanceId);
+
 }

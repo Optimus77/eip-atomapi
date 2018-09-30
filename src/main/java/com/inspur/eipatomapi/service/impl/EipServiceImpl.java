@@ -20,17 +20,11 @@ import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @Auther: jiasirui
@@ -388,6 +382,56 @@ public class EipServiceImpl implements IEipService {
     }
 
     /**
+     * get detail of the eip
+     * @param  instanceId  the floating ip
+     * @return the json result
+     */
+    @Override
+    @ICPServiceLog
+    public JSONObject getEipByInstanceId(String instanceId) {
+
+        JSONObject returnjs = new JSONObject();
+        try {
+
+            Eip eipEntity = eipRepository.findByInstanceId(instanceId);
+
+            if (null != eipEntity) {
+                System.out.println(eipEntity.getId());
+                JSONObject eipWrapper=new JSONObject();
+                JSONObject eipInfo = new JSONObject();
+                eipInfo.put("eipid", eipEntity.getId());
+                eipInfo.put("status",eipEntity.getState());
+                eipInfo.put("iptype", eipEntity.getLinkType());
+                eipInfo.put("eip_address", eipEntity.getEip());
+                eipInfo.put("private_ip_address", eipEntity.getFloatingIp());
+                eipInfo.put("bandwidth", eipEntity.getBanWidth());
+                eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                eipInfo.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
+                JSONObject resourceset = new JSONObject();
+                resourceset.put("resourcetype", eipEntity.getInstanceType());
+                resourceset.put("resource_id", eipEntity.getInstanceId());
+                eipInfo.put("resourceset", resourceset);
+                eipWrapper.put("eip", eipInfo);
+
+                returnjs.put("code", HttpStatus.SC_OK);
+                returnjs.put("data",eipWrapper);
+                returnjs.put("msg", "");
+            } else {
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data",null);
+                returnjs.put("msg", "can not find instance by this id:" + instanceId+"");
+            }
+            return returnjs;
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnjs.put("data",e.getMessage());
+            returnjs.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("msg", e.getCause());
+            return returnjs;
+        }
+
+    }
+    /**
      * update eip band width
      * @param id    id
      * @param param param
@@ -618,28 +662,34 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     public void addEipPool(String ip) {
-        String id = "firewall_id1";
-        Firewall firewall = new Firewall();
-        firewall.setIp(ip);
-        firewall.setPort("443");
-        firewall.setUser("hillstone");
-        firewall.setPasswd("hillstone");
-        firewall.setParam1("eth0/0/0");
-        firewall.setParam2("eth0/0/1");
-        firewall.setParam3("eth0/0/2");
-        firewallRepository.save(firewall);
-        List<Firewall> firewalls = firewallRepository.findAll();
-        for(Firewall fw : firewalls){
-            id = fw.getId();
+        JSONObject eip = getEipByInstanceId(ip);
+        if(null != eip){
+            System.out.println(eip.toString());
+            return;
         }
-
-        for (int i = 0; i < 10; i++) {
-            EipPool eipPoolMo = new EipPool();
-            eipPoolMo.setFireWallId(id);
-            eipPoolMo.setIp("1.2.3."+i);
-            eipPoolMo.setState("0");
-            eipPoolRepository.save(eipPoolMo);
-        }
+//
+//        String id = "firewall_id1";
+//        Firewall firewall = new Firewall();
+//        firewall.setIp(ip);
+//        firewall.setPort("443");
+//        firewall.setUser("hillstone");
+//        firewall.setPasswd("hillstone");
+//        firewall.setParam1("eth0/0/0");
+//        firewall.setParam2("eth0/0/1");
+//        firewall.setParam3("eth0/0/2");
+//        firewallRepository.save(firewall);
+//        List<Firewall> firewalls = firewallRepository.findAll();
+//        for(Firewall fw : firewalls){
+//            id = fw.getId();
+//        }
+//
+//        for (int i = 0; i < 10; i++) {
+//            EipPool eipPoolMo = new EipPool();
+//            eipPoolMo.setFireWallId(id);
+//            eipPoolMo.setIp("1.2.3."+i);
+//            eipPoolMo.setState("0");
+//            eipPoolRepository.save(eipPoolMo);
+//        }
 
     }
 
