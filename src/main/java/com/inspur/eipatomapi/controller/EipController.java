@@ -103,23 +103,22 @@ public class EipController {
 
 
     @ICPControllerLog
-    @PostMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "eipBindWithPort", notes = "")
+    @PostMapping(value = "/eips/bind/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "eipBindWithServer", notes = "")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
     public String eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
-
         return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getServerId());
     }
 
     @ICPControllerLog
-    @DeleteMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "eipUnbinWithPort", notes = "")
+    @PostMapping(value = "/eips/unbind/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "eipUnbinWithServer", notes = "")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public String eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+    public String eipUnbindWithPort(@PathVariable("eip_id") String eipId) {
         return eipService.unBindPort(eipId);
     }
 
