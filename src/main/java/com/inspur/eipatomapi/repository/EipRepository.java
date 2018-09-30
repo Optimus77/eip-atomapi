@@ -19,6 +19,4 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     Eip findByInstanceId (String instanceId);
 
- //   @Query("from eip e where e.instanceId=:instanceId")
- //   Eip findEipByInstanceId(@Param("instance_id") String instance_id);
 }

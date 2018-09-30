@@ -170,7 +170,7 @@ public class EipController {
 
     @ICPControllerLog
     @GetMapping(value = "/instance/{instance_id}")
-    @ApiOperation(value="get eip by instance ",notes="get")
+    @ApiOperation(value="getEipByInstanceId",notes="")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "instance_id", value = "the id of instance", required = true, dataType = "String"),
     })

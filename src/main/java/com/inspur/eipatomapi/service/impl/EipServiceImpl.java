@@ -662,34 +662,29 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     public void addEipPool(String ip) {
-        JSONObject eip = getEipByInstanceId(ip);
-        if(null != eip){
-            System.out.println(eip.toString());
-            return;
+
+        String id = "firewall_id1";
+        Firewall firewall = new Firewall();
+        firewall.setIp(ip);
+        firewall.setPort("443");
+        firewall.setUser("hillstone");
+        firewall.setPasswd("hillstone");
+        firewall.setParam1("eth0/0/0");
+        firewall.setParam2("eth0/0/1");
+        firewall.setParam3("eth0/0/2");
+        firewallRepository.save(firewall);
+        List<Firewall> firewalls = firewallRepository.findAll();
+        for(Firewall fw : firewalls){
+            id = fw.getId();
         }
-//
-//        String id = "firewall_id1";
-//        Firewall firewall = new Firewall();
-//        firewall.setIp(ip);
-//        firewall.setPort("443");
-//        firewall.setUser("hillstone");
-//        firewall.setPasswd("hillstone");
-//        firewall.setParam1("eth0/0/0");
-//        firewall.setParam2("eth0/0/1");
-//        firewall.setParam3("eth0/0/2");
-//        firewallRepository.save(firewall);
-//        List<Firewall> firewalls = firewallRepository.findAll();
-//        for(Firewall fw : firewalls){
-//            id = fw.getId();
-//        }
-//
-//        for (int i = 0; i < 10; i++) {
-//            EipPool eipPoolMo = new EipPool();
-//            eipPoolMo.setFireWallId(id);
-//            eipPoolMo.setIp("1.2.3."+i);
-//            eipPoolMo.setState("0");
-//            eipPoolRepository.save(eipPoolMo);
-//        }
+
+        for (int i = 0; i < 10; i++) {
+            EipPool eipPoolMo = new EipPool();
+            eipPoolMo.setFireWallId(id);
+            eipPoolMo.setIp("1.2.3."+i);
+            eipPoolMo.setState("0");
+            eipPoolRepository.save(eipPoolMo);
+        }
 
     }
 
