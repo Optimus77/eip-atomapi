@@ -52,7 +52,7 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public String listEip(@RequestParam String currentPage , @RequestParam String limit) {
+    public JSONObject listEip(@RequestParam String currentPage , @RequestParam String limit) {
         log.info("EipController listEip");
         if(currentPage==null){
             currentPage="1";
@@ -97,6 +97,7 @@ public class EipController {
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
     public JSONObject getEipDetail(@PathVariable("eip_id") String eipId){
+
         return eipService.getEipDetail(eipId);
     }
 
@@ -108,8 +109,8 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public String eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
-        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getServerId());
+    public JSONObject eipBindServer(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
+        return eipService.eipBindServer(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getServerId());
     }
 
     @ICPControllerLog
@@ -118,8 +119,8 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public String eipUnbindWithPort(@PathVariable("eip_id") String eipId) {
-        return eipService.unBindPort(eipId);
+    public JSONObject eipUnbindServer(@PathVariable("eip_id") String eipId) {
+        return eipService.eipUnbindServer(eipId);
     }
 
     @ICPControllerLog
@@ -128,7 +129,7 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public String changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+    public JSONObject changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
         return eipService.updateEipBandWidth(eipId,param);
     }
 
@@ -150,14 +151,14 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/servers/")
     @ApiOperation(value = "show all servers", notes = "")
-    public String getServerList() {
+    public JSONObject getServerList() {
         return eipService.listServer();
     }
 
     @ICPControllerLog
     @GetMapping(value = "/eips_ext")
     @ApiOperation(value="listeip",notes="list")
-    public String listEipExt(@RequestParam String currentPage , @RequestParam String limit) {
+    public JSONObject listEipExt(@RequestParam String currentPage , @RequestParam String limit) {
         log.info("EipController listEip ext");
         if(currentPage==null){
             currentPage="1";

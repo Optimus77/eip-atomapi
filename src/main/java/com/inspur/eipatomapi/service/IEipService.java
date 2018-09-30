@@ -39,7 +39,7 @@ public interface IEipService {
      * @param limit  element of per page
      * @return       result
      */
-    String listEips(int currentPage,int limit,boolean returnFloatingip);
+    JSONObject listEips(int currentPage,int limit,boolean returnFloatingip);
 
     /**
      * get detail of the eip
@@ -55,7 +55,7 @@ public interface IEipService {
      * @param param param
      * @return      result
      */
-    String updateEipBandWidth(String id, EipUpdateParamWrapper param);
+    JSONObject updateEipBandWidth(String id, EipUpdateParamWrapper param);
 
 
     /**
@@ -65,14 +65,14 @@ public interface IEipService {
      * @param type   //1：ecs // 2：cps // 3：slb
      * @return        result
      */
-    String eipbindPort(String id,String type, String serverId);
+    JSONObject eipBindServer(String id,String type, String serverId);
 
     /**
      * un bind port
      * @param id    id
      * @return      result
      */
-    String unBindPort(String id);
+    JSONObject eipUnbindServer(String id);
 
 
     /**
@@ -83,6 +83,6 @@ public interface IEipService {
     /**
      * list all server of current users
      */
-    String listServer();
+    JSONObject listServer();
 
 }

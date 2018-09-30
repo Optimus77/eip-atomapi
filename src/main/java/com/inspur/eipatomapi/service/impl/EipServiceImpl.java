@@ -1,7 +1,10 @@
 package com.inspur.eipatomapi.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializeConfig;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
@@ -10,6 +13,7 @@ import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.service.FirewallService;
 import com.inspur.eipatomapi.util.CommonUtil;
+import com.inspur.eipatomapi.util.FastjsonUtil;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -191,7 +195,7 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    public String listEips(int currentPage,int limit,boolean returnFloatingip){
+    public JSONObject listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         JSONObject returnjs = new JSONObject();
 
@@ -203,24 +207,7 @@ public class EipServiceImpl implements IEipService {
             JSONArray eips=new JSONArray();
             for(Eip eip:page.getContent()){
                 JSONObject eipJson=new JSONObject();
-                if(returnFloatingip){
-                    eipJson.put("floating_ip",eip.getFloatingIp());
-                    eipJson.put("floating_ipId",eip.getFloatingIpId());
-                }
-                eipJson.put("eipid",eip.getId());
-                eipJson.put("status",eip.getState());
-                eipJson.put("iptype",eip.getLinkType());
-                eipJson.put("eip_address",eip.getEip());
-                eipJson.put("private_ip_address",eip.getFixedIp());
-                eipJson.put("bandwidth",eip.getBanWidth());
-                eipJson.put("chargetype",eip.getChargeType());
-                eipJson.put("chargemode",eip.getChargeMode());
-                eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
-                eipJson.put("sharedbandwidth_id",eip.getSharedBandWidthId());
-                JSONObject resourceset=new JSONObject();
-                resourceset.put("resourcetype",eip.getInstanceType());
-                resourceset.put("resource_id",eip.getInstanceId());
-                eipJson.put("resourceset",resourceset);
+                eipReturnValueHandler(eipJson,eip,returnFloatingip);
                 eips.add(eipJson);
             }
             data.put("eips",eips);
@@ -238,7 +225,7 @@ public class EipServiceImpl implements IEipService {
             returnjs.put("msg", e.getCause());
 
         }
-        return returnjs.toJSONString();
+        return returnjs;
     }
 
     /**
@@ -258,25 +245,24 @@ public class EipServiceImpl implements IEipService {
             dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             if((null != dnatRuleId) && (null != snatRuleId)){
-                pipId = firewallService.addQos(eip.getFloatingIp(),
-                        eip.getEip(),
-                        String.valueOf(eip.getBanWidth()),
-                        eip.getFirewallId());
-                if(null != pipId) {
+//                pipId = firewallService.addQos(eip.getFloatingIp(),
+//                        eip.getEip(),
+//                        String.valueOf(eip.getBanWidth()),
+//                        eip.getFirewallId());
+               // if(null != pipId) {
                     eip.setInstanceId(serverId);
                     eip.setInstanceType(instanceType);
                     eip.setDnatId(dnatRuleId);
                     eip.setSnatId(snatRuleId);
-                    eip.setPipId(pipId);
+                    eip.setPipId("//TODO qos function is not support now");
                     eip.setState("1");
                     eipRepository.save(eip);
                     return true;
-                } else {
-                    log.warn("Failed to add qos in firewall"+eip.getFirewallId());
-                }
+//                } else {
+//                    log.warn("Failed to add qos in firewall"+eip.getFirewallId());
+//                }
             } else {
                 log.warn("Failed to add snat and dnat in firewall"+eip.getFirewallId());
-
             }
         } else {
             log.warn("Failed to associate port with eip, serverId:"+serverId);
@@ -352,22 +338,8 @@ public class EipServiceImpl implements IEipService {
                 Eip eipEntity = eip.get();
                 JSONObject eipWrapper=new JSONObject();
                 JSONObject eipInfo = new JSONObject();
-                eipInfo.put("eipid", eipEntity.getId());
-                eipInfo.put("status",eipEntity.getState());
-                eipInfo.put("iptype", eipEntity.getLinkType());
-                eipInfo.put("eip_address", eipEntity.getEip());
-                eipInfo.put("private_ip_address", eipEntity.getFloatingIp());
-                eipInfo.put("bandwidth", eipEntity.getBanWidth());
-                eipInfo.put("chargetype", eipEntity.getChargeType());
-                eipInfo.put("chargemode", eipEntity.getChargeMode());
-                eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                eipInfo.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
-                JSONObject resourceset = new JSONObject();
-                resourceset.put("resourcetype", eipEntity.getInstanceType());
-                resourceset.put("resource_id", eipEntity.getInstanceId());
-                eipInfo.put("resourceset", resourceset);
+                eipReturnValueHandler(eipInfo,eipEntity,false);
                 eipWrapper.put("eip", eipInfo);
-
                 returnjs.put("code", HttpStatus.SC_OK);
                 returnjs.put("data",eipWrapper);
                 returnjs.put("msg", "");
@@ -376,6 +348,7 @@ public class EipServiceImpl implements IEipService {
                 returnjs.put("data",null);
                 returnjs.put("msg", "can not find instance use this id:" + eipId+"");
             }
+            log.info(returnjs.toJSONString());
             return returnjs;
         } catch (Exception e) {
             e.printStackTrace();
@@ -395,7 +368,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public String updateEipBandWidth(String id, EipUpdateParamWrapper param) {
+    public JSONObject updateEipBandWidth(String id, EipUpdateParamWrapper param) {
 
         JSONObject returnjs = new JSONObject();
         try {
@@ -416,16 +389,7 @@ public class EipServiceImpl implements IEipService {
                             log.info("after  change："+eipEntity.getBanWidth());
                             eipRepository.save(eipEntity);
                             JSONObject eipJSON = new JSONObject();
-                            eipJSON.put("eipid", eipEntity.getId());
-                            eipJSON.put("status",eipEntity.getState());
-                            eipJSON.put("iptype", eipEntity.getLinkType());
-                            eipJSON.put("eip_address", eipEntity.getEip());
-                            eipJSON.put("port_id", eipEntity.getFloatingIp());
-                            eipJSON.put("bandwidth", eipEntity.getBanWidth());
-                            eipJSON.put("chargetype", eipEntity.getChargeType());
-                            eipJSON.put("chargemode", eipEntity.getChargeMode());
-                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                            eipJSON.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
+                            eipReturnValueHandler(eipJSON,eipEntity,false);
                             returnjs.put("eip",eipJSON);
                             returnjs.put("code",HttpStatus.SC_OK);
                             returnjs.put("data",new JSONObject().put("data",returnjs));
@@ -458,7 +422,7 @@ public class EipServiceImpl implements IEipService {
             returnjs.put("error", e.getMessage()+"");
         }
         log.info(returnjs.toString());
-        return returnjs.toString();
+        return returnjs;
 
     }
 
@@ -470,7 +434,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public String eipbindPort(String id, String type,String serverId){
+    public JSONObject eipBindServer(String id, String type,String serverId){
         JSONObject returnjs = new JSONObject();
         try {
             Optional<Eip> eip = eipRepository.findById(id);
@@ -487,15 +451,7 @@ public class EipServiceImpl implements IEipService {
                             returnjs.put("msg", "can't associate  port with eip"+ id);
                         }else{
                             JSONObject eipJSON = new JSONObject();
-                            eipJSON.put("eipid", eipEntity.getId());
-                            eipJSON.put("status", eipEntity.getState());
-                            eipJSON.put("iptype", eipEntity.getLinkType());
-                            eipJSON.put("eip_address", eipEntity.getEip());
-                            eipJSON.put("instanceid", serverId);
-                            eipJSON.put("bandwidth", eipEntity.getBanWidth());
-                            eipJSON.put("chargetype", "THIS IS EMPTY");
-                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                            eipJSON.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
+                            eipReturnValueHandler(eipJSON,eipEntity,false);
                             JSONObject eipjs=new JSONObject();
                             eipjs.put("eip",eipJSON);
                             returnjs.put("code",HttpStatus.SC_OK);
@@ -535,7 +491,7 @@ public class EipServiceImpl implements IEipService {
             returnjs.put("msg", e.getMessage()+"");
         }
         log.info(returnjs.toString());
-        return returnjs.toString();
+        return returnjs;
     }
     /**
      * un bind port
@@ -544,7 +500,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public String unBindPort(String id){
+    public JSONObject eipUnbindServer(String id){
 
         JSONObject returnjs = new JSONObject();
         try {
@@ -562,14 +518,7 @@ public class EipServiceImpl implements IEipService {
                             returnjs.put("msg", "can't associate  port with eip"+ id);
                         }else{
                             JSONObject eipJSON = new JSONObject();
-                            eipJSON.put("eipid", eipEntity.getId());
-                            eipJSON.put("status", eipEntity.getState());
-                            eipJSON.put("iptype", eipEntity.getLinkType());
-                            eipJSON.put("eip_address", eipEntity.getEip());
-                            eipJSON.put("bandwidth", eipEntity.getBanWidth());
-                            eipJSON.put("chargetype", eipEntity.getChargeType());
-                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                            eipJSON.put("sharedbandwidth_id",eipEntity.getSharedBandWidthId());
+                            eipReturnValueHandler(eipJSON,eipEntity,false);
                             JSONObject eipjs=new JSONObject();
                             eipjs.put("eip",eipJSON);
                             returnjs.put("code",HttpStatus.SC_OK);
@@ -609,7 +558,7 @@ public class EipServiceImpl implements IEipService {
             returnjs.put("msg", e.getMessage()+"");
         }
 
-        return returnjs.toString();
+        return returnjs;
     }
 
 
@@ -645,7 +594,7 @@ public class EipServiceImpl implements IEipService {
 
 
     @Override
-    public String listServer(){
+    public JSONObject listServer(){
         log.info("listServer start execute");
         JSONObject returnjs = new JSONObject();
         try {
@@ -687,7 +636,44 @@ public class EipServiceImpl implements IEipService {
         }
 
 
-        return returnjs.toJSONString();
+        return returnjs;
+    }
+
+
+    private JSONObject eipReturnValueHandler(JSONObject eipJson,Eip eip,boolean containsFloatingInfo){
+
+
+        eipJson.put("eipid",eip.getId());
+        eipJson.put("status",eip.getState());
+        eipJson.put("iptype",eip.getLinkType());
+        eipJson.put("eip_address",eip.getEip());
+
+        eipJson.put("bandwidth",eip.getBanWidth());
+
+        eipJson.put("chargetype",eip.getChargeType());
+        eipJson.put("chargemode",eip.getChargeMode());
+
+        eipJson.put("instanceId",eip.getInstanceId());
+        eipJson.put("instanceType",eip.getInstanceType());
+        eipJson.put("private_ip_address",eip.getFixedIp());
+
+        if(containsFloatingInfo){
+            eipJson.put("floating_ip",eip.getFloatingIp());
+            eipJson.put("floating_ipId",eip.getFloatingIpId());
+        }
+
+        eipJson.put("Sharedbandwidth_id",eip.getSharedBandWidthId());
+        //eipJson.put("sharedbandwidth_id",eip.getSharedBandWidthId());
+
+        eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
+
+        JSONObject resourceset=new JSONObject();
+        resourceset.put("resourcetype",eip.getInstanceType());
+        resourceset.put("resource_id",eip.getInstanceId());
+        eipJson.put("resourceset",resourceset);
+
+        return eipJson;
+
     }
 
 }
