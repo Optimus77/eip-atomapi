@@ -382,8 +382,8 @@ public class EipServiceImpl implements IEipService {
     }
 
     /**
-     * get detail of the eip
-     * @param  instanceId  the floating ip
+     * get eip by instance id
+     * @param  instanceId  the instance id
      * @return the json result
      */
     @Override

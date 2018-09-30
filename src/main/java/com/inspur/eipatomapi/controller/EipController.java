@@ -170,10 +170,7 @@ public class EipController {
 
     @ICPControllerLog
     @GetMapping(value = "/instance/{instance_id}")
-    @ApiOperation(value="getEipByInstanceId",notes="")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "instance_id", value = "the id of instance", required = true, dataType = "String"),
-    })
+    @ApiOperation(value="getEipByInstanceId",notes="get")
     public JSONObject getEipByInstanceId(@PathVariable String instance_id) {
         log.info("EipController get eip by instance id.");
         return  eipService.getEipByInstanceId(instance_id);
