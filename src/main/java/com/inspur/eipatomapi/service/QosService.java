@@ -26,9 +26,9 @@ public class QosService extends BaseService {
         try {
             String retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", this.getCreatePipeJson(info));
             JSONObject jo = new JSONObject(retr);
-            String success = jo.getString("success");
+            boolean success = jo.getBoolean("success");
             res.put("success", success);
-            if ("true".equals(success)) {
+            if (success) {
                 Map<String, String> map = this.getQosPipeId((String)info.get("pipeName"));
                 if (((String)map.get("success")).equals("true")) {
                     res.put("id", (String)map.get("id"));
@@ -55,9 +55,9 @@ public class QosService extends BaseService {
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos", json);
             JSONObject jo = new JSONObject(retr);
-            String success = jo.getString("success");
-            if ("true".equals(success)) {
-                res.put("success", success);
+            boolean success = jo.getBoolean("success");
+            if (success) {
+                res.put("success", "true");
             } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject("exception").getString("message"))) {
                 res.put("success", "true");
                 res.put("msg", "传入的pipeId不存在");
