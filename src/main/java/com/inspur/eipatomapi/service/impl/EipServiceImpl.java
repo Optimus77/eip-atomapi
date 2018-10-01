@@ -202,7 +202,7 @@ public class EipServiceImpl implements IEipService {
         try {
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-                Pageable pageable =PageRequest.of(currentPage,limit,sort);
+                Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
                 Page<Eip> page = eipRepository.findAll(pageable);
                 JSONObject data=new JSONObject();
                 JSONArray eips=new JSONArray();
