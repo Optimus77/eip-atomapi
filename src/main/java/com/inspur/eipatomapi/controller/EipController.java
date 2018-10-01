@@ -53,13 +53,27 @@ public class EipController {
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
     public JSONObject listEip(@RequestParam String currentPage , @RequestParam String limit) {
-        log.info("EipController listEip");
-        if(currentPage==null){
-            currentPage="1";
+        log.info("EipController listEip currentPage limit:");
+        log.info(currentPage);
+        log.info(limit);
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum=Integer.parseInt(currentPage);
+                int limitNum =Integer.parseInt(limit);
+                if(currentPageNum<0||limitNum<0){
+                    currentPage="0";
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
-        if(limit==null){
-            limit="10";
-        }
+
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
 
@@ -159,12 +173,25 @@ public class EipController {
     @GetMapping(value = "/eips_ext")
     @ApiOperation(value="listeip",notes="list")
     public JSONObject listEipExt(@RequestParam String currentPage , @RequestParam String limit) {
-        log.info("EipController listEip ext");
-        if(currentPage==null){
-            currentPage="1";
-        }
-        if(limit==null){
-            limit="10";
+        log.info("EipController  listEip_ext currentPage limit:");
+        log.info(currentPage);
+        log.info(limit);
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum=Integer.parseInt(currentPage);
+                int limitNum =Integer.parseInt(limit);
+                if(currentPageNum<0||limitNum<0){
+                    currentPage="0";
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),true);
     }

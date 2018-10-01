@@ -200,24 +200,44 @@ public class EipServiceImpl implements IEipService {
         JSONObject returnjs = new JSONObject();
 
         try {
-            Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-            Pageable pageable =PageRequest.of(currentPage,limit,sort);
-            Page<Eip> page = eipRepository.findAll(pageable);
-            JSONObject data=new JSONObject();
-            JSONArray eips=new JSONArray();
-            for(Eip eip:page.getContent()){
-                JSONObject eipJson=new JSONObject();
-                eipReturnValueHandler(eipJson,eip,returnFloatingip);
-                eips.add(eipJson);
+            if(currentPage!=0){
+                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Pageable pageable =PageRequest.of(currentPage,limit,sort);
+                Page<Eip> page = eipRepository.findAll(pageable);
+                JSONObject data=new JSONObject();
+                JSONArray eips=new JSONArray();
+                for(Eip eip:page.getContent()){
+                    JSONObject eipJson=new JSONObject();
+                    eipReturnValueHandler(eipJson,eip,returnFloatingip);
+                    eips.add(eipJson);
+                }
+                data.put("eips",eips);
+                data.put("totalPages",page.getTotalPages());
+                data.put("totalElements",page.getTotalElements());
+                data.put("currentPage",currentPage);
+                data.put("currentPagePer",limit);
+                returnjs.put("data",data);
+                returnjs.put("code",HttpStatus.SC_OK);
+                returnjs.put("msg","success");
+            }else{
+                List<Eip> eipList=eipRepository.findAll();
+                JSONObject data=new JSONObject();
+                JSONArray eips=new JSONArray();
+                for(Eip eip:eipList){
+                    JSONObject eipJson=new JSONObject();
+                    eipReturnValueHandler(eipJson,eip,returnFloatingip);
+                    eips.add(eipJson);
+                }
+                data.put("eips",eips);
+                data.put("totalPages",1);
+                data.put("totalElements",eips.size());
+                data.put("currentPage",1);
+                data.put("currentPagePer",eips.size());
+                returnjs.put("data",data);
+                returnjs.put("code",HttpStatus.SC_OK);
+                returnjs.put("msg","success");
             }
-            data.put("eips",eips);
-            data.put("totalPages",page.getTotalPages());
-            data.put("totalElements",page.getTotalElements());
-            data.put("currentPage",currentPage);
-            data.put("currentPagePer",limit);
-            returnjs.put("data",data);
-            returnjs.put("code",HttpStatus.SC_OK);
-            returnjs.put("msg","success");
+
         }catch (Exception e){
             e.printStackTrace();
             returnjs.put("data",e.getMessage());
