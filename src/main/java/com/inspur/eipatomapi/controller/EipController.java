@@ -85,6 +85,14 @@ public class EipController {
     }
 
 
+    @ICPControllerLog
+    @GetMapping(value = "/eips_fixed")
+    @ApiOperation(value = "The eip information is obtained through fixed IP", notes = "")
+    public JSONObject fixedIpGetEipDetail(@RequestParam String fixedIp , @RequestParam String vpcId)  {
+        return eipService.fixedIpgetEipDetail(fixedIp,vpcId);
+    }
+
+
     /**
      * get eip instance detail
      * @param eipId  the id of eip

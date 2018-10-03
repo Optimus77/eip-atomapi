@@ -34,6 +34,13 @@ public interface IEipService {
     Boolean deleteEip(String name, String eipId)throws Exception ;
 
     /**
+     * get detail of the fixedeip
+     * @param fixedIp  the id of the eip instance
+     * @return the json result
+     */
+    JSONObject fixedIpgetEipDetail(String fixedIp,String vpcId) throws Exception;
+
+    /**
      *  list the eip
      * @param currentPage  the current page
      * @param limit  element of per page
