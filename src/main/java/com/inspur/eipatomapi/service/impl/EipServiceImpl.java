@@ -260,7 +260,7 @@ public class EipServiceImpl implements IEipService {
      */
     private Boolean associateInstanceWithEip(Eip eip, String serverId, String instanceType, String portId)
             throws Exception{
-        ActionResponse actionResponse = neutronService.associaInstanceWithFloatingIp(eip.getFloating_ip(),serverId);
+        ActionResponse actionResponse = neutronService.associaInstanceWithFloatingIp(eip,serverId);
         String dnatRuleId = null;
         String snatRuleId = null;
         String pipId;

@@ -1,11 +1,13 @@
 package com.inspur.eipatomapi.service;
 
+import com.inspur.eipatomapi.entity.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.compute.Address;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
@@ -66,12 +68,22 @@ public  class NeutronService {
         return osClientV3.networking().floatingip().delete(eipId).isSuccess();
     }
 
-    public synchronized ActionResponse associaInstanceWithFloatingIp(String floatingIp, String serverId)
+    public synchronized ActionResponse associaInstanceWithFloatingIp(Eip eip, String serverId)
             throws Exception  {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
-        return osClientV3.compute().floatingIps().addFloatingIP(server, floatingIp);
+        ActionResponse result =  osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloating_ip());
+        if(result.isSuccess()){
+            List<? extends Address> address = server.getAddresses().getAddresses().get("net-eip");
+            for(Address addr:address) {
+                log.debug(server.getId() + server.getName() + "   " + addr.getType());
+                if (addr.getType().equals("fixed")) {
+                    eip.setPrivate_ip_address(addr.getAddr());
+                }
+            }
+        }
+        return result;
     }
 
     public synchronized ActionResponse disassociateInstanceWithFloatingIp( String floatingIp, String serverId)
