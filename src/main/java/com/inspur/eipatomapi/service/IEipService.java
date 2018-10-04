@@ -1,9 +1,8 @@
 package com.inspur.eipatomapi.service;
 
-import com.alibaba.fastjson.JSONObject;
-
 import com.inspur.eipatomapi.entity.EipAllocateParam;
 import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
+import com.inspur.eipatomapi.entity.ReturnMsg;
 
 
 public interface IEipService {
@@ -14,10 +13,9 @@ public interface IEipService {
      * @param externalNetWorkId  external network id
      * @param portId             port id
      * @return                   json info of eip
-     * @throws Exception         e
      */
 
-    JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId)throws Exception;
+    ReturnMsg createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId);
 
 
 
@@ -31,7 +29,7 @@ public interface IEipService {
      * @return       result: true/false
      */
 
-    Boolean deleteEip(String name, String eipId)throws Exception ;
+    ReturnMsg deleteEip(String name, String eipId);
 
     /**
      *  list the eip
@@ -46,7 +44,7 @@ public interface IEipService {
      * @param eipId  the id of the eip instance
      * @return the json result
      */
-    JSONObject getEipDetail(String eipId);
+    ReturnMsg getEipDetail(String eipId);
 
 
     /**
@@ -55,7 +53,7 @@ public interface IEipService {
      * @param param param
      * @return      result
      */
-    String updateEipBandWidth(String id, EipUpdateParamWrapper param);
+    ReturnMsg updateEipBandWidth(String id, EipUpdateParamWrapper param);
 
 
     /**
@@ -63,16 +61,17 @@ public interface IEipService {
      * @param id      id
      * @param serverId  server id
      * @param type   //1：ecs // 2：cps // 3：slb
+     * @param portId   port id
      * @return        result
      */
-    String eipbindPort(String id,String type, String serverId);
+    ReturnMsg eipbindPort(String id,String type, String serverId, String portId);
 
     /**
      * un bind port
      * @param id    id
      * @return      result
      */
-    String unBindPort(String id);
+    ReturnMsg unBindPort(String id);
 
 
     /**
@@ -88,6 +87,6 @@ public interface IEipService {
     /**
      * get eip by floating ip
      */
-    JSONObject getEipByInstanceId(String instanceId);
+    ReturnMsg getEipByInstanceId(String instanceId);
 
 }

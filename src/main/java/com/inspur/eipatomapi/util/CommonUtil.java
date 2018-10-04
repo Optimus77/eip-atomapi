@@ -22,6 +22,8 @@ import java.util.Date;
 public class CommonUtil {
 
     private final static Log log = LogFactory.getLog(CommonUtil.class);
+    private final static boolean isDebug = true;
+
 
     public static String getDate() {
         Date currentTime = new Date();
@@ -35,9 +37,9 @@ public class CommonUtil {
 
 
     private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
-    private static String user = "vpc";
-    private static String password = "123456a?";
-    private static String projectId = "65a859f362f749ce95237cbd08c30edf";
+    private static String user = "admin";
+    private static String password = "89rqdHLMN5rm0x1P";
+    private static String projectId = "140785795de64945b02363661eb9e769";
     private static String userDomainId = "default";
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
 
@@ -54,8 +56,7 @@ public class CommonUtil {
 
     public static OSClientV3 getOsClientV3Util() throws Exception {
 
-        //cancle the auth
-        if(1==1){
+        if(isDebug){
             return getOsClientV3();
         }
 
@@ -105,7 +106,7 @@ public class CommonUtil {
 
     /**
      * get the Keycloak authorization token  from httpHeader;
-     * @return
+     * @return  string string
      */
     public static String getKeycloackToken() throws Exception {
         //important

@@ -101,4 +101,11 @@ public  class NeutronService {
         return osClientV3.compute().servers().list(filteringParams);
     }
 
+    public synchronized NetFloatingIP associaPortWithFloatingIp(String floatingIpId, String portId)
+            throws Exception  {
+
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
+
+        return osClientV3.networking().floatingip().associateToPort(floatingIpId, portId);
+    }
 }
