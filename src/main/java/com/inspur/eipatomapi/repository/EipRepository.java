@@ -7,6 +7,9 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
 //import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
 /**
  * @Auther: jiasirui
  * @Date: 2018/9/14 09:32
@@ -18,5 +21,6 @@ import org.springframework.data.jpa.repository.Query;
 public interface EipRepository extends JpaRepository<Eip,String> {
 
     Eip findByInstanceId (String instanceId);
-
+    List<Eip> findByProjectId(String projectId);
+    List<Eip> findByIptype(String iptype);
 }

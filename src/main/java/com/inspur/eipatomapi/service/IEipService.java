@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.EipAllocateParam;
 import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.entity.ReturnMsg;
@@ -89,4 +90,8 @@ public interface IEipService {
      */
     ReturnMsg getEipByInstanceId(String instanceId);
 
+    /**
+     * get eip number of ther user
+     */
+    JSONObject getEipNumber();
 }

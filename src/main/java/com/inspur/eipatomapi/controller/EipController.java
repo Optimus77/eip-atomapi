@@ -1,11 +1,11 @@
 package com.inspur.eipatomapi.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.entity.ReturnMsg;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
-import com.inspur.eipatomapi.util.FastjsonUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
@@ -158,6 +158,14 @@ public class EipController {
     public ReturnMsg getEipByInstanceId(@PathVariable String instance_id) {
         log.info("EipController get eip by instance id.");
         return  eipService.getEipByInstanceId(instance_id);
+    }
+
+    @ICPControllerLog
+    @GetMapping(value = "/eips/eipnumber")
+    @ApiOperation(value="get number",notes="get number")
+    public JSONObject getEipNumber() {
+        log.info("Get eip number.");
+        return  eipService.getEipNumber();
     }
 
 }

@@ -660,5 +660,27 @@ public class EipServiceImpl implements IEipService {
 
         return returnjs.toJSONString();
     }
+    /**
+     * get number of the eip
+     * @return the json result
+     */
+    @Override
+    @ICPServiceLog
+    public JSONObject getEipNumber() {
+        JSONObject returnjs = new JSONObject();
+        try {
+            List<Eip> eips = eipRepository.findByProjectId(CommonUtil.getProjectId());
+
+            returnjs.put("code", ReturnStatus.SC_OK);
+            returnjs.put("msg", "success");
+            returnjs.put("number", eips.size());
+            return returnjs;
+        } catch(Exception e){
+            e.printStackTrace();
+            returnjs.put("code", ReturnStatus.SC_NOT_FOUND);
+            returnjs.put("msg", "Failed");
+            return returnjs;
+        }
+    }
 
 }
