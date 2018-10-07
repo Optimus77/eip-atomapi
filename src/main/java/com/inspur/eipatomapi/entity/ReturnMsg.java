@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class ReturnMsg<T> {
     private String code;
-    private String msg;
+    private String message;
     private T eip;
 
 }

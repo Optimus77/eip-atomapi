@@ -22,5 +22,6 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     Eip findByInstanceId (String instanceId);
     List<Eip> findByProjectId(String projectId);
-    List<Eip> findByIptype(String iptype);
+
+    Eip findByEipAddress(String ipAddress);
 }

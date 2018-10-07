@@ -11,12 +11,14 @@ import org.openstack4j.model.compute.Address;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
+import org.openstack4j.openstack.compute.domain.NovaAddresses;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @Auther: jiasirui
@@ -73,15 +75,23 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
-        ActionResponse result =  osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloating_ip());
+        ActionResponse result =  osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloatingIp());
         if(result.isSuccess()){
-            List<? extends Address> address = server.getAddresses().getAddresses().get("net-eip");
-            for(Address addr:address) {
-                log.debug(server.getId() + server.getName() + "   " + addr.getType());
-                if (addr.getType().equals("fixed")) {
-                    eip.setPrivate_ip_address(addr.getAddr());
+            Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
+            System.out.println(novaAddresses.toString());
+            Set<String> keySet =novaAddresses.keySet();
+            for (String netname:keySet) {
+                List<? extends Address> address=novaAddresses.get(netname);
+                System.out.println(address.toString());
+                for (Address addr : address) {
+                    log.debug(server.getId() + server.getName() + "   " + addr.getType());
+                    if (addr.getType().equals("fixed")) {
+                        eip.setPrivateIpAddress(addr.getAddr());
+                    }
                 }
             }
+        }else{
+            log.warn("openstack api return faild when bind instance to eip.");
         }
         return result;
     }

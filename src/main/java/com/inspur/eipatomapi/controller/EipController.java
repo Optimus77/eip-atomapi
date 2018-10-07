@@ -1,10 +1,7 @@
 package com.inspur.eipatomapi.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
-import com.inspur.eipatomapi.entity.EipAllocateParamWrapper;
-import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
-import com.inspur.eipatomapi.entity.ReturnMsg;
+import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
@@ -37,7 +34,7 @@ public class EipController {
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
-    public ReturnMsg allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
+    public ResponseEntity allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
         log.info(eipConfig);
         return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
      }
@@ -59,15 +56,26 @@ public class EipController {
 
 
 
-    @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/eips/{eip_id}")
     @ICPControllerLog
     @ApiOperation(value = "deleteEip")
-    public ReturnMsg deleteEip(@PathVariable("eip_id") String id) {
+    public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId) {
         //Check the parameters
 
-        log.info("Delete the Eip");
-        return eipService.deleteEip("name", id);
+        log.warn("Delete the Eip "+eipId);
+        return eipService.deleteEip(eipId);
 
+    }
+
+
+    @PostMapping(value = "/eips/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ICPControllerLog
+    @ApiOperation(value = "deleiplist")
+    public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
+        //Check the parameters
+
+        log.warn("Delete the Eip "+param);
+        return eipService.deleteEipList(param.getEipids());
     }
 
 
@@ -82,7 +90,7 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ReturnMsg getEipDetail(@PathVariable("eip_id") String eipId){
+    public ResponseEntity getEipDetail(@PathVariable("eip_id") String eipId){
         return eipService.getEipDetail(eipId);
     }
 
@@ -94,7 +102,7 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ReturnMsg eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
+    public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
         return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
                 param.getEipUpdateParam().getServerId(),
                 param.getEipUpdateParam().getPortId());
@@ -106,7 +114,7 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ReturnMsg eipUnbindWithPort(@PathVariable("eip_id") String eipId) {
+    public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId) {
         return eipService.unBindPort(eipId);
     }
 
@@ -116,7 +124,7 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ReturnMsg changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+    public ResponseEntity changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
         return eipService.updateEipBandWidth(eipId,param);
     }
 
@@ -132,14 +140,14 @@ public class EipController {
 
 
     @ICPControllerLog
-    @GetMapping(value = "/servers/")
+    @GetMapping(value = "/eips/servers")
     @ApiOperation(value = "show all servers", notes = "get")
     public String getServerList() {
         return eipService.listServer();
     }
 
     @ICPControllerLog
-    @GetMapping(value = "/eips_ext")
+    @GetMapping(value = "/eips/eips_ext")
     @ApiOperation(value="listeip",notes="list")
     public String listEipExt(@RequestParam String currentPage , @RequestParam String limit) {
         log.info("EipController listEip ext");
@@ -155,15 +163,24 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/instance/{instance_id}")
     @ApiOperation(value="getEipByInstanceId",notes="get")
-    public ReturnMsg getEipByInstanceId(@PathVariable String instance_id) {
+    public ResponseEntity getEipByInstanceId(@PathVariable String instance_id) {
         log.info("EipController get eip by instance id.");
         return  eipService.getEipByInstanceId(instance_id);
+    }
+
+
+    @ICPControllerLog
+    @GetMapping(value = "/eips/eipaddress/{eipaddress}")
+    @ApiOperation(value="getEipByEipAddress",notes="get")
+    public ResponseEntity getEipByEipAddress(@PathVariable String eipaddress) {
+        log.info("EipController get eip by instance id.");
+        return  eipService.getEipByIpAddress(eipaddress);
     }
 
     @ICPControllerLog
     @GetMapping(value = "/eips/eipnumber")
     @ApiOperation(value="get number",notes="get number")
-    public JSONObject getEipNumber() {
+    public ResponseEntity getEipNumber() {
         log.info("Get eip number.");
         return  eipService.getEipNumber();
     }

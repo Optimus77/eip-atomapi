@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.EipAllocateParam;
 import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.entity.ReturnMsg;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 
 public interface IEipService {
@@ -16,7 +19,7 @@ public interface IEipService {
      * @return                   json info of eip
      */
 
-    ReturnMsg createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId);
+    ResponseEntity createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId);
 
 
 
@@ -25,12 +28,21 @@ public interface IEipService {
      * 2.Determine if Snate and Qos is deleted
      * 3.delete eip
      *
-     * @param name  name
-     * @param eipId  eip ip
+     * @param eipIds  eip ids
      * @return       result: true/false
      */
 
-    ReturnMsg deleteEip(String name, String eipId);
+    ResponseEntity deleteEipList(List<String> eipIds);
+    /**
+     * 1.delete  eip
+     * 2.Determine if Snate and Qos is deleted
+     * 3.delete eip
+     *
+     * @param eipId  eip id
+     * @return       result: true/false
+     */
+
+    ResponseEntity deleteEip(String eipId);
 
     /**
      *  list the eip
@@ -45,7 +57,7 @@ public interface IEipService {
      * @param eipId  the id of the eip instance
      * @return the json result
      */
-    ReturnMsg getEipDetail(String eipId);
+    ResponseEntity getEipDetail(String eipId);
 
 
     /**
@@ -54,7 +66,7 @@ public interface IEipService {
      * @param param param
      * @return      result
      */
-    ReturnMsg updateEipBandWidth(String id, EipUpdateParamWrapper param);
+    ResponseEntity updateEipBandWidth(String id, EipUpdateParamWrapper param);
 
 
     /**
@@ -65,14 +77,14 @@ public interface IEipService {
      * @param portId   port id
      * @return        result
      */
-    ReturnMsg eipbindPort(String id,String type, String serverId, String portId);
+    ResponseEntity eipbindPort(String id,String type, String serverId, String portId);
 
     /**
      * un bind port
      * @param id    id
      * @return      result
      */
-    ReturnMsg unBindPort(String id);
+    ResponseEntity unBindPort(String id);
 
 
     /**
@@ -88,10 +100,12 @@ public interface IEipService {
     /**
      * get eip by floating ip
      */
-    ReturnMsg getEipByInstanceId(String instanceId);
+    ResponseEntity getEipByInstanceId(String instanceId);
 
     /**
      * get eip number of ther user
      */
-    JSONObject getEipNumber();
+    ResponseEntity getEipNumber();
+
+    ResponseEntity getEipByIpAddress(String eip);
 }

@@ -63,7 +63,7 @@ public class HsHttpClient {
 	private static byte[] readStream(InputStream inStream) throws Exception {
 		ByteArrayOutputStream outSteam = new ByteArrayOutputStream();
 		byte[] buffer = new byte[1024];
-		int len = -1;
+		int len;
 		while ((len = inStream.read(buffer)) != -1) {
 			outSteam.write(buffer, 0, len);
 		}
@@ -91,10 +91,7 @@ public class HsHttpClient {
                 // TODO Auto-generated catch block
                 logger.error(e);
                 return "";
-            } finally {
-				// Closing the input stream will trigger connection release
-				instream.close();
-			}
+            }
 		} else {
 			return getJson(response.getStatusLine().getStatusCode());
 		}
@@ -133,7 +130,7 @@ public class HsHttpClient {
 			// jiangfw 软硬件防火墙切换--20170310
 			Gson gson = new Gson();
 			String strlogin = EntityUtils.toString(client.execute(httpGet).getEntity());
-			boolean success = true;				
+			boolean success;
 			if(strlogin.contains("\"success\":true") || strlogin.contains("\"success\" : true")){
 				success = true;
 			}else{
@@ -171,7 +168,7 @@ public class HsHttpClient {
 	private static String loginCookieParser(JSONObject jo) throws Exception {
 
 		boolean succflag = jo.getBoolean("success");
-		if (succflag == true) {
+		if (succflag) {
 			JSONObject resultJsn = jo.getJSONObject("result");
 			String token = resultJsn.getString("token");
 			String platform = resultJsn.getString("platform");
@@ -191,9 +188,8 @@ public class HsHttpClient {
 			String HS_frame_lang = HsConstants.LANG;
 
 			Cookie cookie = new Cookie(token, platform, hw_platform, host_name, company, oemid, vsysid, vsysname, role, license, httpProtocol, soft_version, username, overseaLicense, HS_frame_lang);
-			System.out.println(cookie.toString());
-			String rstCookie = HsConstants.FROM_ROOT_SYS + cookie.toString();
-			return rstCookie;
+			logger.info(cookie.toString());
+			return HsConstants.FROM_ROOT_SYS + cookie.toString();
 
 		} else {
 			logger.error("no found result:" + jo);
@@ -205,7 +201,7 @@ public class HsHttpClient {
 
 	/**
 	 * 获取https连接（不验证证书）
-	 * @return
+	 * @return ret
 	 */
 	private static CloseableHttpClient getHttpsClient() {
         RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();

@@ -5,9 +5,7 @@ import com.inspur.eipatomapi.entity.ReturnMsg;
 public class ReturnMsgUtil {
 
     public static <T> ReturnMsg success(T t) {
-        ReturnMsg<Object> returnMsg = ReturnMsg.builder().code("200").msg("success").eip(t).build();
-
-        return returnMsg;
+        return ReturnMsg.builder().code("200").message("success").eip(t).build();
     }
 
 
@@ -16,6 +14,6 @@ public class ReturnMsgUtil {
     }
 
     public static ReturnMsg error(String code, String msg) {
-        return ReturnMsg.builder().code(code).msg(msg).build();
+        return ReturnMsg.builder().code(code).message(msg).build();
     }
 }

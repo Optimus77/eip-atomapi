@@ -6,6 +6,7 @@ import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
+import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.service.FirewallService;
@@ -23,10 +24,14 @@ import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static com.inspur.eipatomapi.util.ReturnStatus.SC_OK;
 
 /**
  * @Auther: jiasirui
@@ -47,31 +52,11 @@ public class EipServiceImpl implements IEipService {
     private NeutronService neutronService;
     @Autowired
     private FirewallRepository firewallRepository;
-
+    @Autowired
+    private EipDaoService eipDaoService;
 
     private final static Log log = LogFactory.getLog(EipServiceImpl.class);
 
-    /**
-     * allocate eip
-     * @param region     region
-     * @param networkId  network id
-     * @return           result
-     */
-    private synchronized EipPool allocateEip(String region, String networkId){
-
-        List<EipPool> eipList = eipPoolRepository.findAll();
-        for(EipPool eip: eipList) {
-            if (eip != null) {
-                String eipState="0";
-                if (eip.getState().equals(eipState)) {
-                    eipPoolRepository.delete(eip);
-                    return eip;
-                }
-            }
-        }
-        log.warn("Failed to allocate eip in network："+networkId);
-        return null;
-    }
 
     /**
      * find eip by id
@@ -96,35 +81,34 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ReturnMsg createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) {
+    public ResponseEntity createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) {
 
         String code;
         String msg;
         try {
-            EipPool eip = allocateEip(eipConfig.getRegion(), externalNetWorkId);
-            EipReturnBase eipInfo = new EipReturnBase();
-            if (null != eip) {
+            Eip eipMo = eipDaoService.allocateEip(eipConfig.getRegion(), externalNetWorkId);
+            if (null != eipMo) {
                 NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), externalNetWorkId, portId);
                 if (null != floatingIP) {
-                    Eip eipMo = new Eip();
-                    eipMo.setFloating_ip(floatingIP.getFloatingIpAddress());
-                    eipMo.setPrivate_ip_address(floatingIP.getFixedIpAddress());
-                    eipMo.setFloating_ipId(floatingIP.getId());
-                    eipMo.setEip_address(eip.getIp());
-                    eipMo.setStatus("DOWN");
-                    eipMo.setIptype(eipConfig.getIpType());
-                    eipMo.setFirewallId(eip.getFireWallId());
-                    eipMo.setChargetype(eipConfig.getChargeType());
-                    eipMo.setChargemode(eipConfig.getChargeMode());
-                    eipMo.setPurchasetime(eipConfig.getPurchaseTime());
-                    eipMo.setBanwidth(eipConfig.getBanWidth());
-                    eipMo.setSharedBandWidth_id(eipConfig.getSharedBandWidthId());
+                    eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
+                    eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
+                    eipMo.setFloatingIpId(floatingIP.getId());
+                    eipMo.setIpType(eipConfig.getIptype());
+                    eipMo.setChargeType(eipConfig.getChargetype());
+                    eipMo.setChargeMode(eipConfig.getChargemode());
+                    eipMo.setPurchaseTime(eipConfig.getPurchasetime());
+                    eipMo.setBandWidth(eipConfig.getBandwidth());
+                    eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                     eipMo.setProjectId(CommonUtil.getProjectId());
-                    eipMo = eipRepository.save(eipMo);
+                    eipMo = eipDaoService.updateEipEntity(eipMo);
+                    System.out.println(eipMo);
 
+                    EipReturnBase eipInfo = new EipReturnBase();
                     BeanUtils.copyProperties(eipMo, eipInfo);
-                    return ReturnMsgUtil.success(eipInfo);
+                    return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+
                 } else {
+                    eipDaoService.deleteEip(eipMo);
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
                     msg = "Failed to create floating ip in external network:" + externalNetWorkId;
                     log.warn(msg);
@@ -137,9 +121,9 @@ public class EipServiceImpl implements IEipService {
         }catch (Exception e){
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getCause()+"";
         }
-        return ReturnMsgUtil.error(code, msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -149,31 +133,45 @@ public class EipServiceImpl implements IEipService {
      * 2.Determine if Snate and Qos is deleted
      * 3.delete eip
      *
-     * @param name  name
-     * @param eipId  eip ip
+     * @param eipIds  eip ids
      * @return       result: true/false
      */
     @Override
     @ICPServiceLog
-    public ReturnMsg deleteEip(String name, String eipId) {
+    public ResponseEntity deleteEipList(List<String> eipIds) {
+        for(String eipId: eipIds) {
+            log.info("delete eip "+eipId);
+            deleteEip(eipId);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+    }
+
+    /**
+     * delete eip
+     * @param eipId eipid
+     * @return return
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity deleteEip(String eipId) {
         String msg;
         String code;
+
         try {
             Eip eipEntity = findEipEntryById(eipId);
             if (null != eipEntity) {
-                if ((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null != eipEntity.getSnatId())) {
+                if ((null != eipEntity.getPipId())
+                        || (null != eipEntity.getDnatId())
+                        || (null != eipEntity.getSnatId())) {
                     msg = "Failed to delete eip,Eip is bind to port.";
                     code = ReturnStatus.SC_PARAM_UNKONWERROR;
                     log.warn(msg);
                 } else {
-                    if (neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloating_ipId())) {
-                        EipPool eipPoolMo = new EipPool();
-                        eipPoolMo.setFireWallId(eipEntity.getFirewallId());
-                        eipPoolMo.setIp(eipEntity.getEip_address());
-                        eipPoolMo.setState("0");
-                        eipPoolRepository.save(eipPoolMo);
-                        eipRepository.deleteById(eipId);
-                        return ReturnMsgUtil.success();
+                    System.out.println("------------------------------");
+                    System.out.println(eipEntity.toString());
+                    if (neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId())) {
+                        eipDaoService.deleteEip(eipEntity);
+                        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                     } else {
                         msg = "Failed to delete floating ip.";
                         code = ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE;
@@ -188,9 +186,9 @@ public class EipServiceImpl implements IEipService {
         }catch (Exception e){
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getCause()+"";
         }
-        return ReturnMsgUtil.error(code, msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -205,7 +203,7 @@ public class EipServiceImpl implements IEipService {
         JSONObject returnjs = new JSONObject();
 
         try {
-            Sort sort = new Sort(Sort.Direction.DESC, "createtime");
+            Sort sort = new Sort(Sort.Direction.DESC, "createTime");
             Pageable pageable =PageRequest.of(currentPage,limit,sort);
             Page<Eip> page = eipRepository.findAll(pageable);
             JSONObject data=new JSONObject();
@@ -213,19 +211,19 @@ public class EipServiceImpl implements IEipService {
             for(Eip eip:page.getContent()){
                 JSONObject eipJson=new JSONObject();
                 if(returnFloatingip){
-                    eipJson.put("floating_ip",eip.getFloating_ip());
-                    eipJson.put("floating_ipId",eip.getFloating_ipId());
+                    eipJson.put("floating_ip",eip.getFloatingIp());
+                    eipJson.put("floating_ipId",eip.getFloatingIpId());
                 }
-                eipJson.put("eipid",eip.getEipid());
+                eipJson.put("eipid",eip.getEipId());
                 eipJson.put("status",eip.getStatus());
-                eipJson.put("iptype",eip.getIptype());
-                eipJson.put("eip_address",eip.getEip_address());
-                eipJson.put("private_ip_address",eip.getPrivate_ip_address());
-                eipJson.put("bandwidth",eip.getBanwidth());
-                eipJson.put("chargetype",eip.getChargetype());
-                eipJson.put("chargemode",eip.getChargemode());
-                eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreatetime()));
-                eipJson.put("sharedbandwidth_id",eip.getSharedBandWidth_id());
+                eipJson.put("iptype",eip.getIpType());
+                eipJson.put("eip_address",eip.getEipAddress());
+                eipJson.put("private_ip_address",eip.getPrivateIpAddress());
+                eipJson.put("bandwidth",eip.getBandWidth());
+                eipJson.put("chargetype",eip.getChargeType());
+                eipJson.put("chargemode",eip.getChargeMode());
+                eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
+                eipJson.put("sharedbandwidth_id",eip.getSharedBandWidthId());
                 JSONObject resourceset=new JSONObject();
                 resourceset.put("resourcetype",eip.getInstanceType());
                 resourceset.put("resource_id",eip.getInstanceId());
@@ -238,13 +236,13 @@ public class EipServiceImpl implements IEipService {
             data.put("currentPage",currentPage);
             data.put("currentPagePer",limit);
             returnjs.put("data",data);
-            returnjs.put("code",ReturnStatus.SC_OK);
-            returnjs.put("msg","success");
+            returnjs.put("code", SC_OK);
+            returnjs.put("message","success");
         }catch (Exception e){
             e.printStackTrace();
-            returnjs.put("data",e.getMessage());
+            returnjs.put("data",e.getCause());
             returnjs.put("code", ReturnStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("msg", e.getCause());
+            returnjs.put("message", e.getCause());
 
         }
         return returnjs.toJSONString();
@@ -265,23 +263,22 @@ public class EipServiceImpl implements IEipService {
         String snatRuleId = null;
         String pipId;
         if(actionResponse.isSuccess()){
-            dnatRuleId = firewallService.addDnat(eip.getFloating_ip(), eip.getEip_address(), eip.getFirewallId());
-            snatRuleId = firewallService.addSnat(eip.getFloating_ip(), eip.getEip_address(), eip.getFirewallId());
+            dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
+            snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
             if((null != dnatRuleId) && (null != snatRuleId)){
-                pipId = firewallService.addQos(eip.getFloating_ip(),
-                        eip.getEip_address(),
-                        String.valueOf(eip.getBanwidth()),
+                pipId = firewallService.addQos(eip.getFloatingIp(),
+                        eip.getEipAddress(),
+                        String.valueOf(eip.getBandWidth()),
                         eip.getFirewallId());
-                if(null != pipId) {
-//                if(null == pipId) {//Todo:debug,do delete is when finish debug
+                if(null != pipId || CommonUtil.isDebug) {
                     eip.setInstanceId(serverId);
                     eip.setInstanceType(instanceType);
                     eip.setDnatId(dnatRuleId);
                     eip.setSnatId(snatRuleId);
                     eip.setPipId(pipId);
-                    eip.setPortid(portId);
+                    eip.setPortId(portId);
                     eip.setStatus("ACTIVE");
-                    eipRepository.save(eip);
+                    eipDaoService.updateEipEntity(eip);
                     return true;
                 } else {
                     log.warn("Failed to add qos in firewall "+eip.getFirewallId());
@@ -294,7 +291,7 @@ public class EipServiceImpl implements IEipService {
             log.warn("Failed to associate port with eip, serverId "+serverId);
         }
         if(actionResponse.isSuccess() ){
-            neutronService.disassociateInstanceWithFloatingIp(eip.getFloating_ip(),serverId);
+            neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
         }
         if(null != snatRuleId){
             firewallService.delSnat(snatRuleId, eip.getFirewallId());
@@ -313,13 +310,14 @@ public class EipServiceImpl implements IEipService {
      * @throws Exception   e
      */
     private Boolean disassociateInstanceWithEip(Eip eipEntity) throws Exception  {
-        ActionResponse actionResponse= neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloating_ip(),
+        ActionResponse actionResponse= neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
                                                                                          eipEntity.getInstanceId());
         if(actionResponse.isSuccess()) {
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);
+            eipEntity.setPrivateIpAddress(null);
         } else {
-            log.warn("Failed to disassociate port with eip, floatingipid:" + eipEntity.getFloating_ipId());
+            log.warn("Failed to disassociate port with eip, floatingipid:" + eipEntity.getFloatingIpId());
         }
         Boolean delDnatResult = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
         if(delDnatResult){
@@ -342,7 +340,7 @@ public class EipServiceImpl implements IEipService {
         }
 
         eipEntity.setStatus("DOWN");
-        eipRepository.save(eipEntity);
+        eipDaoService.updateEipEntity(eipEntity);
 
         return delDnatResult && delSnatResult && delQosResult && (actionResponse.isSuccess());
     }
@@ -355,7 +353,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ReturnMsg getEipDetail(String eipId) {
+    public ResponseEntity getEipDetail(String eipId) {
 
         try {
             Optional<Eip> eip = eipRepository.findById(eipId);
@@ -367,14 +365,16 @@ public class EipServiceImpl implements IEipService {
                                 .resource_id(eipEntity.getInstanceId())
                                 .resourcetype(eipEntity.getInstanceType()).build());
 
-                return ReturnMsgUtil.success(eipReturnDetail);
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
-                return ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-                        "Can not find instance by id:" + eipId+".");
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "Can not find eip by id:" + eipId+"."),
+                        HttpStatus.NOT_FOUND);
+
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage());
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -386,7 +386,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ReturnMsg getEipByInstanceId(String instanceId) {
+    public ResponseEntity getEipByInstanceId(String instanceId) {
 
         try {
             Eip eipEntity = eipRepository.findByInstanceId(instanceId);
@@ -398,17 +398,52 @@ public class EipServiceImpl implements IEipService {
                 eipReturnDetail.setResourceset(Resourceset.builder()
                         .resource_id(eipEntity.getInstanceId())
                         .resourcetype(eipEntity.getInstanceType()).build());
-                return ReturnMsgUtil.success(eipReturnDetail);
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
-                return ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-                        "can not find instance by this id:" + instanceId+"") ;
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find instance by this id:" + instanceId+""),
+                        HttpStatus.NOT_FOUND);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()) ;
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    /**
+     * get eip by eip
+     * @param  eip  the eip
+     * @return the json result
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipByIpAddress(String eip) {
+
+        try {
+            Eip eipEntity = eipRepository.findByEipAddress(eip);
+
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resource_id(eipEntity.getInstanceId())
+                        .resourcetype(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find eip by this eip address:" + eip+""),
+                        HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     /**
      * update eip band width
      * @param id    id
@@ -417,7 +452,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ReturnMsg updateEipBandWidth(String id, EipUpdateParamWrapper param) {
+    public ResponseEntity updateEipBandWidth(String id, EipUpdateParamWrapper param) {
         String code;
         String msg;
         try {
@@ -431,13 +466,13 @@ public class EipServiceImpl implements IEipService {
                         msg = "Bindwidth can not be null";
                     }else{
                         boolean updateStatus=firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
-                                eipEntity.getPipId(),eipEntity.getEipid(),
+                                eipEntity.getPipId(),eipEntity.getEipId(),
                                 String.valueOf(param.getEipUpdateParam().getBandWidth()));
-                        if(updateStatus){
-                            log.info("before change："+eipEntity.getBanwidth());
-                            eipEntity.setBanwidth(param.getEipUpdateParam().getBandWidth());
-                            log.info("after  change："+eipEntity.getBanwidth());
-                            eipRepository.save(eipEntity);
+                        if(updateStatus || CommonUtil.isDebug){
+                            log.info("before change："+eipEntity.getBandWidth());
+                            eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
+                            log.info("after  change："+eipEntity.getBandWidth());
+                            eipDaoService.updateEipEntity(eipEntity);
 
                             EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
@@ -445,7 +480,7 @@ public class EipServiceImpl implements IEipService {
                             eipReturnDetail.setResourceset(Resourceset.builder()
                                     .resource_id(eipEntity.getInstanceId())
                                     .resourcetype(eipEntity.getInstanceType()).build());
-                            return ReturnMsgUtil.success(eipReturnDetail);
+                            return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
                         }else{
                             code= ReturnStatus.SC_FIREWALL_SERVER_ERROR;
                             msg = "the qos set is not success,please contact the dev";
@@ -466,10 +501,10 @@ public class EipServiceImpl implements IEipService {
         } catch (Exception e) {
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getCause()+"";
         }
 
-        return ReturnMsgUtil.error(code, msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 
@@ -481,7 +516,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ReturnMsg eipbindPort(String id, String type,String serverId, String portId){
+    public ResponseEntity eipbindPort(String id, String type,String serverId, String portId){
         String code;
         String msg;
         try {
@@ -503,7 +538,7 @@ public class EipServiceImpl implements IEipService {
                             eipReturnDetail.setResourceset(Resourceset.builder()
                                     .resource_id(eipEntity.getInstanceId())
                                     .resourcetype(eipEntity.getInstanceType()).build());
-                            return ReturnMsgUtil.success(eipReturnDetail);
+                            return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
                         }
                         break;
                     case "2":
@@ -522,10 +557,10 @@ public class EipServiceImpl implements IEipService {
         } catch (Exception e) {
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getCause()+"";
         }
         log.info(code + msg);
-        return ReturnMsgUtil.error(code,msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     /**
      * un bind port
@@ -534,7 +569,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ReturnMsg unBindPort(String id){
+    public ResponseEntity unBindPort(String id){
 
         String code;
         String msg;
@@ -543,31 +578,36 @@ public class EipServiceImpl implements IEipService {
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
                 String instanceType = eipEntity.getInstanceType();
-                switch(instanceType){
-                    case "1":
-                        // 1：ecs
-                        if(!disassociateInstanceWithEip(eipEntity)){
-                            code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-                            msg = "Failed to disassociate  port with eip "+ id;
-                            log.info(msg);
-                        }else{
-                            EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                if(null != instanceType) {
+                    switch (instanceType) {
+                        case "1":
+                            // 1：ecs
+                            if (!disassociateInstanceWithEip(eipEntity)) {
+                                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                                msg = "Failed to disassociate  port with eip " + id;
+                                log.info(msg);
+                            } else {
+                                EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
-                            BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                            eipReturnDetail.setResourceset(Resourceset.builder()
-                                    .resource_id(eipEntity.getInstanceId())
-                                    .resourcetype(eipEntity.getInstanceType()).build());
-                            return ReturnMsgUtil.success(eipReturnDetail);
-                        }
-                        break;
-                    case "2":
-                    case "3":
-                    default:
-                        //default ecs
-                        code = ReturnStatus.SC_PARAM_ERROR;
-                        msg = "no support instance type "+instanceType;
-                        log.warn(msg);
-                        break;
+                                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                                eipReturnDetail.setResourceset(Resourceset.builder()
+                                        .resource_id(eipEntity.getInstanceId())
+                                        .resourcetype(eipEntity.getInstanceType()).build());
+                                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                            }
+                            break;
+                        case "2":
+                        case "3":
+                        default:
+                            //default ecs
+                            code = ReturnStatus.SC_PARAM_ERROR;
+                            msg = "no support instance type " + instanceType;
+                            log.warn(msg);
+                            break;
+                    }
+                }else{
+                    code = ReturnStatus.SC_RESOURCE_ERROR;
+                    msg = "Failed to get instance type.";
                 }
             } else {
                 code = ReturnStatus.SC_NOT_FOUND;
@@ -576,10 +616,9 @@ public class EipServiceImpl implements IEipService {
         } catch (Exception e) {
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getCause()+"";
         }
-
-        return ReturnMsgUtil.error(code, msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -604,11 +643,12 @@ public class EipServiceImpl implements IEipService {
             id = fw.getId();
         }
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             EipPool eipPoolMo = new EipPool();
             eipPoolMo.setFireWallId(id);
-            eipPoolMo.setIp("1.2.3."+i);
+            eipPoolMo.setIp("11.2.3."+i);
             eipPoolMo.setState("0");
+            //eipPoolMo.setIndex(i);
             eipPoolRepository.save(eipPoolMo);
         }
 
@@ -647,14 +687,14 @@ public class EipServiceImpl implements IEipService {
                     dataArray.add(data);
                 }
             }
-            returnjs.put("code",ReturnStatus.SC_OK);
+            returnjs.put("code", SC_OK);
             returnjs.put("data",dataArray);
-            returnjs.put("msg", "success");
+            returnjs.put("message", "success");
         }catch (Exception e){
             e.printStackTrace();
             returnjs.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             returnjs.put("data","{}");
-            returnjs.put("msg", e.getMessage()+"");
+            returnjs.put("message", e.getMessage()+"");
         }
 
 
@@ -666,20 +706,19 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public JSONObject getEipNumber() {
+    public ResponseEntity getEipNumber() {
         JSONObject returnjs = new JSONObject();
         try {
-            List<Eip> eips = eipRepository.findByProjectId(CommonUtil.getProjectId());
-
-            returnjs.put("code", ReturnStatus.SC_OK);
-            returnjs.put("msg", "success");
+            List<Eip> eips = eipDaoService.findByProjectId(CommonUtil.getProjectId());
+            returnjs.put("code", SC_OK);
+            returnjs.put("message", "success");
             returnjs.put("number", eips.size());
-            return returnjs;
+            return new ResponseEntity<>(returnjs.toString(), HttpStatus.OK);
         } catch(Exception e){
             e.printStackTrace();
             returnjs.put("code", ReturnStatus.SC_NOT_FOUND);
-            returnjs.put("msg", "Failed");
-            return returnjs;
+            returnjs.put("message", "Failed");
+            return new ResponseEntity<>(returnjs.toString(), HttpStatus.NOT_FOUND);
         }
     }
 

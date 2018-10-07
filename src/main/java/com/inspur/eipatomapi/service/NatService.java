@@ -19,11 +19,11 @@ import java.util.Map;
 public class NatService extends BaseService {
 
     public List<FwSnatVo> getSnat(FwQuery query, FwBaseObject manage) {
-        List<FwSnatVo> snats = new ArrayList();
+        List<FwSnatVo> snats = new ArrayList<>();
         Gson gson = new Gson();
 
         try {
-            List<NameValuePair> params = new ArrayList();
+            List<NameValuePair> params = new ArrayList<>();
             params.add(new BasicNameValuePair("query", gson.toJson(query)));
             String retr = HsHttpClient.hsHttpGet(manage.getManageIP(), null, manage.getManageUser(), manage.getManagePwd(), "/rest/Snat?isDynamic=0&" + URLEncodedUtils.format(params, "UTF-8"));
             JSONObject jo = new JSONObject(retr);
@@ -70,8 +70,8 @@ public class NatService extends BaseService {
         Gson gson = new Gson();
 
         try {
-            Map<String, Object> payloadMap = new HashMap();
-            Map<String, String> idMap = new HashMap();
+            Map<String, Object> payloadMap = new HashMap<>();
+            Map<String, String> idMap = new HashMap<>();
             idMap.put("rule_id", snat.getSnatid());
             payloadMap.put("vr_name", snat.getVrid());
             payloadMap.put("snat_rule", idMap);
@@ -166,11 +166,10 @@ public class NatService extends BaseService {
         rule.setDescription(dnat.getDescription());
         object.getDnat_rule().add(rule);
         Gson gson = new Gson();
-        String payload = gson.toJson(object);
-        return payload;
+        return gson.toJson(object);
     }
 
-    private String addSnatPayload(String operator,FwSnatVo vo) throws Exception{
+    private String addSnatPayload(String operator,FwSnatVo vo) {
 
         Gson gson;
         FwSnatParam snatParam = new FwSnatParam();
@@ -211,8 +210,6 @@ public class NatService extends BaseService {
         if ("update".equals(operator)) {
             return "["+gson.toJson(snatParam)+"]";
         }
-        System.out.println("-----------------------------");
-        System.out.println(snatParam.toString());
         return gson.toJson(snatParam);
     }
 

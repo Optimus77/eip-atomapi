@@ -1,35 +1,47 @@
 package com.inspur.eipatomapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
 
 @Getter
 @Setter
 public class EipReturnBase implements Serializable {
+    @JsonProperty("eipid")
+    private String eipId;
 
-    private String eipid;
+    @Column(name="eip_address")
+    @JsonProperty("eip_address")
+    private String eipAddress;
 
-    private String eip_address;
+    @JsonProperty("chargetyep")
+    private String chargeType;
 
-    private String chargetype;
+    @JsonProperty("chargemode")
+    private String chargeMode;
 
-    private String chargemode;
+    @JsonProperty("purchasetime")
+    private String purchaseTime;
 
-    private String purchasetime;
+    @JsonProperty("bandwidth")
+    private int bandWidth;
 
-    private int banwidth;
+    @JsonProperty("iptype")
+    private String ipType;
 
-    private String iptype;
+    @JsonProperty("sharedbandwidth_id")
+    private String sharedBandWidthId;
 
-    private String sharedbandwidth_id;
-
+    @JsonProperty("status")
     private String status;
 
+    @JsonProperty("create_at")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
-    private Date createtime;
+    private Date createTime;
 
 }

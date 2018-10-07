@@ -16,16 +16,16 @@ public class EipPool implements Serializable {
     @Id
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     @GeneratedValue(generator = "system-uuid")
-    @Column(name ="eip_id",nullable = false, insertable = false, updatable = false)
+    @Column(nullable = false, insertable = false, updatable = false)
     private String id;
 
-    @Column(name="firewall_id")
+    //@GeneratedValue(strategy = GenerationType.IDENTITY)
+   // private Integer index;
+
     private String fireWallId;
 
-    @Column(name="ip")
     private String ip;
 
-    @Column(name="state")
     private String state; //0:free 1:unbound 2:bound 9:reserve
 
 }

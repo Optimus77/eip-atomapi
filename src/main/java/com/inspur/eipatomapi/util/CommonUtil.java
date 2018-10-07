@@ -12,6 +12,7 @@ import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -22,7 +23,7 @@ import java.util.Date;
 public class CommonUtil {
 
     private final static Log log = LogFactory.getLog(CommonUtil.class);
-    private final static boolean isDebug = true;
+    public static boolean isDebug = true;
 
 
     public static String getDate() {
@@ -63,6 +64,9 @@ public class CommonUtil {
 
         String token = getKeycloackToken();
         log.info(token);
+        if(null == token){
+            token = "youmustgetatokenfirst";//Todo: debugcode, delte it when push
+        }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         setKeyClockInfo(jsonObject);
         log.info("decode::"+jsonObject);
@@ -110,31 +114,40 @@ public class CommonUtil {
      */
     public static String getKeycloackToken() throws Exception {
         //important
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String keyCloackToken  = (String) request.getHeader("authorization");
-        log.info(keyCloackToken);
-        if(keyCloackToken==null){
-            throw new Exception("ERROR:request authorization info is null,");
-        }else{
-            return keyCloackToken;
+        ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        if(null != requestAttributes) {
+            HttpServletRequest request = requestAttributes.getRequest();
+
+            String keyCloackToken = request.getHeader("authorization");
+            log.info(keyCloackToken);
+            if (keyCloackToken == null) {
+                throw new Exception("ERROR:request authorization info is null,");
+            } else {
+                return keyCloackToken;
+            }
         }
+        return null;
     }
 
     /**
      * get the region info from httpHeader;
-     * @return
-     * @throws Exception
+     * @return ret
+     * @throws Exception e
      */
     public static String getReginInfo() throws Exception {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String regionName = QueryUtil.getEndpoint(request);
-        if(regionName==null){
-            log.info("====regionName:"+regionName);
-            String ipAndPortStr = HttpClientUtil.doGet("http://evs.cn-north-1.inspur.com:8081/platform?regionName=" + regionName);
-            return ipAndPortStr;
-        }else{
-            throw new Exception("ERROR:request region info is null,");
+        ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+        if(null != requestAttributes) {
+            HttpServletRequest request = requestAttributes.getRequest();
+
+            String regionName = QueryUtil.getEndpoint(request);
+            if (regionName == null) {
+                log.info("====regionName:" + regionName);
+                return HttpClientUtil.doGet("http://evs.cn-north-1.inspur.com:8081/platform?regionName=" + regionName);
+            } else {
+                throw new Exception("ERROR:request region info is null,");
+            }
         }
+        return null;
     }
 
     public static String getProjectId(){
