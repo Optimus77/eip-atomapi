@@ -63,7 +63,6 @@ public class EipController {
                 limit="0";
             }
         }
-
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
 
@@ -155,7 +154,7 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/servers")
     @ApiOperation(value = "show all servers", notes = "get")
-    public String getServerList() {
+    public ResponseEntity getServerList() {
         return eipService.listServer();
     }
 
