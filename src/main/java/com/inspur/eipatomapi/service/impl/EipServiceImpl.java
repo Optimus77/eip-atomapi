@@ -101,7 +101,6 @@ public class EipServiceImpl implements IEipService {
                     eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                     eipMo.setProjectId(CommonUtil.getProjectId());
                     eipMo = eipDaoService.updateEipEntity(eipMo);
-                    System.out.println(eipMo);
 
                     EipReturnBase eipInfo = new EipReturnBase();
                     BeanUtils.copyProperties(eipMo, eipInfo);
@@ -201,7 +200,9 @@ public class EipServiceImpl implements IEipService {
     public String listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         JSONObject returnjs = new JSONObject();
-
+        if(currentPage > 0){
+            currentPage = currentPage -1;
+        }
         try {
             Sort sort = new Sort(Sort.Direction.DESC, "createTime");
             Pageable pageable =PageRequest.of(currentPage,limit,sort);
@@ -666,6 +667,7 @@ public class EipServiceImpl implements IEipService {
 
                 boolean bindFloatingIpFlag=true;
                 Addresses addresses =server.getAddresses();
+                //if(server.getId().equals()
                 Map<String, List<? extends Address>>  novaAddresses= addresses.getAddresses();
                 Set<String> keySet =novaAddresses.keySet();
                 for (String netname:keySet) {
