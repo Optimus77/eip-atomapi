@@ -15,7 +15,7 @@ import java.util.List;
 @RepositoryRestResource(collectionResourceRel = "eippool", path = "eippool")
 public interface EipPoolRepository extends JpaRepository<EipPool,String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query(value="SELECT id, ip FROM eippool AS t1 JOIN (SELECT ROUND(RAND() * (SELECT MAX(index) FROM eippool)) AS id) AS t2 WHERE t1.id >= t2.id ORDER BY t1.id ASC LIMIT 1", nativeQuery = true)
-    List<EipPool> getOneEipRandom();
+    @Query(value="SELECT * FROM eippool AS t1 JOIN (SELECT ROUND(RAND() * (SELECT MAX(num) FROM eippool)) AS num) AS t2 WHERE t1.num >= t2.num ORDER BY t1.num ASC LIMIT 1", nativeQuery = true)
+    List<EipPool> getEipByRandom();
 
 }
