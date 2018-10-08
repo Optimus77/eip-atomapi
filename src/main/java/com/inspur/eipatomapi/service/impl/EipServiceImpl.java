@@ -198,7 +198,7 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    public JSONObject listEips(int currentPage,int limit,boolean returnFloatingip){
+    public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         JSONObject returnjs = new JSONObject();
         try {
@@ -221,6 +221,7 @@ public class EipServiceImpl implements IEipService {
                 returnjs.put("data",data);
                 returnjs.put("code",ReturnStatus.SC_OK);
                 returnjs.put("msg","success");
+
             }else{
                 List<Eip> eipList=eipRepository.findAll();
                 JSONObject data=new JSONObject();
@@ -239,15 +240,14 @@ public class EipServiceImpl implements IEipService {
                 returnjs.put("code",ReturnStatus.SC_OK);
                 returnjs.put("msg","success");
             }
-
+            return new ResponseEntity<>(returnjs, HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
             returnjs.put("data",e.getMessage());
             returnjs.put("code", ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             returnjs.put("msg", e.getCause());
-
+            return new ResponseEntity<>(returnjs, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return returnjs;
 
     }
 
@@ -738,17 +738,13 @@ public class EipServiceImpl implements IEipService {
         eipJson.put("chargetype",eip.getChargeType());
         eipJson.put("chargemode",eip.getChargeMode());
 
-        eipJson.put("instanceId",eip.getInstanceId());
-        eipJson.put("instanceType",eip.getInstanceType());
-        eipJson.put("private_ip_address",eip.getEipAddress());
+        eipJson.put("private_ip_address",eip.getPrivateIpAddress());
 
         if(containsFloatingInfo){
             eipJson.put("floating_ip",eip.getFloatingIp());
             eipJson.put("floating_ipId",eip.getFloatingIpId());
         }
-
         eipJson.put("Sharedbandwidth_id",eip.getSharedBandWidthId());
-
         eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
 
         JSONObject resourceset=new JSONObject();

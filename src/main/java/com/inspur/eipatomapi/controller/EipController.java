@@ -44,7 +44,7 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public JSONObject listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
+    public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
         log.info("EipController listEip currentPage limit:");
         log.info(currentPage);
         log.info(limit);
@@ -65,7 +65,6 @@ public class EipController {
                 limit="0";
             }
         }
-
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
 
@@ -164,7 +163,7 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/eips_ext")
     @ApiOperation(value="listeip",notes="list")
-    public JSONObject listEipExt(@RequestParam(required = false)String currentPage , @RequestParam(required = false) String limit) {
+    public ResponseEntity listEipExt(@RequestParam(required = false)String currentPage , @RequestParam(required = false) String limit) {
         log.info("EipController listEip currentPage limit:");
         log.info(currentPage);
         log.info(limit);
