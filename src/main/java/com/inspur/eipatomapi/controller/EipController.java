@@ -156,7 +156,7 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/servers")
     @ApiOperation(value = "show all servers", notes = "get")
-    public String getServerList() {
+    public ResponseEntity getServerList() {
         return eipService.listServer();
     }
 

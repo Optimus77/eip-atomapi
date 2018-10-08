@@ -659,7 +659,7 @@ public class EipServiceImpl implements IEipService {
 
 
     @Override
-    public String listServer(){
+    public ResponseEntity listServer(){
         log.info("listServer start execute");
         JSONObject returnjs = new JSONObject();
         try {
@@ -690,18 +690,20 @@ public class EipServiceImpl implements IEipService {
                     dataArray.add(data);
                 }
             }
-            returnjs.put("code", SC_OK);
+            returnjs.put("code",ReturnStatus.SC_OK);
             returnjs.put("data",dataArray);
             returnjs.put("message", "success");
+            return new ResponseEntity<>(returnjs, HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
             returnjs.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             returnjs.put("data","{}");
             returnjs.put("message", e.getMessage()+"");
+            return new ResponseEntity<>(returnjs, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
 
-        return returnjs.toJSONString();
+
     }
     /**
      * get number of the eip

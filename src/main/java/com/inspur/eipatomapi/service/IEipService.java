@@ -95,7 +95,7 @@ public interface IEipService {
     /**
      * list all server of current users
      */
-    String listServer();
+    ResponseEntity listServer();
 
     /**
      * get eip by floating ip
