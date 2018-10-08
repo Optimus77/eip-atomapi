@@ -101,7 +101,6 @@ public class EipServiceImpl implements IEipService {
                     eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                     eipMo.setProjectId(CommonUtil.getProjectId());
                     eipMo = eipDaoService.updateEipEntity(eipMo);
-                    System.out.println(eipMo);
 
                     EipReturnBase eipInfo = new EipReturnBase();
                     BeanUtils.copyProperties(eipMo, eipInfo);
@@ -167,8 +166,6 @@ public class EipServiceImpl implements IEipService {
                     code = ReturnStatus.SC_PARAM_UNKONWERROR;
                     log.warn(msg);
                 } else {
-                    System.out.println("------------------------------");
-                    System.out.println(eipEntity.toString());
                     if (neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId())) {
                         eipDaoService.deleteEip(eipEntity);
                         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -198,54 +195,55 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    public String listEips(int currentPage,int limit,boolean returnFloatingip){
+    public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
-        JSONObject returnjs = new JSONObject();
-
         try {
-            Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-            Pageable pageable =PageRequest.of(currentPage,limit,sort);
-            Page<Eip> page = eipRepository.findAll(pageable);
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
-            for(Eip eip:page.getContent()){
-                JSONObject eipJson=new JSONObject();
-                if(returnFloatingip){
-                    eipJson.put("floating_ip",eip.getFloatingIp());
-                    eipJson.put("floating_ipId",eip.getFloatingIpId());
+
+            if(currentPage!=0){
+                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
+                Page<Eip> page = eipRepository.findAll(pageable);
+
+                for(Eip eip:page.getContent()){
+
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resource_id(eip.getInstanceId())
+                            .resourcetype(eip.getInstanceType()).build());
+                    eips.add(eipReturnDetail);
                 }
-                eipJson.put("eipid",eip.getEipId());
-                eipJson.put("status",eip.getStatus());
-                eipJson.put("iptype",eip.getIpType());
-                eipJson.put("eip_address",eip.getEipAddress());
-                eipJson.put("private_ip_address",eip.getPrivateIpAddress());
-                eipJson.put("bandwidth",eip.getBandWidth());
-                eipJson.put("chargetype",eip.getChargeType());
-                eipJson.put("chargemode",eip.getChargeMode());
-                eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
-                eipJson.put("sharedbandwidth_id",eip.getSharedBandWidthId());
-                JSONObject resourceset=new JSONObject();
-                resourceset.put("resourcetype",eip.getInstanceType());
-                resourceset.put("resource_id",eip.getInstanceId());
-                eipJson.put("resourceset",resourceset);
-                eips.add(eipJson);
+                data.put("eips",eips);
+                data.put("totalPages",page.getTotalPages());
+                data.put("totalElements",page.getTotalElements());
+                data.put("currentPage",currentPage);
+                data.put("currentPagePer",limit);
+            }else{
+                List<Eip> eipList=eipRepository.findAll();
+
+                for(Eip eip:eipList){
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resource_id(eip.getInstanceId())
+                            .resourcetype(eip.getInstanceType()).build());
+                    eips.add(eipReturnDetail);
+                }
+                data.put("eips",eips);
+                data.put("totalPages",1);
+                data.put("totalElements",eips.size());
+                data.put("currentPage",1);
+                data.put("currentPagePer",eips.size());
+
             }
-            data.put("eips",eips);
-            data.put("totalPages",page.getTotalPages());
-            data.put("totalElements",page.getTotalElements());
-            data.put("currentPage",currentPage);
-            data.put("currentPagePer",limit);
-            returnjs.put("data",data);
-            returnjs.put("code", SC_OK);
-            returnjs.put("message","success");
+            return new ResponseEntity<>(ReturnMsgUtil.listsuccess(data), HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
-            returnjs.put("data",e.getCause());
-            returnjs.put("code", ReturnStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("message", e.getCause());
 
+            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return returnjs.toJSONString();
     }
 
     /**
@@ -646,8 +644,9 @@ public class EipServiceImpl implements IEipService {
         for (int i = 0; i < 100; i++) {
             EipPool eipPoolMo = new EipPool();
             eipPoolMo.setFireWallId(id);
-            eipPoolMo.setIp("11.2.3."+i);
+            eipPoolMo.setIp("13.2.3."+i);
             eipPoolMo.setState("0");
+            eipPoolMo.setNum(i+1);
             //eipPoolMo.setIndex(i);
             eipPoolRepository.save(eipPoolMo);
         }
@@ -656,7 +655,7 @@ public class EipServiceImpl implements IEipService {
 
 
     @Override
-    public String listServer(){
+    public ResponseEntity listServer(){
         log.info("listServer start execute");
         JSONObject returnjs = new JSONObject();
         try {
@@ -687,18 +686,20 @@ public class EipServiceImpl implements IEipService {
                     dataArray.add(data);
                 }
             }
-            returnjs.put("code", SC_OK);
+            returnjs.put("code",ReturnStatus.SC_OK);
             returnjs.put("data",dataArray);
             returnjs.put("message", "success");
+            return new ResponseEntity<>(returnjs, HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
             returnjs.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             returnjs.put("data","{}");
             returnjs.put("message", e.getMessage()+"");
+            return new ResponseEntity<>(returnjs, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
 
-        return returnjs.toJSONString();
+
     }
     /**
      * get number of the eip
@@ -721,5 +722,5 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(returnjs.toString(), HttpStatus.NOT_FOUND);
         }
     }
-
+    
 }

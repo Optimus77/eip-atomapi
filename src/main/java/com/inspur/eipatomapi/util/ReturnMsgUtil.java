@@ -8,6 +8,10 @@ public class ReturnMsgUtil {
         return ReturnMsg.builder().code("200").message("success").eip(t).build();
     }
 
+    public static <T> ReturnMsg listsuccess(T t) {
+        return ReturnMsg.builder().code("200").message("success").date(t).build();
+    }
+
 
     public static ReturnMsg success() {
         return success(null);

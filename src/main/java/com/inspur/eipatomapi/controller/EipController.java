@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
@@ -43,13 +44,24 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public String listEip(@RequestParam String currentPage , @RequestParam String limit) {
-        log.info("EipController listEip");
-        if(currentPage==null){
-            currentPage="1";
-        }
-        if(limit==null){
-            limit="10";
+    public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
+        log.info("EipController listEip currentPage limit:");
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum=Integer.parseInt(currentPage);
+                int limitNum =Integer.parseInt(limit);
+                if(currentPageNum<0||limitNum<0){
+                    currentPage="0";
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
@@ -150,21 +162,33 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/servers")
     @ApiOperation(value = "show all servers", notes = "get")
-    public String getServerList() {
+    public ResponseEntity getServerList() {
         return eipService.listServer();
     }
 
     @ICPControllerLog
     @GetMapping(value = "/eips/eips_ext")
     @ApiOperation(value="listeip",notes="list")
-    public String listEipExt(@RequestParam String currentPage , @RequestParam String limit) {
-        log.info("EipController listEip ext");
-        if(currentPage==null){
-            currentPage="1";
+    public ResponseEntity listEipExt(@RequestParam(required = false)String currentPage , @RequestParam(required = false) String limit) {
+        log.info("EipController listEip currentPage limit:");
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum=Integer.parseInt(currentPage);
+                int limitNum =Integer.parseInt(limit);
+                if(currentPageNum<0||limitNum<0){
+                    currentPage="0";
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
-        if(limit==null){
-            limit="10";
-        }
+
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),true);
     }
 
@@ -172,7 +196,7 @@ public class EipController {
     @GetMapping(value = "/eips/instance/{instance_id}")
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@PathVariable String instance_id) {
-        log.info("EipController get eip by instance id.");
+        log.info("EipController get eip by instance id "+ instance_id);
         return  eipService.getEipByInstanceId(instance_id);
     }
 
@@ -181,7 +205,7 @@ public class EipController {
     @GetMapping(value = "/eips/eipaddress/{eipaddress}")
     @ApiOperation(value="getEipByEipAddress",notes="get")
     public ResponseEntity getEipByEipAddress(@PathVariable String eipaddress) {
-        log.info("EipController get eip by instance id.");
+        log.info("EipController get eip by ip "+ eipaddress);
         return  eipService.getEipByIpAddress(eipaddress);
     }
 

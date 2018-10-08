@@ -1,16 +1,16 @@
 package com.inspur.eipatomapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipReturnDetail implements Serializable {
 
     @JsonProperty("eipid")
@@ -20,7 +20,7 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("eip_address")
     private String eipAddress;
 
-    @JsonProperty("chargetyep")
+    @JsonProperty("chargetype")
     private String chargeType;
 
     @JsonProperty("chargemode")
