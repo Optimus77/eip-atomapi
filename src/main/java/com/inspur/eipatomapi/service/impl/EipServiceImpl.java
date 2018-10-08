@@ -2,7 +2,6 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
@@ -198,10 +197,10 @@ public class EipServiceImpl implements IEipService {
     @Override
     public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
-        JSONObject returnjs = new JSONObject();
         try {
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
+
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
@@ -720,41 +719,6 @@ public class EipServiceImpl implements IEipService {
             returnjs.put("message", "Failed");
             return new ResponseEntity<>(returnjs.toString(), HttpStatus.NOT_FOUND);
         }
-    }
-
-    private JSONObject eipReturnValueHandler(JSONObject eipJson,Eip eip,boolean containsFloatingInfo){
-
-
-        eipJson.put("eipid",eip.getEipId());
-        eipJson.put("status",eip.getStatus());
-        eipJson.put("iptype",eip.getIpType());
-        eipJson.put("eip_address",eip.getEipAddress());
-
-        eipJson.put("bandwidth",eip.getBandWidth());
-
-        eipJson.put("chargetype",eip.getChargeType());
-        eipJson.put("chargemode",eip.getChargeMode());
-
-        eipJson.put("instanceId",eip.getInstanceId());
-        eipJson.put("instanceType",eip.getInstanceType());
-        eipJson.put("private_ip_address",eip.getEipAddress());
-
-        if(containsFloatingInfo){
-            eipJson.put("floating_ip",eip.getFloatingIp());
-            eipJson.put("floating_ipId",eip.getFloatingIpId());
-        }
-
-        eipJson.put("Sharedbandwidth_id",eip.getSharedBandWidthId());
-
-        eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
-
-        JSONObject resourceset=new JSONObject();
-        resourceset.put("resourcetype",eip.getInstanceType());
-        resourceset.put("resource_id",eip.getInstanceId());
-        eipJson.put("resourceset",resourceset);
-
-        return eipJson;
-
     }
 
 
