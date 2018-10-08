@@ -48,11 +48,14 @@ dependencies {
 
     compile('org.pacesys:openstack4j:3.1.0')
     compile('com.alibaba:fastjson:1.2.49')
+//    compile 'org.jboss.resteasy:resteasy-jackson2-provider:3.1.4.Final'
     compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
     compile 'log4j:log4j:1.2.17'
 
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('mysql:mysql-connector-java')
+
+
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')

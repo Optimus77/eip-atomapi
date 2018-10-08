@@ -2,32 +2,22 @@ package com.inspur.eipatomapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.NonNull;
 import java.io.Serializable;
 
 @Data
 public class EipAllocateParam implements Serializable {
 
-    @NonNull
-    @JsonProperty("region")
     private String region;
 
-    @NonNull
-    @JsonProperty("iptype")
-    private String ipType;
+    private String iptype;
 
-    @JsonProperty("chargetype")
-    private String chargeType = "PrePaid";
+    private String chargetype = "PrePaid";
 
-    //BandWidth, ShareBandwidth
-    @JsonProperty("chargemode")
-    private String chargeMode = "BandWidth";
+    private String chargemode = "BandWidth";
 
-    @JsonProperty("purchasetime")
-    private String purchaseTime;
+    private String purchasetime;
 
-    @JsonProperty("bandwidth")
-    private int banWidth;
+    private int bandwidth;
 
     @JsonProperty("sharedbandwidthid")
     private String sharedBandWidthId;

@@ -6,8 +6,8 @@ import lombok.Data;
 @Builder
 @Data
 public class ReturnMsg<T> {
-    private int code;
-    private String msg;
-    private T data;
+    private String code;
+    private String message;
+    private T eip;
 
 }

@@ -21,7 +21,7 @@ import java.util.List;
 public interface EipRepository extends JpaRepository<Eip,String> {
 
     Eip findByInstanceId (String instanceId);
+    List<Eip> findByProjectId(String projectId);
 
-    List<Eip> findByFixedIpAndVpcId(String fixedIp, String vpcId);
-
+    Eip findByEipAddress(String ipAddress);
 }
