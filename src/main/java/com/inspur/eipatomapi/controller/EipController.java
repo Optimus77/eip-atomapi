@@ -44,10 +44,8 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public JSONObject listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
+    public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
         log.info("EipController listEip currentPage limit:");
-        log.info(currentPage);
-        log.info(limit);
         if(currentPage==null||limit==null){
             currentPage="0";
             limit="0";
@@ -164,10 +162,8 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/eips_ext")
     @ApiOperation(value="listeip",notes="list")
-    public JSONObject listEipExt(@RequestParam(required = false)String currentPage , @RequestParam(required = false) String limit) {
+    public ResponseEntity listEipExt(@RequestParam(required = false)String currentPage , @RequestParam(required = false) String limit) {
         log.info("EipController listEip currentPage limit:");
-        log.info(currentPage);
-        log.info(limit);
         if(currentPage==null||limit==null){
             currentPage="0";
             limit="0";
@@ -193,7 +189,7 @@ public class EipController {
     @GetMapping(value = "/eips/instance/{instance_id}")
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@PathVariable String instance_id) {
-        log.info("EipController get eip by instance id.");
+        log.info("EipController get eip by instance id "+ instance_id);
         return  eipService.getEipByInstanceId(instance_id);
     }
 
@@ -202,7 +198,7 @@ public class EipController {
     @GetMapping(value = "/eips/eipaddress/{eipaddress}")
     @ApiOperation(value="getEipByEipAddress",notes="get")
     public ResponseEntity getEipByEipAddress(@PathVariable String eipaddress) {
-        log.info("EipController get eip by instance id.");
+        log.info("EipController get eip by ip "+ eipaddress);
         return  eipService.getEipByIpAddress(eipaddress);
     }
 

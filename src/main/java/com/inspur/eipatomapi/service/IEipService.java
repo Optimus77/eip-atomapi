@@ -50,7 +50,7 @@ public interface IEipService {
      * @param limit  element of per page
      * @return       result
      */
-    JSONObject listEips(int currentPage,int limit,boolean returnFloatingip);
+    ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip);
 
     /**
      * get detail of the eip
