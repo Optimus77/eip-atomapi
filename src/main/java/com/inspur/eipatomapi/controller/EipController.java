@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
@@ -43,14 +44,28 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public String listEip(@RequestParam String currentPage , @RequestParam String limit) {
-        log.info("EipController listEip");
-        if(currentPage==null){
-            currentPage="1";
+    public JSONObject listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
+        log.info("EipController listEip currentPage limit:");
+        log.info(currentPage);
+        log.info(limit);
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum=Integer.parseInt(currentPage);
+                int limitNum =Integer.parseInt(limit);
+                if(currentPageNum<0||limitNum<0){
+                    currentPage="0";
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
-        if(limit==null){
-            limit="10";
-        }
+
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
 
@@ -149,14 +164,28 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/eips_ext")
     @ApiOperation(value="listeip",notes="list")
-    public String listEipExt(@RequestParam String currentPage , @RequestParam String limit) {
-        log.info("EipController listEip ext");
-        if(currentPage==null){
-            currentPage="1";
+    public JSONObject listEipExt(@RequestParam(required = false)String currentPage , @RequestParam(required = false) String limit) {
+        log.info("EipController listEip currentPage limit:");
+        log.info(currentPage);
+        log.info(limit);
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum=Integer.parseInt(currentPage);
+                int limitNum =Integer.parseInt(limit);
+                if(currentPageNum<0||limitNum<0){
+                    currentPage="0";
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
-        if(limit==null){
-            limit="10";
-        }
+
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),true);
     }
 

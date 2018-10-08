@@ -198,54 +198,57 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    public String listEips(int currentPage,int limit,boolean returnFloatingip){
+    public JSONObject listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         JSONObject returnjs = new JSONObject();
-
         try {
-            Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-            Pageable pageable =PageRequest.of(currentPage,limit,sort);
-            Page<Eip> page = eipRepository.findAll(pageable);
-            JSONObject data=new JSONObject();
-            JSONArray eips=new JSONArray();
-            for(Eip eip:page.getContent()){
-                JSONObject eipJson=new JSONObject();
-                if(returnFloatingip){
-                    eipJson.put("floating_ip",eip.getFloatingIp());
-                    eipJson.put("floating_ipId",eip.getFloatingIpId());
+            if(currentPage!=0){
+                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
+                Page<Eip> page = eipRepository.findAll(pageable);
+                JSONObject data=new JSONObject();
+                JSONArray eips=new JSONArray();
+                for(Eip eip:page.getContent()){
+                    JSONObject eipJson=new JSONObject();
+                    eipReturnValueHandler(eipJson,eip,returnFloatingip);
+                    eips.add(eipJson);
                 }
-                eipJson.put("eipid",eip.getEipId());
-                eipJson.put("status",eip.getStatus());
-                eipJson.put("iptype",eip.getIpType());
-                eipJson.put("eip_address",eip.getEipAddress());
-                eipJson.put("private_ip_address",eip.getPrivateIpAddress());
-                eipJson.put("bandwidth",eip.getBandWidth());
-                eipJson.put("chargetype",eip.getChargeType());
-                eipJson.put("chargemode",eip.getChargeMode());
-                eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
-                eipJson.put("sharedbandwidth_id",eip.getSharedBandWidthId());
-                JSONObject resourceset=new JSONObject();
-                resourceset.put("resourcetype",eip.getInstanceType());
-                resourceset.put("resource_id",eip.getInstanceId());
-                eipJson.put("resourceset",resourceset);
-                eips.add(eipJson);
+                data.put("eips",eips);
+                data.put("totalPages",page.getTotalPages());
+                data.put("totalElements",page.getTotalElements());
+                data.put("currentPage",currentPage);
+                data.put("currentPagePer",limit);
+                returnjs.put("data",data);
+                returnjs.put("code",ReturnStatus.SC_OK);
+                returnjs.put("msg","success");
+            }else{
+                List<Eip> eipList=eipRepository.findAll();
+                JSONObject data=new JSONObject();
+                JSONArray eips=new JSONArray();
+                for(Eip eip:eipList){
+                    JSONObject eipJson=new JSONObject();
+                    eipReturnValueHandler(eipJson,eip,returnFloatingip);
+                    eips.add(eipJson);
+                }
+                data.put("eips",eips);
+                data.put("totalPages",1);
+                data.put("totalElements",eips.size());
+                data.put("currentPage",1);
+                data.put("currentPagePer",eips.size());
+                returnjs.put("data",data);
+                returnjs.put("code",ReturnStatus.SC_OK);
+                returnjs.put("msg","success");
             }
-            data.put("eips",eips);
-            data.put("totalPages",page.getTotalPages());
-            data.put("totalElements",page.getTotalElements());
-            data.put("currentPage",currentPage);
-            data.put("currentPagePer",limit);
-            returnjs.put("data",data);
-            returnjs.put("code", SC_OK);
-            returnjs.put("message","success");
+
         }catch (Exception e){
             e.printStackTrace();
-            returnjs.put("data",e.getCause());
+            returnjs.put("data",e.getMessage());
             returnjs.put("code", ReturnStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("message", e.getCause());
+            returnjs.put("msg", e.getCause());
 
         }
-        return returnjs.toJSONString();
+        return returnjs;
+
     }
 
     /**
@@ -721,5 +724,41 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(returnjs.toString(), HttpStatus.NOT_FOUND);
         }
     }
+
+    private JSONObject eipReturnValueHandler(JSONObject eipJson,Eip eip,boolean containsFloatingInfo){
+
+
+        eipJson.put("eipid",eip.getEipId());
+        eipJson.put("status",eip.getStatus());
+        eipJson.put("iptype",eip.getIpType());
+        eipJson.put("eip_address",eip.getEipAddress());
+
+        eipJson.put("bandwidth",eip.getBandWidth());
+
+        eipJson.put("chargetype",eip.getChargeType());
+        eipJson.put("chargemode",eip.getChargeMode());
+
+        eipJson.put("instanceId",eip.getInstanceId());
+        eipJson.put("instanceType",eip.getInstanceType());
+        eipJson.put("private_ip_address",eip.getEipAddress());
+
+        if(containsFloatingInfo){
+            eipJson.put("floating_ip",eip.getFloatingIp());
+            eipJson.put("floating_ipId",eip.getFloatingIpId());
+        }
+
+        eipJson.put("Sharedbandwidth_id",eip.getSharedBandWidthId());
+
+        eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
+
+        JSONObject resourceset=new JSONObject();
+        resourceset.put("resourcetype",eip.getInstanceType());
+        resourceset.put("resource_id",eip.getInstanceId());
+        eipJson.put("resourceset",resourceset);
+
+        return eipJson;
+
+    }
+
 
 }
