@@ -19,7 +19,7 @@ public class EipReturnBase implements Serializable {
     @JsonProperty("eip_address")
     private String eipAddress;
 
-    @JsonProperty("chargetyep")
+    @JsonProperty("chargetype")
     private String chargeType;
 
     @JsonProperty("chargemode")

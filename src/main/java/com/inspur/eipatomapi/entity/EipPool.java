@@ -19,8 +19,8 @@ public class EipPool implements Serializable {
     @Column(nullable = false, insertable = false, updatable = false)
     private String id;
 
-    //@GeneratedValue(strategy = GenerationType.IDENTITY)
-   // private Integer index;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer num;
 
     private String fireWallId;
 
