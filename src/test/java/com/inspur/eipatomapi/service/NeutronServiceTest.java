@@ -27,15 +27,15 @@ public class NeutronServiceTest {
 
     }
 
-    @Test
-    public void associaInstanceWithFloatingIp() {
-        String fip = "10.110.26.46";
-        String portId = "de79eb9b-4299-4304-b3e9-d94d94f098ec";
-        try {
-            ActionResponse netFloatingIP = neutronserver.associaInstanceWithFloatingIp(fip, portId);
-            System.out.println(netFloatingIP);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
+    // @Test
+    // public void associaInstanceWithFloatingIp() {
+    //     String fip = "10.110.26.46";
+    //     String portId = "de79eb9b-4299-4304-b3e9-d94d94f098ec";
+    //     try {
+    //         ActionResponse netFloatingIP = neutronserver.associaInstanceWithFloatingIp(fip, portId);
+    //         System.out.println(netFloatingIP);
+    //     }catch(Exception e){
+    //         e.printStackTrace();
+    //     }
+    // }
 }
