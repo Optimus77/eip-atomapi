@@ -116,7 +116,7 @@ public class CommonUtil {
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
      */
-    public static String getKeycloackToken() throws Exception {
+    public static String getKeycloackToken() {
         //important
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         if(null != requestAttributes) {
@@ -125,7 +125,7 @@ public class CommonUtil {
             String keyCloackToken = request.getHeader("authorization");
             log.info(keyCloackToken);
             if (keyCloackToken == null) {
-                throw new Exception("ERROR:request authorization info is null,");
+                return null;
             } else {
                 return keyCloackToken;
             }
