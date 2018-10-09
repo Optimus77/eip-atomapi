@@ -66,7 +66,11 @@ public class EipDaoService {
                         eipMo.setPurchaseTime(eipConfig.getPurchasetime());
                         eipMo.setBandWidth(eipConfig.getBandwidth());
                         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                        eipMo.setProjectId(CommonUtil.getProjectId());
+                        String tenantid = CommonUtil.getOsClientV3Util().getToken().getProject().getId();
+                        log.info("get tenantid from clientv3"+tenantid);
+                        log.info("get tenantid from token"+CommonUtil.getProjectId());
+                        eipMo.setProjectId(tenantid);
+
                         eipPoolRepository.delete(eip);
                         eipMo = eipRepository.save(eipMo);
                         return eipMo;
