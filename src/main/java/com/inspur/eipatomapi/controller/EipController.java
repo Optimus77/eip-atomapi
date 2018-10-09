@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
@@ -35,7 +37,7 @@ public class EipController {
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
-    public ResponseEntity allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
+    public ResponseEntity allocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig) {
         log.info(eipConfig);
         return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
      }
