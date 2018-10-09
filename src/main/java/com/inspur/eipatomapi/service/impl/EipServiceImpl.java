@@ -99,7 +99,10 @@ public class EipServiceImpl implements IEipService {
                     eipMo.setPurchaseTime(eipConfig.getPurchasetime());
                     eipMo.setBandWidth(eipConfig.getBandwidth());
                     eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                    eipMo.setProjectId(CommonUtil.getProjectId());
+                    String tenantid = CommonUtil.getOsClientV3Util().getToken().getProject().getId();
+                    log.info("get tenantid from clientv3"+tenantid);
+                    log.info("get tenantid from token"+CommonUtil.getProjectId());
+                    eipMo.setProjectId(tenantid);
                     eipMo = eipDaoService.updateEipEntity(eipMo);
 
                     EipReturnBase eipInfo = new EipReturnBase();
