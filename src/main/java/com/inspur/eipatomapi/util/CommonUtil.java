@@ -97,6 +97,9 @@ public class CommonUtil {
         String project = (String) jsonObject.get("project");
         log.info(project);
 
+
+
+
         //String regionInfo=getReginInfo();
         //log.warning("regionInfo"+regionInfo);
         //accord the param region get the first param ip
@@ -151,8 +154,19 @@ public class CommonUtil {
         return null;
     }
 
-    public static String getProjectId(){
-        return projectId;
+    public static String getProjectId()  throws Exception{
+        log.info("getProjectId");
+        String token = getKeycloackToken();
+        if(null == token){
+            log.info("can't get token, use default project admin 140785795de64945b02363661eb9e769");
+            return projectId;
+        }else{
+            log.info("get token,use token info ");
+            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+            String projectid=jsonObject.getString("projectid");
+            log.info(projectid);
+            return projectid;
+        }
     }
 
 }
