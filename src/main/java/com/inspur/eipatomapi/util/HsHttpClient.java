@@ -508,8 +508,10 @@ public class HsHttpClient {
 			url.append(port);
 		}
 		url.append(rest);
+		CloseableHttpClient client=null;
+		try {
 
-		CloseableHttpClient client = HttpClients.createDefault();
+		client= HttpClients.createDefault();
 		HttpPut httpPut = new HttpPut(url.toString());
 		RequestConfig config = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout).build();
 		httpPut.setConfig(config);
@@ -517,7 +519,6 @@ public class HsHttpClient {
 		httpPut.setHeader("Cookie", getCookie(ip));
 
 		logger.debug("request line:put-" + httpPut.getRequestLine());
-		try {
 			// payload
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
 			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
@@ -532,6 +533,7 @@ public class HsHttpClient {
 			return e.toString();
 		} finally {
 			try {
+				if (client!=null)
 				client.close();
 			} catch (IOException e) {
 				logger.error(e);
@@ -789,8 +791,10 @@ public class HsHttpClient {
 			url.append(port);
 		}
 		url.append(rest);
+		CloseableHttpClient client=null;
+		try {
 
-		CloseableHttpClient client = HttpClients.createDefault();
+		 client= HttpClients.createDefault();
 		HttpPut httpPut = new HttpPut(url.toString());
 		RequestConfig config = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout).build();
 		httpPut.setConfig(config);
@@ -798,7 +802,6 @@ public class HsHttpClient {
 		httpPut.setHeader("Cookie", getCookie(ip));
 
 		logger.debug("request line:put-" + httpPut.getRequestLine());
-		try {
 			// payload
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
 			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
@@ -813,6 +816,7 @@ public class HsHttpClient {
 			return e.toString();
 		} finally {
 			try {
+				if (client!=null)
 				client.close();
 			} catch (IOException e) {
 				logger.error(e);
