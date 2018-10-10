@@ -44,12 +44,7 @@ public interface IEipService {
 
     ResponseEntity deleteEip(String eipId);
 
-    /**
-     * get detail of the fixedeip
-     * @param fixedIp  the id of the eip instance
-     * @return the json result
-     */
-    JSONObject fixedIpgetEipDetail(String fixedIp,String vpcId) throws Exception;
+
 
     /**
      *  list the eip
