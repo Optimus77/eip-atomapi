@@ -198,7 +198,9 @@ public class KeycloakClientRequestFactoryProd extends KeycloakClientRequestFacto
             e.printStackTrace();
         } finally {
             try {
-                httpResponse.close();
+                if(httpResponse!=null){
+                    httpResponse.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
