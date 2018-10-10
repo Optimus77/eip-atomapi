@@ -1,9 +1,9 @@
 package com.inspur.eipatomapi.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
+import com.inspur.icp.common.util.ReturnMsgUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
@@ -147,9 +147,9 @@ public class EipController {
     @PostMapping(value = "/eips/addeippool")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="addEipPool",notes="add eip")
-    public ResponseEntity<String> addEipPool( @RequestParam String ip) {
+    public ResponseEntity addEipPool( @RequestParam String ip) {
         eipService.addEipPool(ip);
-        return new ResponseEntity<>("True", HttpStatus.OK);
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
 
