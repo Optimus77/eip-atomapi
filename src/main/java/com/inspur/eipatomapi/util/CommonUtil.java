@@ -32,6 +32,8 @@ public class CommonUtil {
     @Setter
     private static JSONObject KeyClockInfo;
 
+    private static boolean isDebug;
+
 
 
     private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
@@ -55,11 +57,9 @@ public class CommonUtil {
     public static OSClientV3 getOsClientV3Util() throws Exception {
 
         //cancle the auth
-        if(1==1){
+        if(isDebug){
             return getOsClientV3();
         }
-
-
         String token = getKeycloackToken();
         log.info(token);
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
