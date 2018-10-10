@@ -33,7 +33,7 @@ public class FwSnatVo extends FwBaseObject {
     private String mtime;
     private String muserid;
     private String eif;
-    private String pos_flag;
+    private String posFlag;
     private String flag;
     private String protocal;
     private String sport;

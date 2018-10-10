@@ -1,10 +1,7 @@
 package com.inspur.eipatomapi.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializeConfig;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
@@ -13,7 +10,6 @@ import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.service.FirewallService;
 import com.inspur.eipatomapi.util.CommonUtil;
-import com.inspur.eipatomapi.util.FastjsonUtil;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,7 +53,7 @@ public class EipServiceImpl implements IEipService {
     private FirewallRepository firewallRepository;
 
 
-    private final static Log log = LogFactory.getLog(EipServiceImpl.class);
+    private static final  Log log = LogFactory.getLog(EipServiceImpl.class);
 
     /**
      * allocate eip
@@ -106,7 +102,7 @@ public class EipServiceImpl implements IEipService {
     @Override
     @ICPServiceLog
     public JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) throws Exception {
-        //Eip eipMo;
+
 
         JSONObject eipWrapper=new JSONObject();
         JSONObject eipInfo = new JSONObject();
@@ -218,7 +214,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPagePer",limit);
                 returnjs.put("data",data);
                 returnjs.put("code",HttpStatus.SC_OK);
-                returnjs.put("msg","success");
+                returnjs.put("msg","Success");
             }else{
                 List<Eip> eipList=eipRepository.findAll();
                 JSONObject data=new JSONObject();
@@ -235,7 +231,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPagePer",eips.size());
                 returnjs.put("data",data);
                 returnjs.put("code",HttpStatus.SC_OK);
-                returnjs.put("msg","success");
+                returnjs.put("msg","Success");
             }
 
         }catch (Exception e){
@@ -260,7 +256,6 @@ public class EipServiceImpl implements IEipService {
         ActionResponse actionResponse = neutronService.associaInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
         String dnatRuleId = null;
         String snatRuleId = null;
-        String pipId;
         if(actionResponse.isSuccess()){
             dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
@@ -268,8 +263,7 @@ public class EipServiceImpl implements IEipService {
 //                pipId = firewallService.addQos(eip.getFloatingIp(),
 //                        eip.getEip(),
 //                        String.valueOf(eip.getBanWidth()),
-//                        eip.getFirewallId());
-               // if(null != pipId) {
+
                     eip.setInstanceId(serverId);
                     eip.setInstanceType(instanceType);
                     eip.setDnatId(dnatRuleId);
@@ -278,9 +272,7 @@ public class EipServiceImpl implements IEipService {
                     eip.setState("1");
                     eipRepository.save(eip);
                     return true;
-//                } else {
-//                    log.warn("Failed to add qos in firewall"+eip.getFirewallId());
-//                }
+
             } else {
                 log.warn("Failed to add snat and dnat in firewall"+eip.getFirewallId());
             }
@@ -476,7 +468,7 @@ public class EipServiceImpl implements IEipService {
                             eipjs.put("eip",eipJSON);
                             returnjs.put("code",HttpStatus.SC_OK);
                             returnjs.put("data",eipjs);
-                            returnjs.put("msg", "success");
+                            returnjs.put("msg", "successful");
                         }
                         break;
                     case "2":
@@ -489,7 +481,7 @@ public class EipServiceImpl implements IEipService {
                         // 3：slb
                         returnjs.put("code",HttpStatus.SC_ACCEPTED);
                         returnjs.put("data","{}");
-                        returnjs.put("msg", "no support type param "+type);
+                        returnjs.put("msg", "no appropriate support type param "+type);
                         break;
                     default:
                         log.info("no support type");
@@ -683,7 +675,6 @@ public class EipServiceImpl implements IEipService {
         }
 
         eipJson.put("Sharedbandwidth_id",eip.getSharedBandWidthId());
-        //eipJson.put("sharedbandwidth_id",eip.getSharedBandWidthId());
 
         eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
 

@@ -11,8 +11,8 @@ import java.net.URLEncoder;
 public class Cookie {
     String token;
     String platform;
-    String hw_platform;
-    String host_name;
+    String hwPlatform;
+    String hostName;
     String company;
     String oemid;
     String vsysid;
@@ -20,17 +20,17 @@ public class Cookie {
     String role;
     String license;
     String httpProtocol;
-    String soft_version;
+    String softVersion;
     String username;
     String overseaLicense;
-    String HS_frame_lang = "zh_CN";
+    String hsframeLang = "zh_CN";
 
 
-    public Cookie(String token, String platform, String hw_platform, String host_name, String company, String oemid, String vsysid, String vsysname, String role, String license, String httpProtocol, String soft_version, String username, String overseaLicense, String HS_frame_lang) throws UnsupportedEncodingException {
+    public Cookie(String token, String platform, String hwPlatform, String hostName, String company, String oemid, String vsysid, String vsysname, String role, String license, String httpProtocol, String softVersion, String username, String overseaLicense, String hsframeLang) throws UnsupportedEncodingException {
         this.token = this.urlencode(token);
         this.platform = this.urlencode(platform);
-        this.hw_platform = this.urlencode(hw_platform);
-        this.host_name = this.urlencode(host_name);
+        this.hwPlatform = this.urlencode(hwPlatform);
+        this.hostName = this.urlencode(hostName);
         this.company = this.urlencode(company);
         this.oemid = this.urlencode(oemid);
         this.vsysid = this.urlencode(vsysid);
@@ -38,10 +38,10 @@ public class Cookie {
         this.role = this.urlencode(role);
         this.license = this.urlencode(license);
         this.httpProtocol = this.urlencode(httpProtocol);
-        this.soft_version = this.urlencode(soft_version);
+        this.softVersion = this.urlencode(softVersion);
         this.username = this.urlencode(username);
         this.overseaLicense = this.urlencode(overseaLicense);
-        this.HS_frame_lang = this.urlencode(HS_frame_lang);
+        this.hsframeLang = this.urlencode(hsframeLang);
     }
 
     String urlencode(String item) throws UnsupportedEncodingException {
@@ -66,8 +66,8 @@ public class Cookie {
         StringBuffer sb = new StringBuffer();
         sb.append("token="+this.token+";");
         sb.append("platform="+this.platform+";");
-        sb.append("hw_platform="+this.hw_platform+";");
-        sb.append("host_name="+this.host_name+";");
+        sb.append("hw_platform="+this.hwPlatform+";");
+        sb.append("host_name="+this.hostName+";");
         sb.append("company="+this.company+";");
         sb.append("oemid="+this.oemid+";");
         sb.append("vsysid="+this.vsysid+";");
@@ -75,10 +75,10 @@ public class Cookie {
         sb.append("role="+this.role+";");
         sb.append("license="+this.license+";");
         sb.append("httpProtocol="+this.httpProtocol+";");
-        sb.append("soft_version="+this.soft_version+";");
+        sb.append("soft_version="+this.softVersion+";");
         sb.append("username="+this.username+";");
         sb.append("overseaLicense="+this.overseaLicense+";");
-        sb.append("HS.frame.lang="+this.HS_frame_lang);
+        sb.append("HS.frame.lang="+this.hsframeLang);
         return sb.toString();
     }
 }

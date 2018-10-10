@@ -27,7 +27,7 @@ public class NatService extends BaseService {
             params.add(new BasicNameValuePair("query", gson.toJson(query)));
             String retr = HsHttpClient.hsHttpGet(manage.getManageIP(), null, manage.getManageUser(), manage.getManagePwd(), "/rest/Snat?isDynamic=0&" + URLEncodedUtils.format(params, "UTF-8"));
             JSONObject jo = new JSONObject(retr);
-            jo.getBoolean("success");
+            jo.getBoolean("successful");
             return snats;
         } catch (Exception var8) {
             this.logger.error(var8);
@@ -40,18 +40,17 @@ public class NatService extends BaseService {
         FwSnatVo resultVo = new FwSnatVo();
         Gson gson = new Gson();
         try {
-//            System.out.println(HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE);
+
             String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), snat.getManagePort(), snat.getManageUser(), snat.getManagePwd(),
                     HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE, addSnatPayload("add",snat));
-            //String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), null,
-            //		HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE, addSnatPayload("add",snat));
+
 
             JSONObject jo = new JSONObject(retr);
-            if (jo.getBoolean("success")) {
+            if (jo.getBoolean("Success")) {
                 FwSnat hsSnat = gson.fromJson(jo.getJSONArray("result").getJSONObject(0)
                         .getJSONObject("vr").getJSONObject("vrouter")
                         .getJSONObject("snat_rule").toString(), FwSnat.class);
-                resultVo.setSnatid(hsSnat.getRule_id());
+                resultVo.setSnatid(hsSnat.getRuleId());
                 body.setObject(resultVo);
             }
 
@@ -148,23 +147,23 @@ public class NatService extends BaseService {
     private String getPayload(FwDnatVo dnat) {
         FwAddAndDelDnat object = new FwAddAndDelDnat();
         FwDnatRule rule = new FwDnatRule();
-        object.setVr_name(dnat.getVrid());
-        rule.setRule_id(dnat.getDnatid());
-        rule.setGroup_id(dnat.getHa());
+        object.setVrName(dnat.getVrid());
+        rule.setRuleId(dnat.getDnatid());
+        rule.setGroupId(dnat.getHa());
         rule.setFrom(dnat.getSaddr());
-        rule.setFrom_is_ip(dnat.getSaddrtype());
+        rule.setFromIsIp(dnat.getSaddrtype());
         rule.setService(dnat.getServicename());
         rule.setTo(dnat.getDaddr());
-        rule.setTo_is_ip(dnat.getDaddrtype());
-        rule.setTrans_to(dnat.getTransferaddr());
-        rule.setTrans_to_is_ip(dnat.getTransferaddrtype());
+        rule.setToIsIp(dnat.getDaddrtype());
+        rule.setTransTo(dnat.getTransferaddr());
+        rule.setTransToIsIp(dnat.getTransferaddrtype());
         if ("1".equals(dnat.getIstransferport())) {
             rule.setPort(dnat.getTransferport());
         }
 
         rule.setEnable(dnat.getDnatstat());
         rule.setDescription(dnat.getDescription());
-        object.getDnat_rule().add(rule);
+        object.getDnatRule().add(rule);
         Gson gson = new Gson();
         String payload = gson.toJson(object);
         return payload;
@@ -174,20 +173,20 @@ public class NatService extends BaseService {
 
         Gson gson;
         FwSnatParam snatParam = new FwSnatParam();
-        snatParam.setVr_name(vo.getVrid());
+        snatParam.setVrName(vo.getVrid());
 
         FwSnat snat = new FwSnat();
 
         if ("add".equals(operator)) {
             gson = new Gson();
-            snat.setPos_flag(vo.getPos_flag());
-            snat.setTrans_to_is_ip("1");
+            snat.setPosFlag(vo.getPosFlag());
+            snat.setTransToIsIp("1");
         }else if ("update".equals(operator)) {
             gson = new GsonBuilder().serializeNulls().create();
-            snat.setTrans_to("");
-            snat.setTrans_to_is_ip("");
+            snat.setTransTo("");
+            snat.setTransToIsIp("");
             snat.setEvr("");
-            snat.setPos_flag("");
+            snat.setPosFlag("");
         }else {
             return null;
         }
@@ -197,16 +196,16 @@ public class NatService extends BaseService {
         snat.setEnable(Integer.parseInt(vo.getSnatstat()));
         snat.setFlag(vo.getFlag());
         snat.setFrom(vo.getSaddr());
-        snat.setFrom_is_ip(vo.getSaddrtype());
-        snat.setGroup_id(vo.getHa());
+        snat.setFromIsIp(vo.getSaddrtype());
+        snat.setGroupId(vo.getHa());
         snat.setLog(Boolean.parseBoolean(vo.getSnatlog()));
-        snat.setRule_id(vo.getSnatid());
+        snat.setRuleId(vo.getSnatid());
         snat.setService(vo.getServicename());
         snat.setTo(vo.getDaddr());
-        snat.setTrans_to(vo.getTransferaddr());
-        snat.setTo_is_ip(vo.getDaddrtype());
+        snat.setTransTo(vo.getTransferaddr());
+        snat.setToIsIp(vo.getDaddrtype());
 
-        snatParam.getSnat_rule().add(snat);
+        snatParam.getSnatRule().add(snat);
 
         if ("update".equals(operator)) {
             return "["+gson.toJson(snatParam)+"]";

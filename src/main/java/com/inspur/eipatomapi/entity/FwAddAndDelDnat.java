@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 @Getter
 public class FwAddAndDelDnat {
-    private String vr_name;
-    List<FwDnatRule> dnat_rule = new ArrayList<>();
+    private String vrName;
+    List<FwDnatRule> dnatRule = new ArrayList<>();
 
 }

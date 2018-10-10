@@ -6,20 +6,20 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FwSnat {
-    private String rule_id;
+    private String ruleId;
     private int enable;
-    private String group_id;
+    private String groupId;
     private String service;
     private String description;
-    private String pos_flag;
+    private String posFlag;
     private boolean log;
-    private String from_is_ip;
+    private String fromIsIp;
     private String from;
-    private String to_is_ip;
+    private String toIsIp;
     private String to;
     private String flag;
     private String eif;
-    private String trans_to;
-    private String trans_to_is_ip;
+    private String transTo;
+    private String transToIsIp;
     private String evr;
 }

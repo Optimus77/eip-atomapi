@@ -11,7 +11,6 @@ import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +21,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
-@Api(value = "eips", description = "eip API")
+@Api(value = "eips")
 public class EipController {
 
-    private final static Log log = LogFactory.getLog(EipController.class);
+    private static final  Log log = LogFactory.getLog(EipController.class);
 
 
     @Autowired
     private EipServiceImpl eipService;
 
-    //Todo: find the external net id
     private String floatingnetworkId = "d9c00a35-fea8-4162-9de1-b8100494a11d";
 
     @ICPControllerLog
@@ -79,7 +77,7 @@ public class EipController {
 
 
 
-    @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/eips/{eip_id}")
     @ICPControllerLog
     @ApiOperation(value = "deleteEip")
     public ResponseEntity<String> deleteEip(@PathVariable("eip_id") String id) {

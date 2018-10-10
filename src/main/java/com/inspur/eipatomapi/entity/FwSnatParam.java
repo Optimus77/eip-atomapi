@@ -8,6 +8,6 @@ import java.util.List;
 @Setter
 @Getter
 public class FwSnatParam {
-    private String vr_name;
-    private List<FwSnat> snat_rule = new ArrayList<>();
+    private String vrName;
+    private List<FwSnat> snatRule = new ArrayList<>();
 }

@@ -16,7 +16,7 @@ import java.util.Optional;
 @Service
 public class FirewallService {
 
-    private final static Log log = LogFactory.getLog(FirewallService.class);
+    private static final  Log log = LogFactory.getLog(FirewallService.class);
     @Autowired
     private FirewallRepository firewallRepository;
 
@@ -62,7 +62,7 @@ public class FirewallService {
             if (body.isSuccess()) {
                 // 创建成功
                 FwPortMapResult result = (FwPortMapResult) body.getObject();
-                ruleid = result.getRule_id();
+                ruleid = result.getRuleId();
                 log.info(innerip + "--DNAT添加成功");
             } else {
                 log.info(innerip + "--DNAT添加失败:" + body.getException());
@@ -73,8 +73,6 @@ public class FirewallService {
 
     public String addSnat(String innerip, String extip, String equipid) {
         String ruleid = null;
-        //String srcIP = innerip;
-        //String destIP = extip;
 
         FwSnatVo vo = new FwSnatVo();
         Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
@@ -92,10 +90,9 @@ public class FirewallService {
             vo.setHa("0");
             vo.setSnatlog("false");
             //vo.setPos_flag("0"); // 列表最后
-            vo.setPos_flag("1");   // 列表最前
+            vo.setPosFlag("1");   // 列表最前
             vo.setSnatid("0");
             vo.setServicename("Any");
-            //vo.setDaddr("21.21.21.21/25");
             vo.setDaddr("Any");
             vo.setDaddrtype("1");
             vo.setTransferaddr(extip); // 外网IP地址
@@ -184,8 +181,6 @@ public class FirewallService {
             } else {
                 log.info("删除管道失败:"+"dev【"+devId+"】,pipid【"+pipid+"】");
             }
-            //Todo: update eip entry
-            //eipMapper.updateEipByObjectid(eipid, "");
         }
 
         return true;
@@ -240,7 +235,6 @@ public class FirewallService {
                 vo.setManageUser(accessFirewallBeanByNeid.getUser());
                 vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
 
-                //vo.setManageIP("172.23.70.133");
                 vo.setVrid("trust-vr");
                 vo.setSnatid(ruleid);
 
