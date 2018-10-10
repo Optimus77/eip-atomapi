@@ -14,18 +14,15 @@ import java.io.Serializable;
 public class EipPool implements Serializable {
 
     @Id
-    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
-    @GeneratedValue(generator = "system-uuid")
-    @Column(nullable = false, insertable = false, updatable = false)
-    private String id;
-
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer num;
+    @Column(nullable = false, insertable = false, updatable = false)
+    private Integer id;
 
     private String fireWallId;
-
+    @Column(nullable = false, updatable = false)
     private String ip;
 
     private String state; //0:free 1:unbound 2:bound 9:reserve
+
 
 }

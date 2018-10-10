@@ -15,7 +15,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EipDaoService {
@@ -46,38 +45,37 @@ public class EipDaoService {
     @Transactional
     public Eip allocateEip(EipAllocateParam eipConfig, String networkId, String portId) throws Exception{
 
-        List<EipPool> eipList = eipPoolRepository.findAll();
-        for (EipPool eip : eipList) {
-            if (eip != null) {
-                if (eip.getState().equals("0")) {
-                    Eip eipMo = new Eip();
-                    eipMo.setEipAddress(eip.getIp());
-                    eipMo.setStatus("DOWN");
-                    eipMo.setFirewallId(eip.getFireWallId());
+        EipPool eip = getOneEipFromPool();
+        if(null != eip){
+            if (eip.getState().equals("0")) {
+                Eip eipMo = new Eip();
+                eipMo.setEipAddress(eip.getIp());
+                eipMo.setStatus("DOWN");
+                eipMo.setFirewallId(eip.getFireWallId());
 
-                    NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
-                    if (null != floatingIP) {
-                        eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
-                        eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
-                        eipMo.setFloatingIpId(floatingIP.getId());
-                        eipMo.setIpType(eipConfig.getIptype());
-                        eipMo.setChargeType(eipConfig.getChargetype());
-                        eipMo.setChargeMode(eipConfig.getChargemode());
-                        eipMo.setPurchaseTime(eipConfig.getPurchasetime());
-                        eipMo.setBandWidth(eipConfig.getBandwidth());
-                        eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                        String tenantid = CommonUtil.getOsClientV3Util().getToken().getProject().getId();
-                        log.info("get tenantid from clientv3"+tenantid);
-                        log.info("get tenantid from token"+CommonUtil.getProjectId());
-                        eipMo.setProjectId(tenantid);
+                NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
+                if (null != floatingIP) {
+                    eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
+                    eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
+                    eipMo.setFloatingIpId(floatingIP.getId());
+                    eipMo.setIpType(eipConfig.getIptype());
+                    eipMo.setChargeType(eipConfig.getChargetype());
+                    eipMo.setChargeMode(eipConfig.getChargemode());
+                    eipMo.setPurchaseTime(eipConfig.getPurchasetime());
+                    eipMo.setBandWidth(eipConfig.getBandwidth());
+                    eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
+                    String tenantid = CommonUtil.getOsClientV3Util().getToken().getProject().getId();
+                    log.info("get tenantid from clientv3"+tenantid);
+                    log.info("get tenantid from token"+CommonUtil.getProjectId());
+                    eipMo.setProjectId(tenantid);
 
-                        eipPoolRepository.delete(eip);
-                        eipMo = eipRepository.save(eipMo);
-                        return eipMo;
-                    }
+                    eipPoolRepository.delete(eip);
+                    eipMo = eipRepository.save(eipMo);
+                    return eipMo;
                 }
             }
         }
+
         log.warn("Failed to allocate eip in network：" + networkId);
         return null;
     }
@@ -287,9 +285,11 @@ public class EipDaoService {
             eipPoolMo.setFireWallId(id);
             eipPoolMo.setIp("13.2.3."+i);
             eipPoolMo.setState("0");
-            eipPoolMo.setNum(i+1);
-            //eipPoolMo.setIndex(i);
             eipPoolRepository.save(eipPoolMo);
         }
+    }
+
+    private synchronized EipPool getOneEipFromPool(){
+        return eipPoolRepository.getEipByRandom();
     }
 }
