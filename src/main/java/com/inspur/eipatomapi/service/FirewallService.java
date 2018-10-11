@@ -17,29 +17,22 @@ import java.util.Optional;
 public class FirewallService {
 
     private final static Log log = LogFactory.getLog(FirewallService.class);
+
     @Autowired
     private FirewallRepository firewallRepository;
 
-    private Firewall getFireWallById(String id){
-        Firewall firewall = null;
+    private String vr = "trust-vr";
 
-        firewall = new Firewall();
-        firewall.setIp("10.110.26.93");
-        firewall.setPort("443");
-        firewall.setUser("InnetAdmin");
-        firewall.setPasswd("innetadmin");
-        firewall.setParam1("eth0/0/0");
-        firewall.setParam2("eth0/0/1");
-        firewall.setParam3("eth0/0/2");
-        return firewall;
-//
-//        Optional<Firewall> firewall = firewallRepository.findById(id);
-//        if(firewall.isPresent()){
-//            fireWallEntity =  firewall.get();
-//        } else {
-//            log.warn("Failed to find the firewall by id:"+ id);
-//        }
-//        return fireWallEntity;
+    private Firewall getFireWallById(String id){
+
+        Firewall fireWallEntity = null;
+        Optional<Firewall> firewall = firewallRepository.findById(id);
+        if(firewall.isPresent()){
+            fireWallEntity =  firewall.get();
+        } else {
+            log.warn("Failed to find the firewall by id:"+ id);
+        }
+        return fireWallEntity;
     }
 
     public String addDnat(String innerip, String extip, String equipid) {
@@ -54,8 +47,8 @@ public class FirewallService {
             dnatVo.setManageUser(accessFirewallBeanByNeid.getUser());
             dnatVo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
             dnatVo.setDnatid("0");
-            dnatVo.setVrid("trust-vr");
-            dnatVo.setVrname("trust-vr");
+            dnatVo.setVrid(vr);
+            dnatVo.setVrname(vr);
             dnatVo.setSaddrtype("0");
             dnatVo.setSaddr("Any");
             dnatVo.setDaddrtype("1");
@@ -84,8 +77,6 @@ public class FirewallService {
 
     public String addSnat(String innerip, String extip, String equipid) {
         String ruleid = null;
-        //String srcIP = innerip;
-        //String destIP = extip;
 
         FwSnatVo vo = new FwSnatVo();
         Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
@@ -95,7 +86,7 @@ public class FirewallService {
             vo.setManageUser(accessFirewallBeanByNeid.getUser());
             vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
 
-            vo.setVrid("trust-vr");
+            vo.setVrid(vr);
             vo.setSnatstat("1");
             vo.setFlag("20");
             vo.setSaddr(innerip);  //内网IP地址
@@ -106,7 +97,7 @@ public class FirewallService {
             vo.setPos_flag("1");   // 列表最前
             vo.setSnatid("0");
             vo.setServicename("Any");
-            //vo.setDaddr("21.21.21.21/25");
+
             vo.setDaddr("Any");
             vo.setDaddrtype("1");
             vo.setTransferaddr(extip); // 外网IP地址
@@ -195,8 +186,6 @@ public class FirewallService {
             } else {
                 log.info("删除管道失败:"+"dev【"+devId+"】,pipid【"+pipid+"】");
             }
-            //Todo: update eip entry
-            //eipMapper.updateEipByObjectid(eipid, "");
         }
 
         return true;
@@ -219,8 +208,8 @@ public class FirewallService {
                 vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
 
                 vo.setDnatid(ruleid);
-                vo.setVrid("trust-vr");
-                vo.setVrname("trust-vr");
+                vo.setVrid(vr);
+                vo.setVrname(vr);
 
                 NatService dnatimpl = new NatService();
                 FwResponseBody body = dnatimpl.delPDnat(vo);
@@ -238,7 +227,6 @@ public class FirewallService {
     public boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = false;
         if ("offline".equals(ruleid)) {
-            // 离线模式
             return bSuccess;
         }
         if (StringUtils.isNotEmpty(ruleid)) {
@@ -251,8 +239,7 @@ public class FirewallService {
                 vo.setManageUser(accessFirewallBeanByNeid.getUser());
                 vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
 
-                //vo.setManageIP("172.23.70.133");
-                vo.setVrid("trust-vr");
+                vo.setVrid(vr);
                 vo.setSnatid(ruleid);
 
                 NatService dnatimpl = new NatService();
