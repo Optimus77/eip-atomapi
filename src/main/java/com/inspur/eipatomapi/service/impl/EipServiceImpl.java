@@ -147,6 +147,15 @@ public class EipServiceImpl implements IEipService {
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
                 Page<Eip> page = eipRepository.findAll(pageable);
 
+                Page<Eip> page1=eipRepository.findByProjectId("140785795de64945b02363661eb9e769",pageable);
+                log.info("============== test get eip by projectid ======================");
+                for(Eip eip:page1.getContent()){
+                    log.info(JSONObject.toJSON(eip));
+                }
+                log.info(page1.getTotalPages());
+                log.info(page1.getTotalElements());
+                log.info("============== test get eip by projectid ======================");
+
                 for(Eip eip:page.getContent()){
 
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
