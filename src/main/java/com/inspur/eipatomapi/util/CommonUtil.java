@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
+import org.openstack4j.api.OSClient;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
@@ -55,7 +56,7 @@ public class CommonUtil {
     }
 
 
-    public static OSClientV3 getOsClientV3Util() throws Exception {
+    public static OSClientV3 getOsClientV3Util()  {
 
 
 
@@ -154,18 +155,17 @@ public class CommonUtil {
         return null;
     }
 
-    public static String getProjectId()  throws Exception{
+    public static String getProjectId(){
         log.info("getProjectId");
         String token = getKeycloackToken();
         if(null == token){
             log.info("can't get token, use default project admin 140785795de64945b02363661eb9e769");
             return projectId;
         }else{
-            log.info("get token,use token info ");
-            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-            String projectid=jsonObject.getString("projectid");
-            log.info(projectid);
-            return projectid;
+            OSClientV3 os= getOsClientV3Util();
+            String projectid_client=os.getToken().getProject().getId();
+            log.info("get projectid from os v3 client "+projectid_client);
+            return projectid_client;
         }
     }
 
