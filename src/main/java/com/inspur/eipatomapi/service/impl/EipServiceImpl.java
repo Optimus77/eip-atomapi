@@ -138,25 +138,18 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         try {
+            String projcectid=CommonUtil.getProjectId();
+            log.info(projcectid);
+            if(projcectid==null){
+                return new ResponseEntity<>("get projcetid error please check the Authorization param", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
-
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
-                Page<Eip> page = eipRepository.findAll(pageable);
-
-                Page<Eip> page1=eipRepository.findByProjectId("140785795de64945b02363661eb9e769",pageable);
-//                log.info("============== test get eip by projectid ======================");
-//                for(Eip eip:page1.getContent()){
-//                    log.info(JSONObject.toJSON(eip));
-//                }
-//                log.info(page1.getTotalPages());
-//                log.info(page1.getTotalElements());
-//                log.info("============== test get eip by projectid ======================");
-
+                Page<Eip> page=eipRepository.findByProjectId(projcectid,pageable);
                 for(Eip eip:page.getContent()){
-
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
@@ -170,8 +163,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPage",currentPage);
                 data.put("currentPagePer",limit);
             }else{
-                List<Eip> eipList=eipRepository.findAll();
-
+                List<Eip> eipList=eipRepository.findByProjectId(projcectid);
                 for(Eip eip:eipList){
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
@@ -185,7 +177,6 @@ public class EipServiceImpl implements IEipService {
                 data.put("totalElements",eips.size());
                 data.put("currentPage",1);
                 data.put("currentPagePer",eips.size());
-
             }
             return new ResponseEntity<>(ReturnMsgUtil.listsuccess(data), HttpStatus.OK);
         }catch (Exception e){
