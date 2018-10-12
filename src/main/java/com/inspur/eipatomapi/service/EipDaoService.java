@@ -4,16 +4,14 @@ import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
-import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.CommonUtil;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 
 @Service
@@ -33,8 +31,7 @@ public class EipDaoService {
     @Autowired
     private NeutronService neutronService;
 
-    private final static Log log = LogFactory.getLog(EipServiceImpl.class);
-
+    public final static Logger log = LoggerFactory.getLogger(EipDaoService.class);
     /**
      * allocate eip
      *
@@ -65,8 +62,8 @@ public class EipDaoService {
                     eipMo.setBandWidth(eipConfig.getBandwidth());
                     eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                     String tenantid = CommonUtil.getOsClientV3Util().getToken().getProject().getId();
-                    log.info("get tenantid from clientv3"+tenantid);
-                    log.info("get tenantid from token"+CommonUtil.getProjectId());
+                    log.debug("get tenantid:{} from clientv3",tenantid);
+                    log.debug("get tenantid from token:{}",CommonUtil.getProjectId());
                     eipMo.setProjectId(tenantid);
 
                     eipPoolRepository.delete(eip);
@@ -76,7 +73,7 @@ public class EipDaoService {
             }
         }
 
-        log.warn("Failed to allocate eip in network：" + networkId);
+        log.error("Failed to allocate eip in network：{}, ",networkId);
         return null;
     }
 
@@ -91,7 +88,8 @@ public class EipDaoService {
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
                 || (null != eipEntity.getSnatId())) {
-            log.warn("Failed to delete eip,Eip is bind to port."+eipEntity.getPipId()+eipEntity.getDnatId()+eipEntity.getSnatId());
+            log.error("Failed to delete eip,eipId:{},pipId:{}, dnatId:{}, snatid:{}.",
+                    eipEntity.getEipId(),eipEntity.getPipId(), eipEntity.getDnatId(),eipEntity.getSnatId());
             return false;
         }
         boolean delFipResult = true;
@@ -109,7 +107,7 @@ public class EipDaoService {
             eipPoolRepository.save(eipPoolMo);
             return true;
         } else {
-            log.warn("Failed to delete floating ip ." + eipEntity.getFloatingIpId());
+            log.error("Failed to delete floating ip, floatingIpId:{}.",eipEntity.getFloatingIpId());
             return false;
         }
     }
@@ -131,13 +129,13 @@ public class EipDaoService {
 
         Eip eip = eipRepository.findByEipId(eipid);
         if(null == eip){
-            log.warn("In associate process, failed to find the eip by id "+eipid);
+            log.error("In associate process, failed to find the eip by id:{} ",eipid);
             return null;
         }
         if(!(eip.getStatus().equals("DOWN")) || (null != eip.getDnatId())
                 || (null != eip.getSnatId()) || (null != eip.getPipId())){
-//            log.warn("In associate process, eip status is not down id:{}, status:{}, pipId:{}, snatId:{}, DnstId:{}",
-//                    eipid,eip.getStatus(), eip.getPipId(),eip.getSnatId(),eip.getDnatId());
+            log.error("Status error when associate eip, eipId:{}, status:{}, pipId:{}, snatId:{}, DnstId:{}",
+                    eipid,eip.getStatus(), eip.getPipId(),eip.getSnatId(),eip.getDnatId());
             return null;
         }
         ActionResponse actionResponse = neutronService.associaInstanceWithFloatingIp(eip,serverId);
@@ -159,14 +157,16 @@ public class EipDaoService {
                     eip.setStatus("ACTIVE");
                     return eipRepository.save(eip);
                 } else {
-                    log.warn("Failed to add qos in firewall "+eip.getFirewallId());
+                    log.error("Failed to add qos in firewall,eipId:{}, fip:{}, firewallId:{} .",
+                            eip.getEipId(), eip.getFloatingIp(), eip.getFirewallId());
                 }
             } else {
-                log.warn("Failed to add snat and dnat in firewall "+eip.getFirewallId());
+                log.error("Failed to add snat and dnat in firewall,eipId:{}, fip:{}, eip:{} ",
+                        eip.getEipId(),eip.getFloatingIp(), eip.getEipAddress());
 
             }
         } else {
-            log.warn("Failed to associate port with eip, serverId "+serverId);
+            log.error("Failed to associate port:{} with eip:{}, serverId:{} ", portId, eipid, serverId);
         }
         if(actionResponse.isSuccess() ){
             neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
@@ -193,47 +193,56 @@ public class EipDaoService {
 
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if(null == eipEntity){
-            log.warn("In disassociate process,failed to find the eip by id "+eipid);
+            log.error("In disassociate process,failed to find the eip by id:{} ",eipid);
             return false;
         }
         if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())
-                || (null == eipEntity.getDnatId()) ){
-            return false;
+                || (null == eipEntity.getDnatId()) || null == eipEntity.getFloatingIp()){
+            log.error("Error status when disassociate eip,eipId:{}, status:{}, snatId:{}, dnatId:{}, fipId:{} ",
+                    eipid, eipEntity.getStatus(), eipEntity.getSnatId(), eipEntity.getDnatId());
+        }
+        boolean delFip = false;
+        if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
+            ActionResponse actionResponse = neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
+                    eipEntity.getInstanceId());
+            if (actionResponse.isSuccess()) {
+                eipEntity.setInstanceId(null);
+                eipEntity.setInstanceType(null);
+                eipEntity.setPrivateIpAddress(null);
+                delFip = true;
+            }else {
+                log.error("Failed to disassociate port with fip,eipId:{},  floatingip:{}, instanceId:{}",
+                        eipEntity.getEipId(), eipEntity.getFloatingIp(), eipEntity.getInstanceId());
+            }
         }
 
-        ActionResponse actionResponse= neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
-                eipEntity.getInstanceId());
-        if(actionResponse.isSuccess()) {
-            eipEntity.setInstanceId(null);
-            eipEntity.setInstanceType(null);
-            eipEntity.setPrivateIpAddress(null);
-        } else {
-            log.warn("Failed to disassociate port with eip, floatingipid:" + eipEntity.getFloatingIpId());
-        }
         Boolean delDnatResult = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
-        if(delDnatResult){
+        if (delDnatResult) {
             eipEntity.setDnatId(null);
-        }else{
-            log.warn("Failed to del dnat in firewall" + eipEntity.getFirewallId());
+        } else {
+            log.error("Failed to del dnat in firewall,eipId:{}, dnatId:{}",
+                    eipEntity.getEipId(), eipEntity.getDnatId());
         }
+
         Boolean delSnatResult = firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId());
-        if(delSnatResult) {
+        if (delSnatResult) {
             eipEntity.setSnatId(null);
-        }else {
-            log.warn("Failed to del snat in firewall" + eipEntity.getFirewallId());
+        } else {
+            log.error("Failed to del snat in firewall, eipId:{},snatId:{}",
+                    eipEntity.getEipId(), eipEntity.getSnatId());
         }
 
         Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
         if(delQosResult) {
             eipEntity.setPipId(null);
         } else {
-            log.warn("Failed to del qos" + eipEntity.getPipId());
+            log.error("Failed to del qos, eipId:{},pipId:{}",eipEntity.getEipId(), eipEntity.getPipId());
         }
 
         eipEntity.setStatus("DOWN");
         eipRepository.save(eipEntity);
 
-        return delDnatResult && delSnatResult && delQosResult && (actionResponse.isSuccess());
+        return delDnatResult && delSnatResult && delQosResult && delFip;
     }
 
     @Transactional
@@ -241,7 +250,7 @@ public class EipDaoService {
 
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
-            log.warn("In disassociate process,failed to find the eip by id " + eipid);
+            log.error("In disassociate process,failed to find the eip by id:{} ", eipid);
             return null;
         }
 
@@ -249,9 +258,9 @@ public class EipDaoService {
                 eipEntity.getPipId(), eipEntity.getEipId(),
                 String.valueOf(param.getEipUpdateParam().getBandWidth()));
         if (updateStatus || CommonUtil.isDebug) {
-            log.info("before change：" + eipEntity.getBandWidth());
+            log.debug("before change：" + eipEntity.getBandWidth());
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
-            log.info("after  change：" + eipEntity.getBandWidth());
+            log.debug("after  change：" + eipEntity.getBandWidth());
 
             return eipRepository.save(eipEntity);
         }

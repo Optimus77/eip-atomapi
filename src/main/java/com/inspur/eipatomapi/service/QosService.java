@@ -6,12 +6,16 @@ import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class QosService extends BaseService {
     private String fwIp;
     private String fwPort;
     private String fwUser;
     private String fwPwd;
+
+    public final static Logger log = LoggerFactory.getLogger(QosService.class);
 
     QosService(String fwIp, String fwPort, String fwUser, String fwPwd) {
         this.fwIp = fwIp;
@@ -41,7 +45,7 @@ public class QosService extends BaseService {
 
             return res;
         } catch (Exception var7) {
-            this.logger.error(var7.getMessage());
+            log.error(var7.getMessage());
             res.put("success", "false");
             res.put("msg", var7.getMessage());
             return res;
@@ -68,7 +72,7 @@ public class QosService extends BaseService {
 
             return res;
         } catch (Exception var7) {
-            this.logger.error(var7);
+            log.error(var7.getMessage());
             res.put("success", "false");
             res.put("msg", var7.getMessage());
             return res;
@@ -89,7 +93,7 @@ public class QosService extends BaseService {
 
             return res;
         } catch (Exception var8) {
-            this.logger.error(var8);
+            log.error(var8.getMessage());
             res.put("success", "false");
             res.put("msg", var8.getMessage());
             return res;
@@ -134,7 +138,7 @@ public class QosService extends BaseService {
             res.put("id", id);
             return res;
         } catch (Exception var11) {
-            this.logger.error(var11);
+            log.error(var11.getMessage());
             res.put("success", "false");
             res.put("msg", var11.getMessage());
             return res;

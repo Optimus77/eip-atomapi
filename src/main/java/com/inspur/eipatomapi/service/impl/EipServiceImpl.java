@@ -11,8 +11,8 @@ import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openstack4j.model.compute.Address;
 import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
@@ -45,8 +45,7 @@ public class EipServiceImpl implements IEipService {
     @Autowired
     private EipDaoService eipDaoService;
 
-    private final static Log log = LogFactory.getLog(EipServiceImpl.class);
-
+    public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
     /**
      * create a eip
@@ -70,7 +69,7 @@ public class EipServiceImpl implements IEipService {
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
                 msg = "Failed to create floating ip in external network:" + externalNetWorkId;
-                log.warn(msg);
+                log.error(msg);
             }
 
         }catch (Exception e){
@@ -118,7 +117,7 @@ public class EipServiceImpl implements IEipService {
             } else {
                 msg = "Failed to delete eip,eip is bind to port or fip not found.";
                 code = ReturnStatus.SC_PARAM_UNKONWERROR;
-                log.warn(msg);
+                log.error(msg);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -148,13 +147,13 @@ public class EipServiceImpl implements IEipService {
                 Page<Eip> page = eipRepository.findAll(pageable);
 
                 Page<Eip> page1=eipRepository.findByProjectId("140785795de64945b02363661eb9e769",pageable);
-                log.info("============== test get eip by projectid ======================");
-                for(Eip eip:page1.getContent()){
-                    log.info(JSONObject.toJSON(eip));
-                }
-                log.info(page1.getTotalPages());
-                log.info(page1.getTotalElements());
-                log.info("============== test get eip by projectid ======================");
+//                log.info("============== test get eip by projectid ======================");
+//                for(Eip eip:page1.getContent()){
+//                    log.info(JSONObject.toJSON(eip));
+//                }
+//                log.info(page1.getTotalPages());
+//                log.info(page1.getTotalElements());
+//                log.info("============== test get eip by projectid ======================");
 
                 for(Eip eip:page.getContent()){
 
@@ -250,6 +249,7 @@ public class EipServiceImpl implements IEipService {
                         .resourcetype(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
+                log.warn("Failed to find eip by instance id, instanceId:{}", instanceId);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "can not find instance by this id:" + instanceId+""),
                         HttpStatus.NOT_FOUND);
@@ -283,6 +283,7 @@ public class EipServiceImpl implements IEipService {
                         .resourcetype(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
+                log.warn("Failed to find eip by eip, eip:{}", eip);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "can not find eip by this eip address:" + eip+""),
                         HttpStatus.NOT_FOUND);
@@ -364,7 +365,7 @@ public class EipServiceImpl implements IEipService {
                     if(null == eipEntity){
                         code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
                         msg = "Failed to associate  port with eip "+ id;
-                        log.warn(msg);
+                        log.error(msg);
                     }else{
                         EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
@@ -380,7 +381,7 @@ public class EipServiceImpl implements IEipService {
                 default:
                     code = ReturnStatus.SC_PARAM_ERROR;
                     msg = "no support type param "+type;
-                    log.info("no support type");
+                    log.warn(msg);
                     break;
             }
         } catch (Exception e) {
@@ -414,7 +415,6 @@ public class EipServiceImpl implements IEipService {
                             if (!eipDaoService.disassociateInstanceWithEip(id)) {
                                 code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
                                 msg = "Failed to disassociate  port with eip " + id;
-                                log.info(msg);
                             } else {
                                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
@@ -431,7 +431,6 @@ public class EipServiceImpl implements IEipService {
                             //default ecs
                             code = ReturnStatus.SC_PARAM_ERROR;
                             msg = "no support instance type " + instanceType;
-                            log.warn(msg);
                             break;
                     }
                 }else{
@@ -447,6 +446,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
+        log.error(msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -470,7 +470,6 @@ public class EipServiceImpl implements IEipService {
     @ICPServiceLog
     public ResponseEntity listServer(){
         log.info("listServer start execute");
-        JSONObject returnjs = new JSONObject();
         try {
             List<Server> serverList= (List<Server>) neutronService.listServer();
             JSONArray dataArray=new JSONArray();
@@ -499,16 +498,12 @@ public class EipServiceImpl implements IEipService {
                     dataArray.add(data);
                 }
             }
-            returnjs.put("code",ReturnStatus.SC_OK);
-            returnjs.put("data",dataArray);
-            returnjs.put("message", "success");
-            return new ResponseEntity<>(returnjs, HttpStatus.OK);
+
+            return new ResponseEntity<>(ReturnMsgUtil.success(dataArray), HttpStatus.OK);
         }catch (Exception e){
             e.printStackTrace();
-            returnjs.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("data","{}");
-            returnjs.put("message", e.getMessage()+"");
-            return new ResponseEntity<>(returnjs, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
 
@@ -527,12 +522,12 @@ public class EipServiceImpl implements IEipService {
             returnjs.put("code", SC_OK);
             returnjs.put("message", "success");
             returnjs.put("number", eips.size());
-            return new ResponseEntity<>(returnjs.toString(), HttpStatus.OK);
+            return new ResponseEntity<>(returnjs, HttpStatus.OK);
         } catch(Exception e){
             e.printStackTrace();
             returnjs.put("code", ReturnStatus.SC_NOT_FOUND);
             returnjs.put("message", "Failed");
-            return new ResponseEntity<>(returnjs.toString(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(returnjs, HttpStatus.NOT_FOUND);
         }
     }
 

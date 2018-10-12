@@ -10,6 +10,8 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 public class NatService extends BaseService {
+
+    public final static Logger log = LoggerFactory.getLogger(NatService.class);
 
     public List<FwSnatVo> getSnat(FwQuery query, FwBaseObject manage) {
         List<FwSnatVo> snats = new ArrayList<>();
@@ -30,7 +34,7 @@ public class NatService extends BaseService {
             jo.getBoolean("success");
             return snats;
         } catch (Exception var8) {
-            this.logger.error(var8);
+            log.error("Exception when get snat.",var8);
             return snats;
         }
     }
@@ -40,11 +44,8 @@ public class NatService extends BaseService {
         FwSnatVo resultVo = new FwSnatVo();
         Gson gson = new Gson();
         try {
-//            System.out.println(HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE);
             String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), snat.getManagePort(), snat.getManageUser(), snat.getManagePwd(),
                     HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE, addSnatPayload("add",snat));
-            //String retr = HsHttpClient.hsHttpPost(snat.getManageIP(), null,
-            //		HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE, addSnatPayload("add",snat));
 
             JSONObject jo = new JSONObject(retr);
             if (jo.getBoolean("success")) {
@@ -109,7 +110,7 @@ public class NatService extends BaseService {
                 return body;
             }
         } catch (Exception var11) {
-            this.logger.error(var11);
+            log.error("IO Exception when add dnat.",var11);
             body.setSuccess(false);
             FwResponseException ex = new FwResponseException();
             ex.setCode("-1");
@@ -136,7 +137,7 @@ public class NatService extends BaseService {
 
             return body;
         } catch (Exception var6) {
-            this.logger.error(var6);
+            log.error("IO Exception when del dnat.",var6);
             body.setSuccess(false);
             FwResponseException ex = new FwResponseException();
             ex.setCode("-1");

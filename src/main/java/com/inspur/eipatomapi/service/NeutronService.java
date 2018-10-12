@@ -2,8 +2,8 @@ package com.inspur.eipatomapi.service;
 
 import com.inspur.eipatomapi.entity.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.common.ActionResponse;
@@ -11,7 +11,6 @@ import org.openstack4j.model.compute.Address;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
-import org.openstack4j.openstack.compute.domain.NovaAddresses;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.stereotype.Service;
 
@@ -29,8 +28,7 @@ import java.util.Set;
 @Service
 public  class NeutronService {
 
-    private final static Log log = LogFactory.getLog(NeutronService.class);
-
+    public final static Logger log = LoggerFactory.getLogger(NeutronService.class);
 
     /**
      *  get the floatingip detail
@@ -58,7 +56,7 @@ public  class NeutronService {
             String message = String.format(
                     "Cannot create floating ip under network: %s in region: %s",
                     networkId, region);
-            log.warn(message);
+            log.error(message);
             throw new ResponseException(message, 500);
         }
 
@@ -91,7 +89,7 @@ public  class NeutronService {
                 }
             }
         }else{
-            log.warn("openstack api return faild when bind instance to eip.");
+            log.error("openstack api return faild when bind instance to eip.");
         }
         return result;
     }
@@ -101,7 +99,7 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
-        return  osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
+        return osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 
 
