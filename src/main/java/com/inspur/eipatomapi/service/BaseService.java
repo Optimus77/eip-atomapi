@@ -1,10 +1,9 @@
 package com.inspur.eipatomapi.service;
 
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class BaseService {
-    protected final Logger logger = Logger.getLogger(this.getClass());
-
+    protected final static Logger log = LoggerFactory.getLogger(EipDaoService.class);
     protected BaseService() {
     }
 }

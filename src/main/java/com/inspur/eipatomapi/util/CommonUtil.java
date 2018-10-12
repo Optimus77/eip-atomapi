@@ -5,14 +5,13 @@ import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
 import com.inspur.icp.common.util.QueryUtil;
 import lombok.Setter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONObject;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
-import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -22,7 +21,7 @@ import java.util.Date;
 
 public class CommonUtil {
 
-    private final static Log log = LogFactory.getLog(CommonUtil.class);
+    public final static Logger log = LoggerFactory.getLogger(CommonUtil.class);
     public static boolean isDebug = true;
 
 

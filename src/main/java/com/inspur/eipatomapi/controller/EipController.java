@@ -6,8 +6,6 @@ import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.icp.common.util.ReturnMsgUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 
@@ -24,8 +24,7 @@ import javax.validation.Valid;
 @Api(value = "eips", description = "eip API")
 public class EipController {
 
-    private final static Log log = LogFactory.getLog(EipController.class);
-
+    private final static Logger log = LoggerFactory.getLogger(EipController.class);
 
     @Autowired
     private EipServiceImpl eipService;
@@ -38,7 +37,7 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
     public ResponseEntity allocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig) {
-        log.info(eipConfig);
+        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
         return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
      }
 
@@ -47,7 +46,7 @@ public class EipController {
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
     public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
-        log.info("EipController listEip currentPage limit:");
+        log.info("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
         if(currentPage==null||limit==null){
             currentPage="0";
             limit="0";
@@ -76,7 +75,7 @@ public class EipController {
     public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId) {
         //Check the parameters
 
-        log.warn("Delete the Eip "+eipId);
+        log.info("Delete the Eip:{} ",eipId);
         return eipService.deleteEip(eipId);
 
     }
@@ -88,7 +87,7 @@ public class EipController {
     public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
         //Check the parameters
 
-        log.warn("Delete the Eip "+param);
+        log.info("Delete the Eips "+param.toString());
         return eipService.deleteEipList(param.getEipids());
     }
 
@@ -117,6 +116,7 @@ public class EipController {
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
     public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
+        log.info("Bind eip.{}, {}", eipId, param.getEipUpdateParam().toString());
         return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
                 param.getEipUpdateParam().getServerId(),
                 param.getEipUpdateParam().getPortId());
@@ -129,6 +129,7 @@ public class EipController {
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
     public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId) {
+        log.info("Unbind eip.{}.", eipId);
         return eipService.unBindPort(eipId);
     }
 
@@ -139,6 +140,7 @@ public class EipController {
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
     public ResponseEntity changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+        log.info("Update eip.{}, {}", eipId, param.getEipUpdateParam().toString());
         return eipService.updateEipBandWidth(eipId,param);
     }
 
@@ -190,7 +192,7 @@ public class EipController {
     @GetMapping(value = "/eips/instance/{instance_id}")
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@PathVariable String instance_id) {
-        log.info("EipController get eip by instance id "+ instance_id);
+        log.info("EipController get eip by instance id:{} ",instance_id);
         return  eipService.getEipByInstanceId(instance_id);
     }
 
@@ -199,7 +201,7 @@ public class EipController {
     @GetMapping(value = "/eips/eipaddress/{eipaddress}")
     @ApiOperation(value="getEipByEipAddress",notes="get")
     public ResponseEntity getEipByEipAddress(@PathVariable String eipaddress) {
-        log.info("EipController get eip by ip "+ eipaddress);
+        log.info("EipController get eip by ip:{} ", eipaddress);
         return  eipService.getEipByIpAddress(eipaddress);
     }
 

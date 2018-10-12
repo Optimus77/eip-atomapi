@@ -1,6 +1,7 @@
 package com.inspur.eipatomapi.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.inspur.eipatomapi.entity.Cookie;
 import com.inspur.eipatomapi.entity.FwLogin;
 import com.inspur.eipatomapi.entity.FwLoginResponseBody;
@@ -25,7 +26,8 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -44,7 +46,7 @@ import java.util.Map;
 
 public class HsHttpClient {
 
-	private final static Logger logger = Logger.getLogger(HsHttpClient.class);
+    private final static Logger logger = LoggerFactory.getLogger(HsHttpClient.class);
 
 	private static Map<String, String> cookieMap = new HashMap<>();
 
@@ -89,7 +91,7 @@ public class HsHttpClient {
 				return jo.toString();
 			} catch (Exception e) {
                 // TODO Auto-generated catch block
-                logger.error(e);
+                logger.error("Exception.",e);
                 return "";
             }
 		} else {
@@ -149,10 +151,10 @@ public class HsHttpClient {
 			}
 			return body.isSuccess();
 		} catch (ClientProtocolException e1) {
-			logger.error(e1);
+			logger.error("Failed to login.", e1);
 			return false;
 		} catch (IOException ex) {
-			logger.error(ex);
+			logger.error("Io exception when login.",ex);
 			return false;
 		} finally {
 			try {
@@ -160,7 +162,7 @@ public class HsHttpClient {
 					client.close();
 				}
 			} catch (IOException e) {
-				logger.error(e);
+				logger.error("Exception when login.",e);
 			}
 		}
 	}
@@ -183,7 +185,8 @@ public class HsHttpClient {
 			String httpProtocol = resultJsn.getString("httpProtocol");
 			JSONObject sysInfoObj = resultJsn.getJSONObject("sysInfo");
 			String soft_version = sysInfoObj.getString("soft_version");
-			String username = HsConstants.USER;
+//			String username = HsConstants.USER;
+            String username = jo.getString("user");
 			String overseaLicense = resultJsn.getString("overseaLicense");
 			String HS_frame_lang = HsConstants.LANG;
 
@@ -264,6 +267,10 @@ public class HsHttpClient {
 				instream = entity.getContent();
 				byte[] payload = readStream(instream);
 				JSONObject jo = new JSONObject(new String(payload));
+
+                Gson gson = new Gson();
+                Object userpw = gson.fromJson(json, FwLogin.class);
+				jo.put("user",((FwLogin) userpw).getPassword());
 				String loginResult = loginCookieParser(jo);
 
 				if (loginResult != null && loginResult != "") {
@@ -281,7 +288,7 @@ public class HsHttpClient {
 		} catch (IOException ex) {
 			// In case of an IOException the connection will be released
 			// back to the connection manager automatically
-			logger.error(ex);
+			logger.error("Exception when login.",ex);
 		} finally {
 			// Closing the input stream will trigger connection release
 			if (null != instream) {
@@ -374,13 +381,13 @@ public class HsHttpClient {
 
 		} catch (IOException e) {
 			System.out.println(e);
-			logger.debug(e);
+			logger.debug("Io Exception when get.",e);
 			return "";
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.debug(e);
+				logger.debug("IO Exception when get.",e);
 			}
 		}
 	}
@@ -424,13 +431,13 @@ public class HsHttpClient {
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
-			logger.error(e);
+			logger.error("IO Exception when post.",e);
 			return "";
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error(e);
+				logger.error("IO Exception when post.",e);
 			}
 		}
 	}
@@ -480,7 +487,7 @@ public class HsHttpClient {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error(e);
+				logger.error("IO Exception when put.",e);
 			}
 		}
 	}
@@ -524,13 +531,13 @@ public class HsHttpClient {
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
-			logger.error(e);
+			logger.error("IO Exception when put.",e);
 			return e.toString();
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error(e);
+				logger.error("IO Exception when put.",e);
 			}
 		}
 	}
@@ -667,13 +674,13 @@ public class HsHttpClient {
 
 		} catch (IOException e) {
 			System.out.println(e);
-			logger.debug(e);
+			logger.debug("IO Exception when get.",e);
 			return "";
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.debug(e);
+				logger.debug("IO Exception when get.",e);
 			}
 		}
 
@@ -715,13 +722,13 @@ public class HsHttpClient {
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
-			logger.error(e);
+			logger.error("IO Exception when post.",e);
 			return "";
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error(e);
+				logger.error("IO Exception when post.",e);
 			}
 		}
 	}
@@ -765,7 +772,7 @@ public class HsHttpClient {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error(e);
+				logger.error("IO Exception when put.",e);
 			}
 		}
 	}
@@ -805,13 +812,13 @@ public class HsHttpClient {
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
-			logger.error(e);
+			logger.error("IO Exception when put.",e);
 			return e.toString();
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error(e);
+				logger.error("IO Exception when put.",e);
 			}
 		}
 	}

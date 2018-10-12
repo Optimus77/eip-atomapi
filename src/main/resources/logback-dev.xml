@@ -14,7 +14,7 @@
         <!-- 格式化输出 -->
         <encoder>
             <charset>UTF-8</charset>
-            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] [%-5level] %msg%n</pattern>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] [%-5level][%method:%L] %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -28,14 +28,14 @@
         <!-- 格式化输出 -->
         <encoder>
             <charset>UTF-8</charset>
-            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] [%-5level] %msg%n</pattern>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] [%-5level][%class][%method:%L] %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- 日志级别 -->
     <root level="INFO">
-        <appender-ref ref="FILE"></appender-ref>
         <appender-ref ref="CONSOLE"></appender-ref>
+        <appender-ref ref="FILE"></appender-ref>
     </root>
 
     <!-- Hibernate查询展示参数 -->

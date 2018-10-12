@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.util;
 
 public class HsConstants {
 	public static final String USER = "InnetAdmin";
+//	public static final String USER = "hillstone";
 	public static final String PWD = "innetadmin";
 	public static final String VSYS = "0";
 	public static final String VRID = "1";

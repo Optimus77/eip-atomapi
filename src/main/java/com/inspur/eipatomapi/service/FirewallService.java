@@ -3,8 +3,8 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +16,7 @@ import java.util.Optional;
 @Service
 public class FirewallService {
 
-    private final static Log log = LogFactory.getLog(FirewallService.class);
-
+    private final static Logger log = LoggerFactory.getLogger(FirewallService.class);
     @Autowired
     private FirewallRepository firewallRepository;
 
@@ -30,7 +29,7 @@ public class FirewallService {
         if(firewall.isPresent()){
             fireWallEntity =  firewall.get();
         } else {
-            log.warn("Failed to find the firewall by id:"+ id);
+            log.warn("Failed to find the firewall by id:{}", id);
         }
         return fireWallEntity;
     }
@@ -192,7 +191,7 @@ public class FirewallService {
     }
 
     public boolean delDnat(String ruleid, String devId) {
-        boolean bSuccess = false;
+        boolean bSuccess = true;
         if ("offline".equals(ruleid)) {
             // 离线模式
             return bSuccess;
@@ -225,7 +224,7 @@ public class FirewallService {
         return bSuccess;
     }
     public boolean delSnat(String ruleid, String devId) {
-        boolean bSuccess = false;
+        boolean bSuccess = true;
         if ("offline".equals(ruleid)) {
             return bSuccess;
         }
