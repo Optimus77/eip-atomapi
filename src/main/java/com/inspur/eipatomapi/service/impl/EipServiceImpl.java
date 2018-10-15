@@ -515,7 +515,7 @@ public class EipServiceImpl implements IEipService {
             List<Eip> eips = eipDaoService.findByProjectId(CommonUtil.getProjectId());
             returnjs.put("code", SC_OK);
             returnjs.put("message", "success");
-            returnjs.put("number", eips.size());
+            returnjs.put("data", eips.size());
             return new ResponseEntity<>(returnjs, HttpStatus.OK);
         } catch(Exception e){
             e.printStackTrace();
