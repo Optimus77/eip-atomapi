@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.util;
 
+import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
@@ -154,17 +155,21 @@ public class CommonUtil {
         return null;
     }
 
-    public static String getProjectId(){
+    public static String getProjectId() throws  KecloakTokenException{
         log.info("getProjectId");
         String token = getKeycloackToken();
         if(null == token){
             log.info("can't get token, use default project admin 140785795de64945b02363661eb9e769");
             return projectId;
         }else{
-            OSClientV3 os= getOsClientV3Util();
-            String projectid_client=os.getToken().getProject().getId();
-            log.info("get projectid from os v3 client "+projectid_client);
-            return projectid_client;
+            try{
+                OSClientV3 os= getOsClientV3Util();
+                String projectid_client=os.getToken().getProject().getId();
+                return projectid_client;
+            }catch (Exception e){
+                log.error("get projectid from token error");
+                throw new KecloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
+            }
         }
     }
 

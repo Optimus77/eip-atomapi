@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.util;
 
+
 public interface ReturnStatus {
 
     // --- 1xx Informational ---
@@ -19,6 +20,8 @@ public interface ReturnStatus {
     String SC_FIREWALL_DNAT_UNAVAILABLE  = "006.202404";
     String SC_FIREWALL_QOS_UNAVAILABLE   = "006.203404";
     String SC_NOT_SUPPORT       = "006.999405";
+
+    String SC_FORBIDDEN="006." ;
 
     String SC_INTERNAL_SERVER_ERROR   = "006.999500";
     String SC_OPENSTACK_UNAVAILABLE   = "006.999503";

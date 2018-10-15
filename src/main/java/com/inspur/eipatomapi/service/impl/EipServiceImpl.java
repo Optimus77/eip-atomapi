@@ -8,6 +8,7 @@ import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.util.CommonUtil;
+import com.inspur.eipatomapi.util.KecloakTokenException;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
@@ -141,7 +142,7 @@ public class EipServiceImpl implements IEipService {
             String projcectid=CommonUtil.getProjectId();
             log.info(projcectid);
             if(projcectid==null){
-                return new ResponseEntity<>("get projcetid error please check the Authorization param", HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
@@ -178,11 +179,12 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPage",1);
                 data.put("currentPagePer",eips.size());
             }
-            return new ResponseEntity<>(ReturnMsgUtil.listsuccess(data), HttpStatus.OK);
-        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.success(data), HttpStatus.OK);
+        }catch(KecloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.error("401",e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e){
             e.printStackTrace();
-
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.error("500",e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

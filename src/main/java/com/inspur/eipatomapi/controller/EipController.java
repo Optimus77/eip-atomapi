@@ -162,31 +162,6 @@ public class EipController {
         return eipService.listServer();
     }
 
-    @ICPControllerLog
-    @GetMapping(value = "/eips/eips_ext")
-    @ApiOperation(value="listeip",notes="list")
-    public ResponseEntity listEipExt(@RequestParam(required = false)String currentPage , @RequestParam(required = false) String limit) {
-        log.info("EipController listEip currentPage limit:");
-        if(currentPage==null||limit==null){
-            currentPage="0";
-            limit="0";
-        }else{
-            try{
-                int currentPageNum=Integer.parseInt(currentPage);
-                int limitNum =Integer.parseInt(limit);
-                if(currentPageNum<0||limitNum<0){
-                    currentPage="0";
-                }
-            }catch (Exception e){
-                e.printStackTrace();
-                log.error("number is not correct ");
-                currentPage="0";
-                limit="0";
-            }
-        }
-
-        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),true);
-    }
 
     @ICPControllerLog
     @GetMapping(value = "/eips/instance/{instance_id}")
