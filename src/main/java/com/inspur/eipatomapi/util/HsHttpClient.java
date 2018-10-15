@@ -1,7 +1,6 @@
 package com.inspur.eipatomapi.util;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.inspur.eipatomapi.entity.Cookie;
 import com.inspur.eipatomapi.entity.FwLogin;
 import com.inspur.eipatomapi.entity.FwLoginResponseBody;
@@ -109,9 +108,9 @@ public class HsHttpClient {
 	}
 
 	private static boolean isLogin(String ip, String port) {
-		logger.info("判断登录防火墙状态:" + ip + "" + port);
+		logger.info("Login state:" + ip + "" + port);
 		if (!isHaveCookie(ip)) {
-			logger.info("无防火墙cookie！");
+			logger.info("No cookie！");
 			return false;
 		}
 		StringBuffer url = new StringBuffer();
@@ -129,26 +128,17 @@ public class HsHttpClient {
 		logger.debug("request line:" + httpGet.getRequestLine());
 		FwLoginResponseBody body = new FwLoginResponseBody();
 		try {
-			// jiangfw 软硬件防火墙切换--20170310
 			Gson gson = new Gson();
 			String strlogin = EntityUtils.toString(client.execute(httpGet).getEntity());
 			boolean success;
 			if(strlogin.contains("\"success\":true") || strlogin.contains("\"success\" : true")){
 				success = true;
+				logger.info("Login success！");
 			}else{
 				success = false;
+				logger.info("Not login!");
 			}
 			body.setSuccess(success);
-			// jiangfw 软硬件防火墙切换--20170310
-			
-			//Gson gson = new Gson();
-			//body = gson.fromJson(EntityUtils.toString(client.execute(httpGet).getEntity()), new TypeToken<LoginResponseBody>() {
-			//}.getType());
-			if(body.isSuccess()){
-				logger.info("已登录防火墙！");
-			}else{
-				logger.info("未登录防火墙!");
-			}
 			return body.isSuccess();
 		} catch (ClientProtocolException e1) {
 			logger.error("Failed to login.", e1);
@@ -190,7 +180,8 @@ public class HsHttpClient {
 			String overseaLicense = resultJsn.getString("overseaLicense");
 			String HS_frame_lang = HsConstants.LANG;
 
-			Cookie cookie = new Cookie(token, platform, hw_platform, host_name, company, oemid, vsysid, vsysname, role, license, httpProtocol, soft_version, username, overseaLicense, HS_frame_lang);
+			Cookie cookie = new Cookie(token, platform, hw_platform, host_name, company, oemid, vsysid, vsysname, role,
+                    license, httpProtocol, soft_version, username, overseaLicense, HS_frame_lang);
 			logger.info(cookie.toString());
 			return HsConstants.FROM_ROOT_SYS + cookie.toString();
 
@@ -210,10 +201,8 @@ public class HsHttpClient {
         RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();
         ConnectionSocketFactory plainSF = new PlainConnectionSocketFactory();
         registryBuilder.register("http", plainSF);
-        //指定信任密钥存储对象和连接套接字工厂
         try {
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            //信任任何链接
             TrustStrategy anyTrustStrategy = new TrustStrategy() {
 
 				@Override
@@ -235,17 +224,16 @@ public class HsHttpClient {
             throw new RuntimeException(e);
         }
         Registry<ConnectionSocketFactory> registry = registryBuilder.build();
-        //设置连接管理器
+
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(registry);
-        //构建客户端
+
         return HttpClientBuilder.create().setConnectionManager(connManager).build();
     }    
 	
 	private static boolean httpLogin(String url, String ip, String json) throws Exception {
 		CloseableHttpClient httpclient = getHttpsClient();
-		logger.debug("httpLogin内部：开始登陆,URL:"+url + " IP:"+ip +" json:" + json );
+		logger.debug("httpLogin：start login,URL:"+url + " IP:"+ip +" json:" + json );
 		
-//		CloseableHttpClient httpclient = HttpClients.createDefault();
 		HttpPost httpPost = new HttpPost(url);
 		httpPost.addHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 
@@ -275,12 +263,12 @@ public class HsHttpClient {
 
 				if (loginResult != null && loginResult != "") {
 					// loginCookieParser
-					logger.debug("httpLogin内部： COOKIE信息  IP:"+ip +" loginResult:" + loginResult );
+					logger.debug("httpLogin： COOKIE  IP:"+ip +" loginResult:" + loginResult );
 					putCookie(ip, loginResult);
-					logger.debug("httpLogin内部：登陆成功");
+					logger.debug("httpLogin：login success!");
 					return true;
 				} else {
-					logger.debug("httpLogin内部：登陆失败");
+					logger.debug("httpLogin：Failed to login");
 					return false;
 				}
 			}
@@ -298,14 +286,14 @@ public class HsHttpClient {
 				response.close();
 			}
 		}
-		logger.debug("httpLogin内部：登陆失败");
+		logger.debug("httpLogin：failed to login");
 		return false;
 
 	}
 
 	@SuppressWarnings("finally")
 	private static boolean login(String ip, String port, String login, int tryTimes) throws Exception {
-		logger.info("登录防火墙:" + ip + "" + port + "" + login);
+		logger.info("Login firewall:" + ip + "" + port + "" + login);
 		
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);
@@ -313,18 +301,17 @@ public class HsHttpClient {
 			url.append(HsConstants.COLON+port);
 		}
 		url.append(HsConstants.REST_LOGIN);
-		// String json =
-		// "{\"userName\": \"hillstone\", \"password\": \"hillstone\", \"ifVsysId\": \"0\", \"vrId\": \"1\", \"lang\": \"zh_CN\"}";
+
 		boolean flag = true;
 		try {
 			tryTimes++;
-			logger.info("登录防火墙参数: url:"+ url.toString()+ "ip:"+ ip + "login:" + login );			
+			logger.info("Already login: url:"+ url.toString()+ "ip:"+ ip + "login:" + login );
 			flag = httpLogin(url.toString(), ip, login);
 			if (flag) {
-				logger.info("登录防火墙: 成功!");
+				logger.info("login success!");
 				return true;
 			}
-			logger.info("登录防火墙: 失败!");
+			logger.info("Failde to login!");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -472,7 +459,7 @@ public class HsHttpClient {
 
 		logger.debug("request line:put-" + httpPut.getRequestLine());
 		try {
-			// payload
+
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
 			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
 			entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
@@ -590,192 +577,9 @@ public class HsHttpClient {
 		}
 
 		return "";
-		
-		
-		/*Gson gson = new Gson();
-		if (!isLogin(ip, port)) {
-			Login login = new Login();
-			if (null != user && !"".equals(user)) {
-				login.setUserName(user);
-				login.setPassword(pwd);
-			}
-			String loginUrl = gson.toJson(login);
-			if (!login(ip, port, loginUrl, 0)) {
-				return "";
-			}
-		}
-		
-		StringBuffer url = new StringBuffer();
-		url.append(HsConstants.HTTPS).append(ip);
-		if (null != port && !"".equals(port)) {
-			url.append(HsConstants.COLON+port);
-		}
-		url.append(rest);
-		
-
-		CloseableHttpClient client = getHttpsClient();
-		HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(url.toString());
-
-		httpDelete.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-		httpDelete.setHeader("Cookie", getCookie(ip));
-
-		logger.debug("request line:delete-" + httpDelete.getRequestLine());
-		try {
-			// payload
-			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
-			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
-			entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
-			httpDelete.setEntity(entity);
-			HttpResponse httpResponse = client.execute(httpDelete);
-			return getResponseString(httpResponse);
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				client.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return "";*/
-	}
-
-	public static String hsHttpGet(String ip, String port, String rest) throws Exception {
-		Gson gson = new Gson();
-
-		if (!isLogin(ip, port)) {
-			FwLogin login = new FwLogin();
-			String loginUrl = gson.toJson(login);
-			if (!login(ip, port, loginUrl, 0)) {
-				return "";
-			}
-		}
-		StringBuffer url = new StringBuffer();
-		url.append(HsConstants.HTTPS).append(ip);
-		if (null != port && !"".equals(port)) {
-			url.append(HsConstants.COLON+port);
-		}
-		url.append(rest);
-
-		CloseableHttpClient client = getHttpsClient();
-		HttpGet httpGet = new HttpGet(url.toString());
-
-		httpGet.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-		httpGet.setHeader(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
-
-		httpGet.setHeader("Cookie", getCookie(ip));
-
-		logger.debug("request line:get-" + httpGet.getRequestLine());
-		try {
-			HttpResponse httpResponse = client.execute(httpGet);
-			return getResponseString(httpResponse);
-
-		} catch (IOException e) {
-			System.out.println(e);
-			logger.debug("IO Exception when get.",e);
-			return "";
-		} finally {
-			try {
-				client.close();
-			} catch (IOException e) {
-				logger.debug("IO Exception when get.",e);
-			}
-		}
 
 	}
 
-	public static String hsHttpPost(String ip, String port, String rest, String payload) throws Exception {
-
-		Gson gson = new Gson();
-
-		if (!isLogin(ip, port)) {
-			FwLogin login = new FwLogin();
-			String loginUrl = gson.toJson(login);
-			if (!login(ip, port, loginUrl, 0)) {
-				return "";
-			}
-		}
-		StringBuffer url = new StringBuffer();
-		url.append(HsConstants.HTTPS).append(ip);
-		if (null != port && !"".equals(port)) {
-			url.append(HsConstants.COLON+port);
-		}
-		url.append(rest);
-
-		CloseableHttpClient client = getHttpsClient();
-		HttpPost httpPost = new HttpPost(url.toString());
-
-		httpPost.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-		httpPost.setHeader("Cookie", getCookie(ip));
-
-		logger.debug("request line:post-" + httpPost.getRequestLine());
-		try {
-			// payload
-			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
-			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
-			entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
-			httpPost.setEntity(entity);
-
-			HttpResponse httpResponse = client.execute(httpPost);
-			return getResponseString(httpResponse);
-
-		} catch (IOException e) {
-			logger.error("IO Exception when post.",e);
-			return "";
-		} finally {
-			try {
-				client.close();
-			} catch (IOException e) {
-				logger.error("IO Exception when post.",e);
-			}
-		}
-	}
-
-	public static String hsHttpPut(String ip, String port, String rest, String payload) throws Exception {
-		Gson gson = new Gson();
-		if (!isLogin(ip, port)) {
-			FwLogin login = new FwLogin();
-			String loginUrl = gson.toJson(login);
-			if (!login(ip, port, loginUrl, 0)) {
-				return "";
-			}
-		}
-		StringBuffer url = new StringBuffer();
-		url.append(HsConstants.HTTPS).append(ip);
-		if (null != port && !"".equals(port)) {
-			url.append(HsConstants.COLON+port);
-		}
-		url.append(rest);
-
-		CloseableHttpClient client = getHttpsClient();
-		HttpPut httpPut = new HttpPut(url.toString());
-
-		httpPut.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-		httpPut.setHeader("Cookie", getCookie(ip));
-
-		logger.debug("request line:put-" + httpPut.getRequestLine());
-		try {
-			// payload
-			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
-			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
-			entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
-			httpPut.setEntity(entity);
-
-			HttpResponse httpResponse = client.execute(httpPut);
-			return getResponseString(httpResponse);
-
-		} catch (IOException e) {
-			return "";
-		} finally {
-			try {
-				client.close();
-			} catch (IOException e) {
-				logger.error("IO Exception when put.",e);
-			}
-		}
-	}
 
 	public static String hsHttpPut(String ip, String port, int timeout, String rest, String payload) throws Exception {
 		Gson gson = new Gson();
@@ -823,51 +627,6 @@ public class HsHttpClient {
 		}
 	}
 
-	public static String hsHttpDelete(String ip, String port, String rest, String payload) throws Exception {
-
-		Gson gson = new Gson();
-		if (!isLogin(ip, port)) {
-			FwLogin login = new FwLogin();
-			String loginUrl = gson.toJson(login);
-			if (!login(ip, port, loginUrl, 0)) {
-				return "";
-			}
-		}
-		StringBuffer url = new StringBuffer();
-		url.append(HsConstants.HTTPS).append(ip);
-		if (null != port && !"".equals(port)) {
-			url.append(HsConstants.COLON+port);
-		}
-		url.append(rest);
-
-		CloseableHttpClient client = getHttpsClient();
-		HttpDeleteWithBody httpDelete = new HttpDeleteWithBody(url.toString());
-
-		httpDelete.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-		httpDelete.setHeader("Cookie", getCookie(ip));
-
-		logger.debug("request line:delete-" + httpDelete.getRequestLine());
-		try {
-			// payload
-			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
-			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
-			entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
-			httpDelete.setEntity(entity);
-			HttpResponse httpResponse = client.execute(httpDelete);
-			return getResponseString(httpResponse);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				client.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return "";
-	}
 }
 
 
