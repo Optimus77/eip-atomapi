@@ -270,7 +270,7 @@ public class HsHttpClient {
 
                 Gson gson = new Gson();
                 Object userpw = gson.fromJson(json, FwLogin.class);
-				jo.put("user",((FwLogin) userpw).getPassword());
+				jo.put("user",((FwLogin) userpw).getUserName());
 				String loginResult = loginCookieParser(jo);
 
 				if (loginResult != null && loginResult != "") {
