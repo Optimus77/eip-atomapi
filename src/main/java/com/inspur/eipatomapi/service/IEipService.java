@@ -14,12 +14,11 @@ public interface IEipService {
     /**
      * create a eip
      * @param eipConfig          config
-     * @param externalNetWorkId  external network id
      * @param portId             port id
      * @return                   json info of eip
      */
 
-    ResponseEntity createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId);
+    ResponseEntity createEip(EipAllocateParam eipConfig, String portId);
 
 
 

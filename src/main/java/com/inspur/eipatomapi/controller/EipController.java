@@ -38,7 +38,7 @@ public class EipController {
     @ApiOperation(value="allocateEip",notes="allocate")
     public ResponseEntity allocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig) {
         log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
-        return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
+        return eipService.createEip(eipConfig.getEipAllocateParam(), null);
      }
 
 
