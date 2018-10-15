@@ -278,7 +278,7 @@ public class EipDaoService {
         } else {
             log.error("Failed to associate port:{} with eip:{}, serverId:{} ", portId, eipid, serverId);
             data.put("flag",false);
-            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ASSOCIA_FAIL));
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ASSOCIA_FAIL)+actionResponse.getFault());
             data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             data.put("interCode", ReturnStatus.SC_OPENSTACK_SERVER_ERROR);
             data.put("data",null);
