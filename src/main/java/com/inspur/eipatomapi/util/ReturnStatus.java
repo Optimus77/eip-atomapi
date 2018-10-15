@@ -11,8 +11,8 @@ public interface ReturnStatus {
     String SC_PARAM_NOTFOUND    = "006.998400";
     String SC_PARAM_UNKONWERROR = "006.997400";
     String SC_RESOURCE_ERROR    = "006.994400";
-
     String SC_RESOURCE_NOTENOUGH = "006.993400";
+    String EIP_BIND_HAS_BAND="006.991.400";
 
     String SC_NOT_FOUND         = "006.994404";
     String SC_OPENSTACK_FIP_UNAVAILABLE  = "006.101404";
@@ -21,7 +21,8 @@ public interface ReturnStatus {
     String SC_FIREWALL_QOS_UNAVAILABLE   = "006.203404";
     String SC_NOT_SUPPORT       = "006.999405";
 
-    String SC_FORBIDDEN="006." ;
+
+    String SC_FORBIDDEN="006.001403" ;
 
     String SC_INTERNAL_SERVER_ERROR   = "006.999500";
     String SC_OPENSTACK_UNAVAILABLE   = "006.999503";

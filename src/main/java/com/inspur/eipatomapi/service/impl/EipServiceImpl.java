@@ -181,10 +181,10 @@ public class EipServiceImpl implements IEipService {
             }
             return new ResponseEntity<>(ReturnMsgUtil.success(data), HttpStatus.OK);
         }catch(KecloakTokenException e){
-            return new ResponseEntity<>(ReturnMsgUtil.error("401",e.getMessage()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e){
             e.printStackTrace();
-            return new ResponseEntity<>(ReturnMsgUtil.error("500",e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -354,21 +354,23 @@ public class EipServiceImpl implements IEipService {
                 case "1":
                     log.info(serverId);
                     // 1：ecs
-                    Eip eipEntity = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
-                    if(null == eipEntity){
-                        code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-                        msg = "Failed to associate  port with eip "+ id;
+                    JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
+                    if(!result.getBoolean("flag")){
+                        code = result.getString("interCode");
+                        int httpResponseCode=result.getInteger("httpCode");
+                        msg = result.getString("reason");
                         log.error(msg);
+                        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+
                     }else{
                         EipReturnDetail eipReturnDetail = new EipReturnDetail();
-
+                        Eip eipEntity=(Eip)result.get("data");
                         BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                         eipReturnDetail.setResourceset(Resourceset.builder()
                                 .resource_id(eipEntity.getInstanceId())
                                 .resourcetype(eipEntity.getInstanceType()).build());
                         return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
                     }
-                    break;
                 case "2":
                 case "3":
                 default:

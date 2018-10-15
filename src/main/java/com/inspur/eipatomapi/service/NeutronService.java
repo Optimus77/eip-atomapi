@@ -76,11 +76,11 @@ public  class NeutronService {
         ActionResponse result =  osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloatingIp());
         if(result.isSuccess()){
             Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
-            System.out.println(novaAddresses.toString());
+            log.info(novaAddresses.toString());
             Set<String> keySet =novaAddresses.keySet();
             for (String netname:keySet) {
                 List<? extends Address> address=novaAddresses.get(netname);
-                System.out.println(address.toString());
+                log.info(address.toString());
                 for (Address addr : address) {
                     log.debug(server.getId() + server.getName() + "   " + addr.getType());
                     if (addr.getType().equals("fixed")) {
