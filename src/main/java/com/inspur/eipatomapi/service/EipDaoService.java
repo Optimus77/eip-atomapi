@@ -3,6 +3,7 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
+import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import org.openstack4j.model.common.ActionResponse;
@@ -23,6 +24,9 @@ public class EipDaoService {
     private FirewallRepository firewallRepository;
 
     @Autowired
+    private ExtNetRepository extNetRepository;
+
+    @Autowired
     private EipRepository eipRepository;
 
     @Autowired
@@ -36,44 +40,50 @@ public class EipDaoService {
      * allocate eip
      *
      * @param eipConfig    eipconfig
-     * @param networkId network id
      * @return result
      */
     @Transactional
-    public Eip allocateEip(EipAllocateParam eipConfig, String networkId, String portId) throws Exception{
+    public Eip allocateEip(EipAllocateParam eipConfig, String portId) throws Exception{
 
         EipPool eip = getOneEipFromPool();
+
         if(null != eip){
             if (eip.getState().equals("0")) {
                 Eip eipMo = new Eip();
                 eipMo.setEipAddress(eip.getIp());
                 eipMo.setStatus("DOWN");
                 eipMo.setFirewallId(eip.getFireWallId());
+                String networkId =  getExtNetId(eipConfig.getRegion());
+                if(null != networkId) {
+                    NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
+                    if (null != floatingIP) {
+                        eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
+                        eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
+                        eipMo.setFloatingIpId(floatingIP.getId());
+                        eipMo.setIpType(eipConfig.getIptype());
+                        eipMo.setChargeType(eipConfig.getChargetype());
+                        eipMo.setChargeMode(eipConfig.getChargemode());
+                        eipMo.setPurchaseTime(eipConfig.getPurchasetime());
+                        eipMo.setBandWidth(eipConfig.getBandwidth());
+                        eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
+                        String tenantid = CommonUtil.getOsClientV3Util().getToken().getProject().getId();
+                        log.debug("get tenantid:{} from clientv3", tenantid);
+                        log.debug("get tenantid from token:{}", CommonUtil.getProjectId());
+                        eipMo.setProjectId(tenantid);
 
-                NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
-                if (null != floatingIP) {
-                    eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
-                    eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
-                    eipMo.setFloatingIpId(floatingIP.getId());
-                    eipMo.setIpType(eipConfig.getIptype());
-                    eipMo.setChargeType(eipConfig.getChargetype());
-                    eipMo.setChargeMode(eipConfig.getChargemode());
-                    eipMo.setPurchaseTime(eipConfig.getPurchasetime());
-                    eipMo.setBandWidth(eipConfig.getBandwidth());
-                    eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                    String tenantid = CommonUtil.getOsClientV3Util().getToken().getProject().getId();
-                    log.debug("get tenantid:{} from clientv3",tenantid);
-                    log.debug("get tenantid from token:{}",CommonUtil.getProjectId());
-                    eipMo.setProjectId(tenantid);
-
-                    eipPoolRepository.delete(eip);
-                    eipMo = eipRepository.save(eipMo);
-                    return eipMo;
+                        eipPoolRepository.delete(eip);
+                        eipMo = eipRepository.save(eipMo);
+                        return eipMo;
+                    }
+                }else {
+                    log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
                 }
             }
+        }else{
+            log.error("Failed to allocate eip in eip pool.");
         }
 
-        log.error("Failed to allocate eip in network：{}, ",networkId);
+
         return null;
     }
 
@@ -300,5 +310,17 @@ public class EipDaoService {
 
     private synchronized EipPool getOneEipFromPool(){
         return eipPoolRepository.getEipByRandom();
+    }
+
+
+    private String getExtNetId(String region){
+        List<ExtNet> extNets = extNetRepository.findByRegion(region);
+        String extNetId = null;
+        for(ExtNet extNet: extNets){
+            if(null != extNet.getNetId()){
+                extNetId = extNet.getNetId();
+            }
+        }
+        return extNetId;
     }
 }

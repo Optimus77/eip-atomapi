@@ -51,25 +51,24 @@ public class EipServiceImpl implements IEipService {
     /**
      * create a eip
      * @param eipConfig          config
-     * @param externalNetWorkId  external network id
      * @param portId             port id
      * @return                   json info of eip
      */
     @Override
     @ICPServiceLog
-    public ResponseEntity createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) {
+    public ResponseEntity createEip(EipAllocateParam eipConfig, String portId) {
 
         String code;
         String msg;
         try {
-            Eip eipMo = eipDaoService.allocateEip(eipConfig, externalNetWorkId, portId);
+            Eip eipMo = eipDaoService.allocateEip(eipConfig, portId);
             if (null != eipMo) {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                msg = "Failed to create floating ip in external network:" + externalNetWorkId;
+                msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
                 log.error(msg);
             }
 
