@@ -37,7 +37,7 @@ public class QosService extends BaseService {
                 if (((String)map.get("success")).equals("true")) {
                     res.put("id", (String)map.get("id"));
                 } else {
-                    res.put("msg", "创建成功,未能返回id,请主动调用查询接口,根据名称查询新创建的管道id");
+                    res.put("msg", "Create success,but id not found,please call find api by pip name.");
                 }
             } else {
                 res.put("msg", jo.getString("exception"));
@@ -64,7 +64,7 @@ public class QosService extends BaseService {
                 res.put("success", "true");
             } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject("exception").getString("message"))) {
                 res.put("success", "true");
-                res.put("msg", "传入的pipeId不存在");
+                res.put("msg", "pip not found.");
             } else {
                 res.put("success", "false");
                 res.put("msg", jo.getString("exception"));

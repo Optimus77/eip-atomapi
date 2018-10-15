@@ -63,12 +63,12 @@ public class FirewallService {
             NatService dnatimpl = new NatService();
             FwResponseBody body = dnatimpl.addPDnat(dnatVo);
             if (body.isSuccess()) {
-                // 创建成功
+
                 FwPortMapResult result = (FwPortMapResult) body.getObject();
                 ruleid = result.getRule_id();
-                log.info(innerip + "--DNAT添加成功");
+                log.info(innerip + "--add dnat successfully");
             } else {
-                log.info(innerip + "--DNAT添加失败:" + body.getException());
+                log.info(innerip + "--Failed to add dnat:" + body.getException());
             }
         }
         return ruleid;
@@ -88,18 +88,17 @@ public class FirewallService {
             vo.setVrid(vr);
             vo.setSnatstat("1");
             vo.setFlag("20");
-            vo.setSaddr(innerip);  //内网IP地址
+            vo.setSaddr(innerip);
             vo.setSaddrtype("1");
             vo.setHa("0");
             vo.setSnatlog("true");
-            //vo.setPos_flag("0"); // 列表最后
-            vo.setPos_flag("1");   // 列表最前
+            vo.setPos_flag("1");
             vo.setSnatid("0");
             vo.setServicename("Any");
 
             vo.setDaddr("Any");
             vo.setDaddrtype("1");
-            vo.setTransferaddr(extip); // 外网IP地址
+            vo.setTransferaddr(extip);
 
             vo.setFlag("1");
 
@@ -109,9 +108,9 @@ public class FirewallService {
                 // 创建成功
                 FwSnatVo result = (FwSnatVo) body.getObject();
                 ruleid = result.getSnatid();
-                log.info(innerip + "--SNAT添加成功");
+                log.info(innerip + "--Snat add successfully");
             } else {
-                log.info(innerip + "--SNAT添加失败:" + body.getException());
+                log.info(innerip + "--Failed to add snat:" + body.getException());
             }
         }
         return ruleid;
@@ -135,14 +134,13 @@ public class FirewallService {
             HashMap<String, String> res = qs.createQosPipe(map);
             if ("true".equals(res.get("success"))) {
                 pipid = res.get("id");
-                //添加管道成功，更新数据库
                 if (StringUtils.isBlank(pipid)) {
                     Map<String, String> idmap = qs.getQosPipeId(eipid);
                     pipid = idmap.get("id");
                 }
-                log.info("QOS添加成功");
+                log.info("Qos add successfully.");
             } else {
-                log.warn("QOS添加失败");
+                log.warn("Failde to add qos.");
             }
         }
         return pipid;
@@ -174,7 +172,10 @@ public class FirewallService {
 
 
     /**
-     * 删除管道
+     *  del qos
+     * @param pipid pipid
+     * @param devId  devid
+     * @return  ret
      */
     public boolean delQos(String pipid, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
@@ -183,7 +184,7 @@ public class FirewallService {
                 QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 qs.delQosPipe(pipid);
             } else {
-                log.info("删除管道失败:"+"dev【"+devId+"】,pipid【"+pipid+"】");
+                log.info("Failed to del qos:"+"dev【"+devId+"】,pipid【"+pipid+"】");
             }
         }
 
@@ -193,7 +194,6 @@ public class FirewallService {
     public boolean delDnat(String ruleid, String devId) {
         boolean bSuccess = true;
         if ("offline".equals(ruleid)) {
-            // 离线模式
             return bSuccess;
         }
 
@@ -213,11 +213,10 @@ public class FirewallService {
                 NatService dnatimpl = new NatService();
                 FwResponseBody body = dnatimpl.delPDnat(vo);
                 if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
-                    // 删除成功
                     bSuccess = true;
                 } else {
                     bSuccess = false;
-                    log.warn("删除DNAT失败:" + "设备【" + devId + "】,ruleid【" + ruleid + "】");
+                    log.warn("Failed to del dnat:" + "dev[" + devId + "],ruleid[" + ruleid + "]");
                 }
             }
         }
@@ -245,11 +244,10 @@ public class FirewallService {
                 FwResponseBody body = dnatimpl.delPSnat(vo);
 
                 if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
-                    // 删除成功
                     bSuccess = true;
                 } else {
                     bSuccess = false;
-                    log.info("删除SDNAT失败:" + "dev【" + devId + "】,ruleid【" + ruleid + "】");
+                    log.info("Failed to del snat:" + "dev[" + devId + "],ruleid[" + ruleid + "]");
                 }
             }
         }
