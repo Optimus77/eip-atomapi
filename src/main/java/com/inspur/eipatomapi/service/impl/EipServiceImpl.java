@@ -512,16 +512,14 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipNumber() {
         JSONObject returnjs = new JSONObject();
         try {
-            List<Eip> eips = eipDaoService.findByProjectId(CommonUtil.getProjectId());
-            returnjs.put("code", SC_OK);
-            returnjs.put("message", "success");
-            returnjs.put("data", eips.size());
-            return new ResponseEntity<>(returnjs, HttpStatus.OK);
-        } catch(Exception e){
+            String projectid =CommonUtil.getProjectId();
+            List<Eip> eips = eipDaoService.findByProjectId(projectid);
+            return new ResponseEntity<>(ReturnMsgUtil.success(eips.size()), HttpStatus.OK);
+        }catch (KecloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
             e.printStackTrace();
-            returnjs.put("code", ReturnStatus.SC_NOT_FOUND);
-            returnjs.put("message", "Failed");
-            return new ResponseEntity<>(returnjs, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
