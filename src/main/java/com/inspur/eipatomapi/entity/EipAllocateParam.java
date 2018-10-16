@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data
@@ -14,10 +13,8 @@ public class EipAllocateParam implements Serializable {
 
     private String iptype;
 
-    @NotNull
     private String chargetype = "PrePaid";
 
-    @NotNull
     private String chargemode = "BandWidth";
 
     private String purchasetime;
