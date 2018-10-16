@@ -1,10 +1,12 @@
 package com.inspur.eipatomapi.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,8 @@ import java.util.Optional;
 @Service
 public class FirewallService {
 
-    private final static Logger log = LoggerFactory.getLogger(FirewallService.class);
+    public final static Log log = LogFactory.getLog(FirewallService.class);
+
     @Autowired
     private FirewallRepository firewallRepository;
 
@@ -29,7 +32,7 @@ public class FirewallService {
         if(firewall.isPresent()){
             fireWallEntity =  firewall.get();
         } else {
-            log.warn("Failed to find the firewall by id:{}", id);
+            log.warn("Failed to find the firewall by id:"+ id);
         }
         return fireWallEntity;
     }
@@ -132,7 +135,9 @@ public class FirewallService {
             map.put("serNetCardName", fwBean.getParam2());
             map.put("bandWidth", bandwidth);
             HashMap<String, String> res = qs.createQosPipe(map);
-            if ("true".equals(res.get("success"))) {
+            JSONObject resJson= (JSONObject) JSONObject.toJSON(res);
+            log.info(resJson);
+            if(resJson.getBoolean("success")) {
                 pipid = res.get("id");
                 if (StringUtils.isBlank(pipid)) {
                     Map<String, String> idmap = qs.getQosPipeId(eipid);

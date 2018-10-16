@@ -29,6 +29,7 @@ public  class CodeInfo {
     public static final String EIP_BIND_PARA_SERVERID_ERROR="EIP_BIND_PARA_SERVERID_ERROR";
     public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="EIP_BIND_OPENSTACK_ASSOCIA_FAIL";
     public static final String EIP_BIND_OPENSTACK_ERROR ="EIP_BIND_OPENSTACK_ERROR";
+    public static final String EIP_BIND_FIREWALL_ERROR  ="EIP_BIND_FIREWALL_ERROR";
     public static final String EIP_BIND_FIREWALL_DNAT_ERROR="EIP_BIND_FIREWALL_DNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_SNAT_ERROR="EIP_BIND_FIREWALL_SNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_QOS_ERROR="EIP_BIND_FIREWALL_QOS_ERROR";
@@ -46,6 +47,7 @@ public  class CodeInfo {
         public static final String EIP_BIND_PARA_SERVERID_ERROR="404-Bad request: 需要参数serverid";
         public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="绑定浮动ip返回失败";
         public static final String EIP_BIND_OPENSTACK_ERROR="绑定时openstack出错";
+        public static final String EIP_BIND_FIREWALL_ERROR="绑定时防火墙出错";
         public static final String EIP_BIND_FIREWALL_DNAT_ERROR="绑定时防火墙添加DNAT出错";
         public static final String EIP_BIND_FIREWALL_SNAT_ERROR="绑定时防火墙添加SNAT出错";
         public static final String EIP_BIND_FIREWALL_QOS_ERROR="绑定时防火墙添加QOS出错";
