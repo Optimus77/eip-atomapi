@@ -3,10 +3,13 @@ package com.inspur.eipatomapi.controller;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
-import com.inspur.icp.common.util.ReturnMsgUtil;
+import com.inspur.eipatomapi.util.ReturnMsgUtil;
+import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import org.springframework.http.MediaType;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
+import java.util.List;
 
 
 @RestController
@@ -29,15 +33,21 @@ public class EipController {
     @Autowired
     private EipServiceImpl eipService;
 
-    //Todo: find the external net id
-    private String floatingnetworkId = "d9c00a35-fea8-4162-9de1-b8100494a11d";
-
     @ICPControllerLog
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
-    public ResponseEntity allocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig) {
+    public ResponseEntity allocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
         log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
+        if (result.hasErrors()) {
+            StringBuilder msgBuffer = new StringBuilder();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return eipService.createEip(eipConfig.getEipAllocateParam(), null);
      }
 
