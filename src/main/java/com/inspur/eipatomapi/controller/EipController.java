@@ -10,6 +10,7 @@ import io.swagger.annotations.*;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
 @Api(value = "eips", description = "eip API")
+@Validated
 public class EipController {
 
     private final static Logger log = LoggerFactory.getLogger(EipController.class);
@@ -82,7 +85,8 @@ public class EipController {
     @DeleteMapping(value = "/eips/{eip_id}")
     @ICPControllerLog
     @ApiOperation(value = "deleteEip")
-    public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId) {
+    public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+                                        @PathVariable("eip_id") String eipId) {
         //Check the parameters
         log.info("Delete the Eip:{} ",eipId);
         return eipService.deleteEip(eipId);
@@ -96,7 +100,7 @@ public class EipController {
     public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
         //Check the parameters
 
-        log.info("Delete the Eips "+param.toString());
+        log.info("Delete the Eips:{}.", param.getEipids().toString());
         return eipService.deleteEipList(param.getEipids());
     }
 
@@ -175,7 +179,8 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips/instance/{instance_id}")
     @ApiOperation(value="getEipByInstanceId",notes="get")
-    public ResponseEntity getEipByInstanceId(@PathVariable String instance_id) {
+    public ResponseEntity getEipByInstanceId(@Size(min=36, max=36, message = "Must be uuid.")
+                                                 @PathVariable String instance_id) {
         log.info("EipController get eip by instance id:{} ",instance_id);
         return  eipService.getEipByInstanceId(instance_id);
     }

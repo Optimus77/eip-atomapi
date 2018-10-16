@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 
 @Data
@@ -24,9 +25,10 @@ public class EipAllocateParam implements Serializable {
     @TypeConstraint(allowedValues = {"Bandwidth","SharedBandwidth"}, message = "Only Bandwidth,SharedBandwidth is allowed. ")
     private String chargemode = "Bandwidth";
 
+    @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
     private String purchasetime;
 
-    @Range(min=1,max=2000)
+    @Range(min=1,max=2000,message = "value must be 1~2000.")
     private int bandwidth;
 
     @JsonProperty("sharedbandwidthid")
