@@ -40,13 +40,13 @@ public class EipController {
     public ResponseEntity allocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
         log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
         if (result.hasErrors()) {
-            StringBuilder msgBuffer = new StringBuilder();
+            StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
             for (FieldError fieldError : fieldErrors) {
                 msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+                    HttpStatus.BAD_REQUEST);
         }
         return eipService.createEip(eipConfig.getEipAllocateParam(), null);
      }
