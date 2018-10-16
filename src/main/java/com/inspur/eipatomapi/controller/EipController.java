@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 
@@ -84,8 +83,7 @@ public class EipController {
     @ICPControllerLog
     @ApiOperation(value = "deleteEip")
     public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId) {
-        //Check the parameters @Size(min = 36,max=36)
-
+        //Check the parameters
         log.info("Delete the Eip:{} ",eipId);
         return eipService.deleteEip(eipId);
 
