@@ -20,7 +20,6 @@ public class EipAllocateParam implements Serializable {
 
     private String chargemode = "BandWidth";
 
-    @NotBlank(message = "can not be blank.")
     private String purchasetime;
 
     @Range(min=1,max=2000)
