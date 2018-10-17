@@ -44,6 +44,8 @@ public class CommonUtil {
     private static String projectId = "140785795de64945b02363661eb9e769";
     private static String userDomainId = "default";
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
+    private static String region="RegionOne";
+
 
     private static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
@@ -52,7 +54,7 @@ public class CommonUtil {
                 .credentials(user, password, Identifier.byId(userDomainId))
                 .withConfig(config)
                 .scopeToProject(Identifier.byId(projectId))
-                .authenticate();
+                .authenticate().useRegion(region);
     }
 
 
@@ -104,7 +106,7 @@ public class CommonUtil {
         //String regionInfo=getReginInfo();
         //log.warning("regionInfo"+regionInfo);
         //accord the param region get the first param ip
-        return OSClientUtil.getOSClientV3("10.110.25.117",token,project);
+        return OSClientUtil.getOSClientV3("10.110.25.117",token,project,region);
     }
 
     public static JSONObject getTokenInfo(){
