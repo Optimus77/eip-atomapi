@@ -212,58 +212,64 @@ public class EipController {
     public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,@RequestBody EipPutUpdateParamWrapper param) {
 
         String msg="";
-        if(param.getEipPutUpdateParam().getPortId()!=null){
-            //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-            if(param.getEipPutUpdateParam().getPortId().trim().equals("")){
-                log.debug("unbind oprate ");
-                return eipService.unBindPort(eipId);
-
-            }else{
-                log.debug("bind oprate");
-                if(param.getEipPutUpdateParam().getServerId()!=null&&param.getEipPutUpdateParam().getType()!=null){
-                    return eipService.eipbindPort(eipId,param.getEipPutUpdateParam().getType(),
-                            param.getEipPutUpdateParam().getServerId(),
-                            param.getEipPutUpdateParam().getPortId());
-                }else{
-                    msg="need param serverid and type";
-                }
-            }
+        if(param==null){
+            msg="param like {eip:{xxx:xxx}}";
         }else{
-            // protid is null ,maybe unbind or update bind width
-            if(param.getEipPutUpdateParam().getChargeType()==null&&param.getEipPutUpdateParam().getBandWidth()==null){
-                //
-                return eipService.unBindPort(eipId);
-            }else{
-                if(param.getEipPutUpdateParam().getChargeType()!=null&&param.getEipPutUpdateParam().getBandWidth()!=null){
-                    boolean bindwidthflag=true;
-                    int width=0;
-                    try{
-                        width=Integer.parseInt(param.getEipPutUpdateParam().getBandWidth());
-                    }catch (Exception e){
-                        bindwidthflag=false;
-                    }
-                    if(bindwidthflag){
-                        EipUpdateParamWrapper transParam =new EipUpdateParamWrapper();
-                        EipUpdateParam eiptransParam=new EipUpdateParam();
-                        eiptransParam.setBandWidth(width);
-                        eiptransParam.setChargeType(param.getEipPutUpdateParam().getChargeType());
-                        eiptransParam.setPortId(param.getEipPutUpdateParam().getPortId());
-                        eiptransParam.setServerId(param.getEipPutUpdateParam().getServerId());
-                        eiptransParam.setType(param.getEipPutUpdateParam().getType());
-                        transParam.setEipUpdateParam(eiptransParam);
-                        return eipService.updateEipBandWidth(eipId,transParam);
-                    }else{
-                        msg="bindwidht must be a number ";
-                    }
+            if(param.getEipPutUpdateParam().getPortId()!=null){
+                //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
+                if(param.getEipPutUpdateParam().getPortId().trim().equals("")){
+                    log.debug("unbind oprate ");
+                    return eipService.unBindPort(eipId);
+
                 }else{
-                    msg="param not correct. " +
-                            "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
-                            "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
-                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"chargetype\":\"xxxxxx\"}"  +
-                            "";
+                    log.debug("bind oprate");
+                    if(param.getEipPutUpdateParam().getServerId()!=null&&param.getEipPutUpdateParam().getType()!=null){
+                        return eipService.eipbindPort(eipId,param.getEipPutUpdateParam().getType(),
+                                param.getEipPutUpdateParam().getServerId(),
+                                param.getEipPutUpdateParam().getPortId());
+                    }else{
+                        msg="need param serverid and type";
+                    }
+                }
+            }else{
+                // protid is null ,maybe unbind or update bind width
+                if(param.getEipPutUpdateParam().getChargeType()==null&&param.getEipPutUpdateParam().getBandWidth()==null){
+                    //
+                    return eipService.unBindPort(eipId);
+                }else{
+                    if(param.getEipPutUpdateParam().getChargeType()!=null&&param.getEipPutUpdateParam().getBandWidth()!=null){
+                        boolean bindwidthflag=true;
+                        int width=0;
+                        try{
+                            width=Integer.parseInt(param.getEipPutUpdateParam().getBandWidth());
+                        }catch (Exception e){
+                            bindwidthflag=false;
+                        }
+                        if(bindwidthflag){
+                            EipUpdateParamWrapper transParam =new EipUpdateParamWrapper();
+                            EipUpdateParam eiptransParam=new EipUpdateParam();
+                            eiptransParam.setBandWidth(width);
+                            eiptransParam.setChargeType(param.getEipPutUpdateParam().getChargeType());
+                            eiptransParam.setPortId(param.getEipPutUpdateParam().getPortId());
+                            eiptransParam.setServerId(param.getEipPutUpdateParam().getServerId());
+                            eiptransParam.setType(param.getEipPutUpdateParam().getType());
+                            transParam.setEipUpdateParam(eiptransParam);
+                            return eipService.updateEipBandWidth(eipId,transParam);
+                        }else{
+                            msg="bindwidht must be a number ";
+                        }
+                    }else{
+                        msg="param not correct. " +
+                                "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
+                                "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
+                                "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"chargetype\":\"xxxxxx\"}"  +
+                                "";
+                    }
                 }
             }
         }
+
+
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
     }
