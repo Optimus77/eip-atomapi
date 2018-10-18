@@ -224,7 +224,7 @@ public class EipController {
             if(!StringUtils.isBlank(param.getEipUpdateParam().getPortId())
                     &&!StringUtils.isBlank(param.getEipUpdateParam().getPortId())
                     &&!StringUtils.isBlank(param.getEipUpdateParam().getType())
-                    &&StringUtils.isBlank(param.getEipUpdateParam().getChargeType())
+                    //&&StringUtils.isBlank(param.getEipUpdateParam().getChargeType())
                     &&param.getEipUpdateParam().getBandWidth()==0
             ){
                 return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
