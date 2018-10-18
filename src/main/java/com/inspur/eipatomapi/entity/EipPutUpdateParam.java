@@ -5,30 +5,30 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.lang.NonNull;
 
+
+/**
+ * @author: jiasirui
+ * @date: 2018/10/18 15:33
+ * @description:
+ */
 @Data
-public class EipUpdateParam {
+public class EipPutUpdateParam {
 
-    @Range(min=1,max=2000)
+
+    @JsonProperty("port_id")
+    private String portId;
+
     @JsonProperty("bandwidth")
-    private int bandWidth;
+    private String bandWidth;
 
-    @NonNull
     @JsonProperty("chargetype")
     private String chargeType;
 
-    @NonNull
+
     @JsonProperty("serverid")
     private String serverId;
 
-    @JsonProperty("portid")
-    private String portId;
-
     //1：ecs // 2：cps // 3：slb
-
     @JsonProperty("type")
     private String type;
-
-    public EipUpdateParam() {
-
-    }
 }
