@@ -232,7 +232,7 @@ public class HsHttpClient {
 	
 	private static boolean httpLogin(String url, String ip, String json) throws Exception {
 		CloseableHttpClient httpclient = getHttpsClient();
-		logger.debug("httpLogin：start login,URL:"+url + " IP:"+ip +" json:" + json );
+		logger.debug("httpLogin：start login,URL:"+url + " IP:"+ip );
 		
 		HttpPost httpPost = new HttpPost(url);
 		httpPost.addHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
@@ -293,7 +293,7 @@ public class HsHttpClient {
 
 	@SuppressWarnings("finally")
 	private static boolean login(String ip, String port, String login, int tryTimes) throws Exception {
-		logger.info("Login firewall:" + ip + "" + port + "" + login);
+		logger.info("Login firewall:" + ip + "" + port);
 		
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);
@@ -305,7 +305,7 @@ public class HsHttpClient {
 		boolean flag = true;
 		try {
 			tryTimes++;
-			logger.info("Already login: url:"+ url.toString()+ "ip:"+ ip + "login:" + login );
+			logger.info("Already login: url:"+ url.toString()+ "ip:"+ ip );
 			flag = httpLogin(url.toString(), ip, login);
 			if (flag) {
 				logger.info("login success!");
