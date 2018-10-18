@@ -238,14 +238,22 @@ public class EipController {
                     return eipService.unBindPort(eipId);
                 }else{
                     if(param.getEipPutUpdateParam().getChargeType()!=null&&param.getEipPutUpdateParam().getBandWidth()!=null){
-                        boolean bindwidthflag=true;
+                        boolean bindwidthflag=false;
+                        boolean chargeTypeFlag=false;
                         int width=0;
+                        if(param.getEipPutUpdateParam().getChargeType().equals("PrePaid")||param.getEipPutUpdateParam().getChargeType().equals("PostPaid")){
+                            chargeTypeFlag=true;
+                        }else{
+                            msg="chargetype must be [PrePaid |PostPaid]";
+                        }
                         try{
                             width=Integer.parseInt(param.getEipPutUpdateParam().getBandWidth());
+                            bindwidthflag=true;
                         }catch (Exception e){
-                            bindwidthflag=false;
+                            msg="bindwidht must be a Integer and between 0 and 2000";
                         }
-                        if(bindwidthflag){
+                        if(bindwidthflag&&chargeTypeFlag){
+
                             EipUpdateParamWrapper transParam =new EipUpdateParamWrapper();
                             EipUpdateParam eiptransParam=new EipUpdateParam();
                             eiptransParam.setBandWidth(width);
@@ -256,7 +264,7 @@ public class EipController {
                             transParam.setEipUpdateParam(eiptransParam);
                             return eipService.updateEipBandWidth(eipId,transParam);
                         }else{
-                            msg="bindwidht must be a number ";
+
                         }
                     }else{
                         msg="param not correct. " +

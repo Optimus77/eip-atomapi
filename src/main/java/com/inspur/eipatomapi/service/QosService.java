@@ -81,16 +81,15 @@ public class QosService extends BaseService {
 
     HashMap<String, String> updateQosPipe(String pipeId, String pipeName, String bandWidth) {
         HashMap res = new HashMap();
-
         try {
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", this.getUpdateJson(pipeId, pipeName, bandWidth));
             JSONObject jo = new JSONObject(retr);
-            String success = jo.getString("success");
+            log.info("updateQosPipe result {}",jo);
+            boolean success=jo.getBoolean("success");
             res.put("success", success);
-            if (!"true".equals(success)) {
-                res.put("msg", jo.getString("exception"));
+            if (jo.getBoolean("success")) {
+                res.put("msg", jo.get("exception"));
             }
-
             return res;
         } catch (Exception var8) {
             log.error(var8.getMessage());

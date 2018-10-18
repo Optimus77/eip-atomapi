@@ -9,6 +9,7 @@ import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
+import com.inspur.eipatomapi.util.EIPChargeType;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
@@ -308,25 +309,50 @@ public class EipDaoService {
     }
 
     @Transactional
-    public Eip updateEipEntity(String eipid, EipUpdateParamWrapper param) {
+    public JSONObject updateEipEntity(String eipid, EipUpdateParamWrapper param) {
 
+        JSONObject data=new JSONObject();
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
             log.error("In disassociate process,failed to find the eip by id:{} ", eipid);
-            return null;
+            data.put("flag",false);
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+            data.put("httpCode", HttpStatus.SC_NOT_FOUND);
+            data.put("interCode", ReturnStatus.SC_NOT_FOUND);
+            data.put("data",null);
+            return data;
         }
-
-        boolean updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
-                eipEntity.getPipId(), eipEntity.getEipId(),
-                String.valueOf(param.getEipUpdateParam().getBandWidth()));
-        if (updateStatus || CommonUtil.isDebug) {
-            log.debug("before change：" + eipEntity.getBandWidth());
+        if(param.getEipUpdateParam().getChargeType().equals(EIPChargeType.EIP_CHARGETYPE_PREPAID)){
+            //can’t sub
+            if(param.getEipUpdateParam().getBandWidth()<eipEntity.getBandWidth()){
+                data.put("flag",false);
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
+                data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
+                data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
+                data.put("data",null);
+                return data;
+            }
+        }
+        boolean updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()));
+        if (updateStatus) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
-            log.debug("after  change：" + eipEntity.getBandWidth());
-
-            return eipRepository.save(eipEntity);
+            eipEntity.setChargeType(param.getEipUpdateParam().getChargeType());
+            eipRepository.save(eipEntity);
+            data.put("flag",true);
+            data.put("reason","");
+            data.put("httpCode", HttpStatus.SC_OK);
+            data.put("interCode", ReturnStatus.SC_OK);
+            data.put("data",eipEntity);
+            return data;
+        }else{
+            data.put("flag",false);
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
+            data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
+            data.put("data",null);
+            return data;
         }
-        return null;
+
     }
 
     public List<Eip> findByProjectId(String projectId){

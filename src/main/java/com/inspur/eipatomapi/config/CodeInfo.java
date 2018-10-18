@@ -33,7 +33,8 @@ public  class CodeInfo {
     public static final String EIP_BIND_FIREWALL_DNAT_ERROR="EIP_BIND_FIREWALL_DNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_SNAT_ERROR="EIP_BIND_FIREWALL_SNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_QOS_ERROR="EIP_BIND_FIREWALL_QOS_ERROR";
-
+    public static final String EIP_CHANGE_BANDWIDTH_ERROR="EIP_CHANGE_BANDWIDTH_ERROR";
+    public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR";
 
 
 
@@ -52,6 +53,9 @@ public  class CodeInfo {
         public static final String EIP_BIND_FIREWALL_SNAT_ERROR="绑定时防火墙添加SNAT出错";
         public static final String EIP_BIND_FIREWALL_QOS_ERROR="绑定时防火墙添加QOS出错";
 
+        //changebandwidth interface
+        public static final String EIP_CHANGE_BANDWIDTH_ERROR="修改带宽时防火墙出错";
+        public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
 
 
 

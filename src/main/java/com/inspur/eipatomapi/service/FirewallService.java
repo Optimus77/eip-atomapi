@@ -163,14 +163,14 @@ public class FirewallService {
         if(fwBean != null) {
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> result = qs.updateQosPipe(pipId, pipNmae, bindwidth);
-            log.info(result.toString());
-            String successTag = "true";
-            if (result.get("success").equals(successTag)) {
+            JSONObject resJson= (JSONObject) JSONObject.toJSON(result);
+            log.info(resJson);
+            if (resJson.getBoolean("success")) {
                 log.info("updateQosBandWidth: " + firewallId + " --success==bindwidth：" + bindwidth);
             } else {
                 log.info("updateQosBandWidth: " + firewallId + " --fail==bindwidth：" + bindwidth);
             }
-            return Boolean.parseBoolean(result.get("success"));
+            return resJson.getBoolean("success");
         }
         return Boolean.parseBoolean("False");
     }

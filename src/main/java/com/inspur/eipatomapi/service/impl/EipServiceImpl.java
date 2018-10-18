@@ -300,40 +300,27 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            if(param.getEipUpdateParam().getChargeType()!=null){
-                if(param.getEipUpdateParam().getBandWidth()==0){
-                    log.info("=====error==>>========="+param.getEipUpdateParam().getBandWidth());
-                    code = ReturnStatus.SC_PARAM_ERROR;
-                    msg = "Bindwidth can not be null";
-                }else{
-                    Eip eipEntity = eipDaoService.updateEipEntity(id, param);
-                    if(null != eipEntity){
-                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
-
-                        BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                        eipReturnDetail.setResourceset(Resourceset.builder()
-                                .resource_id(eipEntity.getInstanceId())
-                                .resourcetype(eipEntity.getInstanceType()).build());
-                        return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-                    }else{
-                        code= ReturnStatus.SC_FIREWALL_SERVER_ERROR;
-                        msg = "the qos set is not success,please contact the dev";
-                    }
-                }
+            JSONObject result = eipDaoService.updateEipEntity(id, param);
+            if(!result.getBoolean("flag")){
+                code = result.getString("interCode");
+                int httpResponseCode=result.getInteger("httpCode");
+                msg = result.getString("reason");
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
             }else{
-                code = ReturnStatus.SC_PARAM_ERROR;
-                msg=  "need the param bindwidth";
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                Eip eipEntity=(Eip)result.get("data");
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resource_id(eipEntity.getInstanceId())
+                        .resourcetype(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             }
-        }catch (NumberFormatException e){
-            e.printStackTrace();
-            code = ReturnStatus.SC_PARAM_ERROR;
-            msg = "BandWidth must be a Integer"+e.getMessage();
         } catch (Exception e) {
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
