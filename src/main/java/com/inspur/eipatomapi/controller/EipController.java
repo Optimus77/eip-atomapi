@@ -1,5 +1,7 @@
 package com.inspur.eipatomapi.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
@@ -7,6 +9,8 @@ import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -20,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.util.List;
@@ -201,5 +207,47 @@ public class EipController {
         log.info("Get eip number.");
         return  eipService.getEipNumber();
     }
+
+
+    @ICPControllerLog
+    @PutMapping(value = "/eips/{eip_id}")
+    @ApiOperation(value = "update eip", notes = "put")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+    })
+    public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,@RequestBody(required = false) EipUpdateParamWrapper param) {
+
+        String msg="";
+        if(param==null){
+            return eipService.unBindPort(eipId);
+        }else{
+            if(!StringUtils.isBlank(param.getEipUpdateParam().getPortId())
+                    &&!StringUtils.isBlank(param.getEipUpdateParam().getPortId())
+                    &&!StringUtils.isBlank(param.getEipUpdateParam().getType())
+                    &&StringUtils.isBlank(param.getEipUpdateParam().getChargeType())
+                    &&param.getEipUpdateParam().getBandWidth()==0
+            ){
+                return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
+                        param.getEipUpdateParam().getServerId(),
+                        param.getEipUpdateParam().getPortId());
+            }else{
+                if(!StringUtils.isBlank(param.getEipUpdateParam().getChargeType())&&param.getEipUpdateParam().getBandWidth()>0&&param.getEipUpdateParam().getBandWidth()<2000){
+                    return eipService.updateEipBandWidth(eipId,param);
+                }else{
+                    msg="param not correct. " +
+                            "to bind server,body param like{\"eip\" : {\"protid\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
+                            "\n" +
+                            "to unbind server ,body must be empty" +
+                            "\n" +
+                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"chargetype\":\"xxxxxx\"}"  +
+                            " and bandwidth between 1 and 2000" +
+                            "";
+                }
+            }
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
+
+    }
+
 
 }

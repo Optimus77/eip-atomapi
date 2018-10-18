@@ -8,8 +8,10 @@ import javax.annotation.Nullable;
 
 @Getter
 @Setter
+@Nullable
 public class EipUpdateParamWrapper {
     @JsonProperty("eip")
+    @Nullable
     private EipUpdateParam   eipUpdateParam;
 
 
