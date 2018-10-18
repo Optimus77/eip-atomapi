@@ -9,7 +9,6 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.json.JSONObject;
-import org.openstack4j.api.OSClient;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;

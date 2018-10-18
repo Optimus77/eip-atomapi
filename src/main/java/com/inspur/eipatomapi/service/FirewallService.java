@@ -5,8 +5,9 @@ import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ import java.util.Optional;
 @Service
 public class FirewallService {
 
-    public final static Log log = LogFactory.getLog(FirewallService.class);
+    public final static Logger log = LoggerFactory.getLogger(FirewallService.class);
 
     @Autowired
     private FirewallRepository firewallRepository;
@@ -136,7 +137,7 @@ public class FirewallService {
             map.put("bandWidth", bandwidth);
             HashMap<String, String> res = qs.createQosPipe(map);
             JSONObject resJson= (JSONObject) JSONObject.toJSON(res);
-            log.info(resJson);
+            log.info("{}",resJson);
             if(resJson.getBoolean("success")) {
                 pipid = res.get("id");
                 if (StringUtils.isBlank(pipid)) {
@@ -164,7 +165,7 @@ public class FirewallService {
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> result = qs.updateQosPipe(pipId, pipNmae, bindwidth);
             JSONObject resJson= (JSONObject) JSONObject.toJSON(result);
-            log.info(resJson);
+            log.info("",resJson);
             if (resJson.getBoolean("success")) {
                 log.info("updateQosBandWidth: " + firewallId + " --success==bindwidth：" + bindwidth);
             } else {
