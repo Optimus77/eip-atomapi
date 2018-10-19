@@ -178,7 +178,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPage",1);
                 data.put("currentPagePer",eips.size());
             }
-            return new ResponseEntity<>(ReturnMsgUtil.success(data), HttpStatus.OK);
+            return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KecloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e){
