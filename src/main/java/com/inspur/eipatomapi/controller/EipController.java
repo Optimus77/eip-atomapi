@@ -209,60 +209,44 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,@RequestBody EipPutUpdateParamWrapper param) {
+    public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,@RequestBody EipUpdateParamWrapper param) {
 
         String msg="";
         if(param==null){
             msg="param like {eip:{xxx:xxx}}";
         }else{
-            if(param.getEipPutUpdateParam().getPortId()!=null){
+            if(param.getEipUpdateParam().getPortId()!=null){
                 //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-                if(param.getEipPutUpdateParam().getPortId().trim().equals("")){
+                if(param.getEipUpdateParam().getPortId().trim().equals("")){
                     log.debug("unbind oprate ");
                     return eipService.unBindPort(eipId);
 
                 }else{
                     log.debug("bind oprate");
-                    if(param.getEipPutUpdateParam().getServerId()!=null&&param.getEipPutUpdateParam().getType()!=null){
-                        return eipService.eipbindPort(eipId,param.getEipPutUpdateParam().getType(),
-                                param.getEipPutUpdateParam().getServerId(),
-                                param.getEipPutUpdateParam().getPortId());
+                    if(param.getEipUpdateParam().getServerId()!=null&&param.getEipUpdateParam().getType()!=null){
+                        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
+                                param.getEipUpdateParam().getServerId(),
+                                param.getEipUpdateParam().getPortId());
                     }else{
                         msg="need param serverid and type";
                     }
                 }
             }else{
                 // protid is null ,maybe unbind or update bind width
-                if(param.getEipPutUpdateParam().getChargeType()==null&&param.getEipPutUpdateParam().getBandWidth()==null){
+                if(param.getEipUpdateParam().getChargeType()==null&&param.getEipUpdateParam().getBandWidth()==0){
                     //
                     return eipService.unBindPort(eipId);
                 }else{
-                    if(param.getEipPutUpdateParam().getChargeType()!=null&&param.getEipPutUpdateParam().getBandWidth()!=null){
-                        boolean bindwidthflag=false;
+                    if(param.getEipUpdateParam().getChargeType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
+
                         boolean chargeTypeFlag=false;
-                        int width=0;
-                        if(param.getEipPutUpdateParam().getChargeType().equals("PrePaid")||param.getEipPutUpdateParam().getChargeType().equals("PostPaid")){
+                        if(param.getEipUpdateParam().getChargeType().equals("PrePaid")||param.getEipUpdateParam().getChargeType().equals("PostPaid")){
                             chargeTypeFlag=true;
                         }else{
                             msg="chargetype must be [PrePaid |PostPaid]";
                         }
-                        try{
-                            width=Integer.parseInt(param.getEipPutUpdateParam().getBandWidth());
-                            bindwidthflag=true;
-                        }catch (Exception e){
-                            msg="bindwidht must be a Integer and between 0 and 2000";
-                        }
-                        if(bindwidthflag&&chargeTypeFlag){
-
-                            EipUpdateParamWrapper transParam =new EipUpdateParamWrapper();
-                            EipUpdateParam eiptransParam=new EipUpdateParam();
-                            eiptransParam.setBandWidth(width);
-                            eiptransParam.setChargeType(param.getEipPutUpdateParam().getChargeType());
-                            eiptransParam.setPortId(param.getEipPutUpdateParam().getPortId());
-                            eiptransParam.setServerId(param.getEipPutUpdateParam().getServerId());
-                            eiptransParam.setType(param.getEipPutUpdateParam().getType());
-                            transParam.setEipUpdateParam(eiptransParam);
-                            return eipService.updateEipBandWidth(eipId,transParam);
+                        if(chargeTypeFlag){
+                            return eipService.updateEipBandWidth(eipId,param);
                         }else{
 
                         }
@@ -276,8 +260,6 @@ public class EipController {
                 }
             }
         }
-
-
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
     }
