@@ -5,13 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.annotation.Nullable;
+import javax.validation.Valid;
 
 @Getter
 @Setter
-@Nullable
 public class EipUpdateParamWrapper {
     @JsonProperty("eip")
-    @Nullable
+    @Valid
     private EipUpdateParam   eipUpdateParam;
 
 

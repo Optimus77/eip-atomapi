@@ -1,6 +1,7 @@
 package com.inspur.eipatomapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.inspur.eipatomapi.util.TypeConstraint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.lang.NonNull;
@@ -12,11 +13,10 @@ public class EipUpdateParam {
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-    @NonNull
+    @TypeConstraint(allowedValues = {"PrePaid","PostPaid"}, message = "Only PrePaid,PostPaid is allowed. ")
     @JsonProperty("chargetype")
     private String chargeType;
 
-    @NonNull
     @JsonProperty("serverid")
     private String serverId;
 
@@ -24,8 +24,7 @@ public class EipUpdateParam {
     private String portId;
 
     //1：ecs // 2：cps // 3：slb
-
-    @JsonProperty("type")
+    @TypeConstraint(allowedValues = {"1","2", "3"}, message = "Only 1,2, 3, is allowed, 1:ecs,2:cps,3:slb. ")
     private String type;
 
     public EipUpdateParam() {
