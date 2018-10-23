@@ -10,11 +10,10 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
-@NotNull(message="the body must be a json")
+@Nullable
 public class EipUpdateParamWrapper {
     @JsonProperty("eip")
-    @Valid
-    @NotNull(message="the body must be a json and eip is not null")
+    @Nullable
     private EipUpdateParam   eipUpdateParam;
 
 
