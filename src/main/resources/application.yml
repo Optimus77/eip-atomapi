@@ -13,3 +13,6 @@ server:
 spring:
   profiles:
     active: dev
+
+error:
+  code: 106
