@@ -10,16 +10,23 @@ import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.EIPChargeType;
+import com.inspur.eipatomapi.util.EntityUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import org.apache.http.HttpStatus;
+import org.hibernate.query.Query;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EipDaoService {
@@ -40,6 +47,10 @@ public class EipDaoService {
 
     @Autowired
     private NeutronService neutronService;
+
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public final static Logger log = LoggerFactory.getLogger(EipDaoService.class);
     /**
@@ -357,6 +368,32 @@ public class EipDaoService {
 
     public List<Eip> findByProjectId(String projectId){
         return eipRepository.findByProjectId(projectId);
+    }
+
+    public long getInstanceNum(String projectId){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
+        log.info(sql);
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        log.info("{}",map);
+        long num =(long)map.get("num");
+        log.info("get count use jdbc {}",num);
+
+        //demo do't use this type, default value must be set value;
+        Eip eip  = new Eip();
+        eip.setCreateTime(null);
+        eip.setStatus(null);
+        eip.setIpVersion("IPv4");
+        eip.setChargeType("");
+        eip.setProjectId(projectId);
+        Example<Eip> example = Example.of(eip);
+        long count=eipRepository.count(example);
+        log.info("get count use jdbc {}",count);
+
+        return num;
+
+
     }
 
     @Transactional

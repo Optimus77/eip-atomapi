@@ -510,4 +510,19 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
+
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipCount() {
+        JSONObject returnjs = new JSONObject();
+        try {
+            String projectid =CommonUtil.getProjectId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(projectid)), HttpStatus.OK);
+        }catch (KecloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
