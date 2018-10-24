@@ -366,6 +366,7 @@ public class EipServiceImpl implements IEipService {
                     break;
             }
         } catch (Exception e) {
+            log.error("eipbindPort error");
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
