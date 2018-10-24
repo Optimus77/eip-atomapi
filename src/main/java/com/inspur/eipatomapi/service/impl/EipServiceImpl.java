@@ -12,7 +12,6 @@ import com.inspur.eipatomapi.util.KecloakTokenException;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
-import org.hibernate.annotations.Check;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.openstack4j.model.compute.Address;
@@ -179,7 +178,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPage",1);
                 data.put("currentPagePer",eips.size());
             }
-            return new ResponseEntity<>(ReturnMsgUtil.success(data), HttpStatus.OK);
+            return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KecloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e){
@@ -300,40 +299,27 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            if(param.getEipUpdateParam().getChargeType()!=null){
-                if(param.getEipUpdateParam().getBandWidth()==0){
-                    log.info("=====error==>>========="+param.getEipUpdateParam().getBandWidth());
-                    code = ReturnStatus.SC_PARAM_ERROR;
-                    msg = "Bindwidth can not be null";
-                }else{
-                    Eip eipEntity = eipDaoService.updateEipEntity(id, param);
-                    if(null != eipEntity){
-                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
-
-                        BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                        eipReturnDetail.setResourceset(Resourceset.builder()
-                                .resource_id(eipEntity.getInstanceId())
-                                .resourcetype(eipEntity.getInstanceType()).build());
-                        return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-                    }else{
-                        code= ReturnStatus.SC_FIREWALL_SERVER_ERROR;
-                        msg = "the qos set is not success,please contact the dev";
-                    }
-                }
+            JSONObject result = eipDaoService.updateEipEntity(id, param);
+            if(!result.getBoolean("flag")){
+                code = result.getString("interCode");
+                int httpResponseCode=result.getInteger("httpCode");
+                msg = result.getString("reason");
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
             }else{
-                code = ReturnStatus.SC_PARAM_ERROR;
-                msg=  "need the param bindwidth";
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                Eip eipEntity=(Eip)result.get("data");
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resource_id(eipEntity.getInstanceId())
+                        .resourcetype(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             }
-        }catch (NumberFormatException e){
-            e.printStackTrace();
-            code = ReturnStatus.SC_PARAM_ERROR;
-            msg = "BandWidth must be a Integer"+e.getMessage();
         } catch (Exception e) {
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
@@ -380,6 +366,7 @@ public class EipServiceImpl implements IEipService {
                     break;
             }
         } catch (Exception e) {
+            log.error("eipbindPort error");
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
@@ -434,7 +421,7 @@ public class EipServiceImpl implements IEipService {
                 }
             } else {
                 code = ReturnStatus.SC_NOT_FOUND;
-                msg = "can find eip wiht id ："+id;
+                msg = "can not find eip wiht id ："+id;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -521,6 +508,21 @@ public class EipServiceImpl implements IEipService {
         }catch(Exception e){
             e.printStackTrace();
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipCount() {
+        JSONObject returnjs = new JSONObject();
+        try {
+            String projectid =CommonUtil.getProjectId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(projectid)), HttpStatus.OK);
+        }catch (KecloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

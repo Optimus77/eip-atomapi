@@ -33,7 +33,8 @@ public  class CodeInfo {
     public static final String EIP_BIND_FIREWALL_DNAT_ERROR="EIP_BIND_FIREWALL_DNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_SNAT_ERROR="EIP_BIND_FIREWALL_SNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_QOS_ERROR="EIP_BIND_FIREWALL_QOS_ERROR";
-
+    public static final String EIP_CHANGE_BANDWIDTH_ERROR="EIP_CHANGE_BANDWIDTH_ERROR";
+    public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR";
 
 
 
@@ -52,6 +53,9 @@ public  class CodeInfo {
         public static final String EIP_BIND_FIREWALL_SNAT_ERROR="绑定时防火墙添加SNAT出错";
         public static final String EIP_BIND_FIREWALL_QOS_ERROR="绑定时防火墙添加QOS出错";
 
+        //changebandwidth interface
+        public static final String EIP_CHANGE_BANDWIDTH_ERROR="修改带宽时防火墙出错";
+        public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
 
 
 
@@ -60,8 +64,8 @@ public  class CodeInfo {
 
     public static String getCodeMessage(String key){
         try {
-            Field field= CnCode.class.getField(key);
-            return String.valueOf(field.get(new CnCode()));
+            Field field= EnCode.class.getField(key);
+            return String.valueOf(field.get(new EnCode()));
         } catch (Exception e) {
             e.printStackTrace();
             return "error can't get "+key+" info";
@@ -96,6 +100,21 @@ public  class CodeInfo {
     static class EnCode{
         public static final String KEYCLOAD_NULL="400-Bad request:can't get Authorization info from header,please check";
         public static final String KEYCLOAK_TOKEN_EXPIRED="401-Unauthorized:get projecctid from token,please check it expired";
+
+        //bind interface
+        public static final String EIP_BIND_NOT_FOND="404-Bad request: can't find eip info by this id";
+        public static final String EIP_BIND_HAS_BAND="404-Bad request: this eip has banded";
+        public static final String EIP_BIND_PARA_SERVERID_ERROR="404-Bad request:  needs param serverid";
+        public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="band floating ip fail";
+        public static final String EIP_BIND_OPENSTACK_ERROR="openstack error when band server";
+        public static final String EIP_BIND_FIREWALL_ERROR="fillware error when band server";
+        public static final String EIP_BIND_FIREWALL_DNAT_ERROR="add DNAT rule error when band server";
+        public static final String EIP_BIND_FIREWALL_SNAT_ERROR="add SNAT rule error when band server";
+        public static final String EIP_BIND_FIREWALL_QOS_ERROR="add  QOS  rule error when band server";
+
+        //changebandwidth interface
+        public static final String EIP_CHANGE_BANDWIDTH_ERROR="the fillware error when update the bandwidht";
+        public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="the bandwidth must bigger than orgin when choose prepaid modle";
 
 
     }

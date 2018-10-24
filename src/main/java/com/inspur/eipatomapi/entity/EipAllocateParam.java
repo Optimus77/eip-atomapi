@@ -28,7 +28,7 @@ public class EipAllocateParam implements Serializable {
     @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
     private String purchasetime;
 
-    @Range(min=1,max=2000,message = "value must be 1~2000.")
+    @Range(min=1,max=2000,message = "value must be 1-2000.")
     private int bandwidth;
 
     @JsonProperty("sharedbandwidthid")
