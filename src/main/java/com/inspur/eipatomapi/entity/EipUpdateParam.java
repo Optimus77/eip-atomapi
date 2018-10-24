@@ -8,7 +8,7 @@ import org.springframework.lang.NonNull;
 @Data
 public class EipUpdateParam {
 
-    @Range(min=1,max=2000)
+    //@Range(min=1,max=2000)
     @JsonProperty("bandwidth")
     private int bandWidth;
 
@@ -28,7 +28,4 @@ public class EipUpdateParam {
     @JsonProperty("type")
     private String type;
 
-    public EipUpdateParam() {
-
-    }
 }

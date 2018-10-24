@@ -366,6 +366,7 @@ public class EipServiceImpl implements IEipService {
                     break;
             }
         } catch (Exception e) {
+            log.error("eipbindPort error");
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
@@ -420,7 +421,7 @@ public class EipServiceImpl implements IEipService {
                 }
             } else {
                 code = ReturnStatus.SC_NOT_FOUND;
-                msg = "can find eip wiht id ："+id;
+                msg = "can not find eip wiht id ："+id;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -507,6 +508,21 @@ public class EipServiceImpl implements IEipService {
         }catch(Exception e){
             e.printStackTrace();
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipCount() {
+        JSONObject returnjs = new JSONObject();
+        try {
+            String projectid =CommonUtil.getProjectId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(projectid)), HttpStatus.OK);
+        }catch (KecloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

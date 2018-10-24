@@ -281,5 +281,19 @@ public class EipController {
 
     }
 
+    /**
+     *
+     * @return
+     */
+
+    @ICPControllerLog
+    @GetMapping(value = "/{tenantId}/instance_num")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="get number",notes="get number")
+    public ResponseEntity getEipCount(@PathVariable  String tenantId) {
+        log.info("Get eip getEipCount. {}",tenantId);
+        return  eipService.getEipCount();
+    }
+
 
 }

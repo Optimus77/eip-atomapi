@@ -99,6 +99,7 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
+        log.info("get serverinfo  {}",server);
         return osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 

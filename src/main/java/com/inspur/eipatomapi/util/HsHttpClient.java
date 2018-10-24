@@ -241,9 +241,11 @@ public class HsHttpClient {
 		se.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
 		se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
 		httpPost.setEntity(se);
-		CloseableHttpResponse response = httpclient.execute(httpPost);
+		CloseableHttpResponse response =null ;
 		InputStream instream = null;
 		try {
+			response = httpclient.execute(httpPost);
+
 			HttpEntity entity = response.getEntity();
 			// do something useful with the response body
 			// and ensure it is fully consumed

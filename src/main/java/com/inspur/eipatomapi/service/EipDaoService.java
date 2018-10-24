@@ -10,16 +10,23 @@ import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.EIPChargeType;
+import com.inspur.eipatomapi.util.EntityUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import org.apache.http.HttpStatus;
+import org.hibernate.query.Query;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EipDaoService {
@@ -40,6 +47,10 @@ public class EipDaoService {
 
     @Autowired
     private NeutronService neutronService;
+
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public final static Logger log = LoggerFactory.getLogger(EipDaoService.class);
     /**
@@ -187,41 +198,89 @@ public class EipDaoService {
         String dnatRuleId = null;
         String snatRuleId = null;
         if(actionResponse.isSuccess()){
-            log.info("======start dnat oprate ");
-            dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
-            log.info("dnatRuleId:  "+dnatRuleId);
-            log.info("======start snat oprate ");
-            snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
-            log.info("snatRuleId:  "+snatRuleId);
-            log.info("=======start qos oprate ");
-            pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
-            log.info("snatRuleId:  "+pipId);
-            if(dnatRuleId!=null&&snatRuleId!=null&&pipId!=null){
-                eip.setInstanceId(serverId);
-                eip.setInstanceType(instanceType);
-                eip.setDnatId(dnatRuleId);
-                eip.setSnatId(snatRuleId);
-                eip.setPipId(pipId);
-                eip.setPortId(portId);
-                eip.setStatus("ACTIVE");
-                eipRepository.save(eip);
-                data.put("flag",true);
-                data.put("reason","success");
-                data.put("httpCode", HttpStatus.SC_OK);
-                data.put("interCode", ReturnStatus.SC_OK);
-                data.put("data",eip);
-                return data;
-            }else{
-                neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
-                if(dnatRuleId!=null){
-                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+            try{
+                log.info("======start dnat oprate ");
+                dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
+                log.info("dnatRuleId:  "+dnatRuleId);
+                if(dnatRuleId==null){
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
+                    data.put("flag",false);
+                    data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR));
+                    data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                    data.put("interCode", ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE);
+                    data.put("data",null);
+                    return data;
                 }
-                if(snatRuleId!=null){
-                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
+                log.info("======start snat oprate ");
+                snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
+                log.info("snatRuleId:  "+snatRuleId);
+                if(snatRuleId==null){
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
+                    if(dnatRuleId!=null){
+                        firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+                    }
+                    data.put("flag",false);
+                    data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
+                    data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                    data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
+                    data.put("data",null);
+                    return data;
                 }
-                if(pipId!=null){
-                    firewallService.delQos(pipId,eip.getFirewallId());
+
+                log.info("=======start qos oprate ");
+                pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
+                log.info("qos:  "+pipId);
+                if(pipId==null){
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
+                    if(dnatRuleId!=null){
+                        firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+                    }
+                    if(snatRuleId!=null){
+                        firewallService.delSnat(snatRuleId, eip.getFirewallId());
+                    }
+                    data.put("flag",false);
+                    data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
+                    data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                    data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
+                    data.put("data",null);
+                    return data;
                 }
+                if(dnatRuleId!=null&&snatRuleId!=null&&pipId!=null){
+                    eip.setInstanceId(serverId);
+                    eip.setInstanceType(instanceType);
+                    eip.setDnatId(dnatRuleId);
+                    eip.setSnatId(snatRuleId);
+                    eip.setPipId(pipId);
+                    eip.setPortId(portId);
+                    eip.setStatus("ACTIVE");
+                    eipRepository.save(eip);
+                    data.put("flag",true);
+                    data.put("reason","success");
+                    data.put("httpCode", HttpStatus.SC_OK);
+                    data.put("interCode", ReturnStatus.SC_OK);
+                    data.put("data",eip);
+                    return data;
+                }else{
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
+                    if(dnatRuleId!=null){
+                        firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+                    }
+                    if(snatRuleId!=null){
+                        firewallService.delSnat(snatRuleId, eip.getFirewallId());
+                    }
+                    if(pipId!=null){
+                        firewallService.delQos(pipId,eip.getFirewallId());
+                    }
+                    data.put("flag",false);
+                    data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
+                    data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                    data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
+                    data.put("data",null);
+                    return data;
+                }
+            }catch (Exception e){
+                log.error("band server firewall error");
+                e.printStackTrace();
                 data.put("flag",false);
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -357,6 +416,32 @@ public class EipDaoService {
 
     public List<Eip> findByProjectId(String projectId){
         return eipRepository.findByProjectId(projectId);
+    }
+
+    public long getInstanceNum(String projectId){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
+        log.info(sql);
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        log.info("{}",map);
+        long num =(long)map.get("num");
+        log.info("get count use jdbc {}",num);
+
+        //demo do't use this type, default value must be set value;
+        Eip eip  = new Eip();
+        eip.setCreateTime(null);
+        eip.setStatus(null);
+        eip.setIpVersion("IPv4");
+        eip.setChargeType("");
+        eip.setProjectId(projectId);
+        Example<Eip> example = Example.of(eip);
+        long count=eipRepository.count(example);
+        log.info("get count use jdbc {}",count);
+
+        return num;
+
+
     }
 
     @Transactional

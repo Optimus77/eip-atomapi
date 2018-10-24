@@ -64,7 +64,7 @@ public  class CodeInfo {
 
     public static String getCodeMessage(String key){
         try {
-            Field field= CnCode.class.getField(key);
+            Field field= EnCode.class.getField(key);
             return String.valueOf(field.get(new EnCode()));
         } catch (Exception e) {
             e.printStackTrace();

@@ -109,4 +109,7 @@ public interface IEipService {
     ResponseEntity getEipNumber();
 
     ResponseEntity getEipByIpAddress(String eip);
+
+
+    ResponseEntity getEipCount();
 }
