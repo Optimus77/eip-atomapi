@@ -420,7 +420,7 @@ public class EipServiceImpl implements IEipService {
                 }
             } else {
                 code = ReturnStatus.SC_NOT_FOUND;
-                msg = "can find eip wiht id ："+id;
+                msg = "can not find eip wiht id ："+id;
             }
         } catch (Exception e) {
             e.printStackTrace();
