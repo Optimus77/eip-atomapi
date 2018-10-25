@@ -16,3 +16,21 @@ spring:
 
 error:
   code: 106
+
+http:
+  maxTotal: 100
+  defaultMaxPerRoute: 20
+  connectTimeout: 1000
+  connectionRequestTimeout: 500
+  socketTimeout: 10000
+  statleConnectionCheckEnabled: true
+
+bssURL:
+  host: "117.73.2.1052"
+  port:  8081
+  ignoSSL: true
+  userBalanceURL: http://117.73.2.105:8081
+  avliableProductList: http://117.73.2.105:8085
+  ordercreate: http://117.73.2.105:8085 # todo
+  orderprice: http://117.73.2.105:8085
+  quotaUrl: http://117.50.44.72:7300

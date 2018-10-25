@@ -2,6 +2,10 @@ package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.entity.bss.EipCalculation;
+import com.inspur.eipatomapi.entity.bss.EipOrder;
+import com.inspur.eipatomapi.entity.bss.EipQuota;
+import com.inspur.eipatomapi.service.BssApiService;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
@@ -35,6 +39,7 @@ public class EipController {
 
     @Autowired
     private EipServiceImpl eipService;
+
 
     @ICPControllerLog
     @PostMapping(value = "/eips")
@@ -294,6 +299,54 @@ public class EipController {
         log.info("Get eip getEipCount. {}",tenantId);
         return  eipService.getEipCount();
     }
+    //1.2.1 查询当前用户余额
+    @ICPControllerLog
+    @GetMapping(value = "/eips/userBanlance")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="userBanlance",notes="userBanlance")
+    public ResponseEntity userBanlance() {
+        return  eipService.userBanlance();
+    }
+
+    //1.2.6	查询用户可购买的产品列表
+    @ICPControllerLog
+    @GetMapping(value = "/eips/avliableProductList")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="avliableProductList",notes="avliableProductList")
+    public ResponseEntity avliableProductList() {
+        return  eipService.avliableProductList();
+    }
+
+
+    //1.2.8 订单接口POST
+    @ICPControllerLog
+    @PostMapping(value = "/eips/ordercreate")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="ordercreate Eip ",notes="ordercreate Eip")
+    public ResponseEntity orderEip(@RequestBody EipOrder order) {
+        return  eipService.createOrder(order);
+    }
+
+    //1.2.9	算费接口
+    @ICPControllerLog
+    @PostMapping(value = "/eips/calculation")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="calculate Eip ",notes="calculate Eip")
+    public ResponseEntity calculateEip(@RequestBody EipCalculation calculation) {
+
+        return  eipService.getCalculation(calculation);
+    }
+
+    //1.2.13	查询用户配额的接口
+    @ICPControllerLog
+    @GetMapping(value = "/eips/quota")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="quota Eip ",notes="quota Eip")
+    public ResponseEntity quotaEip() {
+        return eipService.getQuota();
+    }
+
+
 
 
 }
