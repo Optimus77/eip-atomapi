@@ -21,7 +21,7 @@ public  class CodeInfo {
 
 
     public static final String KEYCLOAK_NULL="KEYCLOAK_NULL";
-    public static final String KEYCLOAK_TOKEN_EXPIRED="KEYCLOAK_TOKEN_EXPIRED";
+    public static final String KEYCLOAK_TOKEN_EXPIRED="KEYCLOAK_TOKEN_ERROR";
 
 
     public static final String EIP_BIND_NOT_FOND ="EIP_BIND_NOT_FOND";

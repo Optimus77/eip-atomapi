@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.EipAllocateParam;
 import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.entity.ReturnMsg;
+import com.inspur.eipatomapi.entity.bss.EipCalculation;
+import com.inspur.eipatomapi.entity.bss.EipOrder;
+import com.inspur.eipatomapi.entity.bss.EipQuota;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -112,4 +115,24 @@ public interface IEipService {
 
 
     ResponseEntity getEipCount();
+
+    //1.2.1 查询当前用户余额
+    ResponseEntity userBanlance();
+
+    //1.2.6	查询用户可购买的产品列表
+    ResponseEntity avliableProductList();
+
+    //1.2.8	订单提交接口
+    ResponseEntity createOrder(EipOrder order);
+
+    //1.2.9	算费接口
+    ResponseEntity getCalculation(EipCalculation calculation);
+
+    //1.2.13	配额接口
+    ResponseEntity getQuota();
+
+
+
+
+
 }

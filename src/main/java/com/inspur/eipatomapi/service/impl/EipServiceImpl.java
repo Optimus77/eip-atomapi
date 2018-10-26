@@ -3,12 +3,16 @@ package com.inspur.eipatomapi.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.entity.bss.EipCalculation;
+import com.inspur.eipatomapi.entity.bss.EipOrder;
+import com.inspur.eipatomapi.entity.bss.EipQuota;
 import com.inspur.eipatomapi.repository.EipRepository;
+import com.inspur.eipatomapi.service.BssApiService;
 import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.util.CommonUtil;
-import com.inspur.eipatomapi.util.KecloakTokenException;
+import com.inspur.eipatomapi.util.KeycloakTokenException;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
@@ -25,8 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
-import static com.inspur.eipatomapi.util.ReturnStatus.SC_OK;
 
 /**
  * @Auther: jiasirui
@@ -45,6 +47,9 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private EipDaoService eipDaoService;
+
+    @Autowired
+    private BssApiService bssApiService;
 
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
@@ -179,7 +184,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPagePer",eips.size());
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
-        }catch(KecloakTokenException e){
+        }catch(KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e){
             e.printStackTrace();
@@ -503,7 +508,7 @@ public class EipServiceImpl implements IEipService {
             String projectid =CommonUtil.getProjectId();
             List<Eip> eips = eipDaoService.findByProjectId(projectid);
             return new ResponseEntity<>(ReturnMsgUtil.success(eips.size()), HttpStatus.OK);
-        }catch (KecloakTokenException e){
+        }catch (KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
         }catch(Exception e){
             e.printStackTrace();
@@ -511,19 +516,118 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-
     @Override
     @ICPServiceLog
     public ResponseEntity getEipCount() {
-        JSONObject returnjs = new JSONObject();
         try {
             String projectid =CommonUtil.getProjectId();
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(projectid)), HttpStatus.OK);
-        }catch (KecloakTokenException e){
+        }catch (KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
         }catch(Exception e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    //1.2.1 查询当前用户余额
+    @Override
+    @ICPServiceLog
+    public ResponseEntity userBanlance() {
+        try{
+            JSONObject result=bssApiService.getUserBalance(CommonUtil.getUserId());
+            if(result.getBoolean("success")){
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch(KeycloakTokenException e){
+            e.printStackTrace();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_PARAM_ERROR,e.getMessage(),null), HttpStatus.BAD_REQUEST);
+        } catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    //1.2.6	查询用户可购买的产品列表
+    @Override
+    @ICPServiceLog
+    public ResponseEntity avliableProductList() {
+        try{
+            JSONObject result=bssApiService.avliableProductList(CommonUtil.getUserId(),CommonUtil.getproductLineCode(),CommonUtil.getReginInfo());
+            if(result.getBoolean("success")){
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch(KeycloakTokenException e){
+            e.printStackTrace();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_PARAM_ERROR,e.getMessage(),null), HttpStatus.BAD_REQUEST);
+        } catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+    //1.2.8	订单提交接口
+    @Override
+    @ICPServiceLog
+    public ResponseEntity createOrder(EipOrder order) {
+        try{
+            JSONObject result=bssApiService.createOrder(order);
+            if(result.getBoolean("success")){
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    //1.2.9	算费接口
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getCalculation(EipCalculation calculation){
+
+        try{
+            JSONObject result=bssApiService.getCalculation(calculation);
+            if(result.getBoolean("success")){
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    //1.2.13	查询用户配额的接口
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getQuota(){
+        try{
+            EipQuota quota=new EipQuota();
+            quota.setProductLineCode("EIP");
+            quota.setRegion(CommonUtil.getReginInfo());
+            quota.setProductTypeCode(null);
+            quota.setUserId(CommonUtil.getUserId());
+            JSONObject result=bssApiService.getQuota(quota);
+            if(result.getBoolean("success")){
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
 
 }
