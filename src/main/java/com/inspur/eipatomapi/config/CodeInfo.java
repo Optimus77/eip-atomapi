@@ -39,7 +39,7 @@ public  class CodeInfo {
 
 
     static class CnCode{
-        public static final String KEYCLOAD_NULL="400-Bad request: http 头信息中无法获得Authorization 参数";
+        public static final String KEYCLOAK_NULL="400-Bad request: http 头信息中无法获得Authorization 参数";
         public static final String KEYCLOAK_TOKEN_EXPIRED="401-Unauthorized:从token中获取projectid出错,请检查token是否过期";
 
         //bind interface
@@ -98,7 +98,7 @@ public  class CodeInfo {
 
 
     static class EnCode{
-        public static final String KEYCLOAD_NULL="400-Bad request:can't get Authorization info from header,please check";
+        public static final String KEYCLOAK_NULL="400-Bad request:can't get Authorization info from header,please check";
         public static final String KEYCLOAK_TOKEN_EXPIRED="401-Unauthorized:get projecctid from token,please check it expired";
 
         //bind interface
