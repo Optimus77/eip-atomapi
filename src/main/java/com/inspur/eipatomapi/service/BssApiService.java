@@ -90,7 +90,8 @@ public class BssApiService {
     @Value("${bssURL.avliableProductList}")
     private   String avliableProductList;
     public JSONObject avliableProductList(String userId,String productLineCode,String region){
-        String  uri=avliableProductList+"/product"+"?userId="+userId+"&productLineCode="+productLineCode+"&region="+region;
+        //String  uri=avliableProductList+"/product"+"?userId="+userId+"&productLineCode="+productLineCode+"&region="+region;
+        String uri=avliableProductList+"/mock/5bbb3efe58c3ee17c708616e/example/product";
         log.info(uri);
         Map<String,String> header= getHeader();
         HttpResponse response= HttpUtil.get(uri,header);
@@ -102,7 +103,7 @@ public class BssApiService {
     @Value("${bssURL.ordercreate}")
     private   String ordercreate;
     public JSONObject createOrder(EipOrder order)  {
-        String url=getURL()+"/order/create";
+        String url=getURL()+"order/confirm";
         log.info(url);
         Map<String,String> header= getHeader();
         String orderStr=JSONObject.toJSONString(order);
@@ -116,7 +117,8 @@ public class BssApiService {
     private   String orderprice;
     public JSONObject getCalculation(EipCalculation calculation){
         JSONObject result=new JSONObject();
-        String  uri=orderprice+"/product/price";
+        //String  uri=orderprice+"/product/price";
+        String uri="http://117.50.44.72:7300/mock/5bd2d02958c3ee17c70862a3/product/price";
         log.info(uri);
         Map<String,String> header= getHeader();
         String calculationStr=JSONObject.toJSONString(calculation);
@@ -130,7 +132,8 @@ public class BssApiService {
     private   String quotaUrl;
     public JSONObject getQuota(EipQuota quota){
         JSONObject result=new JSONObject();
-        String  uri=quotaUrl+"/mock/5bbda32758c3ee17c7086191/crm/quota?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="+quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode();
+        //String  uri=quotaUrl+"/crm/quota"+?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="+quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode();
+        String  uri="http://117.50.44.72:7300/mock/5bbda32758c3ee17c7086191/crm/quota";
         log.info(uri);
         Map<String,String> header= getHeader();
         HttpResponse response= HttpUtil.get(uri,header);
