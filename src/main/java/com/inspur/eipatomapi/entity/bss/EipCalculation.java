@@ -15,12 +15,12 @@ public class EipCalculation {
 
     private String userId;
     private String productLineCode="EIP";
-    private String setCount;
-    private String billType;
+    private String setCount = "1";
+    private String billType = "monthly";
     private String duration;
-    private String durationUnit;
-    private String orderWhat;
-    private String orderType;
+    private String durationUnit = "M";
+    private String orderWhat = "formal";
+    private String orderType = "new";
     private String serviceStartTime;
     private String serviceEndTime;
     private String rewardActivity;

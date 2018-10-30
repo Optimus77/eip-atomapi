@@ -14,9 +14,9 @@ public class EipCalculationProduct {
 
     private String region;
     private String availableZone;
-    private String productTypeCode;
-    private String productName;
-    private String instanceCount;
+    private String productTypeCode = "EIP";
+    private String productName = "EIP";
+    private String instanceCount = "1";
     private String instanceId;
     private List<EipCalculationProductItem> itemList;
 }

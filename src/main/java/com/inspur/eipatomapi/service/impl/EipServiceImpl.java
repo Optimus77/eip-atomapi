@@ -1,11 +1,10 @@
 package com.inspur.eipatomapi.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.*;
-import com.inspur.eipatomapi.entity.bss.EipCalculation;
-import com.inspur.eipatomapi.entity.bss.EipOrder;
-import com.inspur.eipatomapi.entity.bss.EipQuota;
+import com.inspur.eipatomapi.entity.bss.*;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.service.BssApiService;
 import com.inspur.eipatomapi.service.EipDaoService;
@@ -503,7 +502,6 @@ public class EipServiceImpl implements IEipService {
     @Override
     @ICPServiceLog
     public ResponseEntity getEipNumber() {
-        JSONObject returnjs = new JSONObject();
         try {
             String projectid =CommonUtil.getProjectId();
             List<Eip> eips = eipDaoService.findByProjectId(projectid);
@@ -551,7 +549,7 @@ public class EipServiceImpl implements IEipService {
     }
 
     //1.2.6	查询用户可购买的产品列表
-    @Override
+
     @ICPServiceLog
     public ResponseEntity avliableProductList() {
         try{
@@ -575,7 +573,10 @@ public class EipServiceImpl implements IEipService {
     //1.2.8	订单提交接口
     @Override
     @ICPServiceLog
-    public ResponseEntity createOrder(EipOrder order) {
+    public ResponseEntity createOrder(EipAllocateParam eipAllocateParam) {
+        EipOrder order = getOrderByEipParam(eipAllocateParam.getBandwidth(), eipAllocateParam.getIptype(),
+                eipAllocateParam.getRegion(), eipAllocateParam.getPurchasetime());
+        order.setConsoleCustomization((JSONObject)JSON.toJSON(eipAllocateParam));
         try{
             JSONObject result=bssApiService.createOrder(order);
             if(result.getBoolean("success")){
@@ -589,8 +590,77 @@ public class EipServiceImpl implements IEipService {
 
     }
 
+    /**
+     * delete eip
+     * @param eipId eipid
+     * @return return
+     */
+    @ICPServiceLog
+    public ResponseEntity deleteEipOrder(String eipId) {
+        try{
+            Eip eipEntity = eipRepository.findByEipId(eipId);
+            if(null == eipEntity){
+                log.error("In disassociate process,failed to find the eip by id:{} ",eipId);
+                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_PARAM_UNKONWERROR,
+                        "Can not find eip"),
+                        HttpStatus.NOT_FOUND);
+            }
+            EipOrder order = getOrderByEipParam(eipEntity.getBandWidth(), eipEntity.getIpType(), null,
+                    eipEntity.getPurchaseTime());
+            order.setOrderType("unsubscribe");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("eipId", eipEntity.getEipId());
+            order.setConsoleCustomization(jsonObject);
+
+            JSONObject result=bssApiService.createOrder(order);
+            if(result.getBoolean("success")){
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",
+                        result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,
+                        "fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ICPServiceLog
+    public ResponseEntity orderUpdate(String eipId, EipUpdateParam param) {
+        try {
+            Eip eipEntity = eipRepository.findByEipId(eipId);
+            if(null == eipEntity){
+                log.error("In disassociate process,failed to find the eip by id:{} ",eipId);
+                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_PARAM_UNKONWERROR,
+                        "Can not find eip"),
+                        HttpStatus.NOT_FOUND);
+            }
+            EipOrder order =  getOrderByEipParam(param.getBandWidth(), param.getType(), null, null);
+            order.setOrderType("upgrade");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("eipId", eipId);
+            jsonObject.put("bandwidth", param.getBandWidth());
+            jsonObject.put("chargetype", param.getChargeType());
+            order.setConsoleCustomization(jsonObject);
+
+            JSONObject result=bssApiService.createOrder(order);
+            if(result.getBoolean("success")){
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",
+                        result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,
+                        "fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
     //1.2.9	算费接口
-    @Override
+
     @ICPServiceLog
     public ResponseEntity getCalculation(EipCalculation calculation){
 
@@ -629,5 +699,45 @@ public class EipServiceImpl implements IEipService {
 
     }
 
+
+    private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String purchasetime) {
+
+        List<EipOrderProductItem> itemList = new ArrayList<>();
+        EipOrderProductItem bandWidthItem = new EipOrderProductItem();
+        bandWidthItem.setCode("net");
+        bandWidthItem.setName("bandwidth");
+        bandWidthItem.setUnit("M");
+        bandWidthItem.setValue(String.valueOf(bandWidth));
+        bandWidthItem.setPropertyType("billingItem");
+
+        EipOrderProductItem ipTypeItem = new EipOrderProductItem();
+        ipTypeItem.setCode("provider");
+        ipTypeItem.setName(ipType);
+        ipTypeItem.setValue("BGP");
+        ipTypeItem.setPropertyType("impactFactor");
+
+        itemList.add(bandWidthItem);
+        itemList.add(ipTypeItem);
+
+        EipOrderProduct eipOrderProduct = new EipOrderProduct();
+        eipOrderProduct.setItemList(itemList);
+        eipOrderProduct.setRegion(region);
+        eipOrderProduct.setAvailableZone("");
+        eipOrderProduct.setInstanceId("");
+
+        EipOrder eipOrder = new EipOrder();
+        try {
+//            eipOrder.setUserId(CommonUtil.getUserId());
+            eipOrder.setUserId("useriduseriduserid");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        List<EipOrderProduct> orders = new ArrayList<>();
+        orders.add(eipOrderProduct);
+        eipOrder.setDuration(purchasetime);
+        eipOrder.setProductList(orders);
+
+        return eipOrder;
+    }
 
 }

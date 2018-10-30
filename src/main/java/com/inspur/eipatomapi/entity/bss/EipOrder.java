@@ -1,7 +1,6 @@
 package com.inspur.eipatomapi.entity.bss;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.util.List;
@@ -15,19 +14,20 @@ import java.util.List;
 public class EipOrder {
 
     private String userId;
-    private String productLineCode;
-    private String setCount;
+    private String productLineCode="EIP";
+    private String setCount = "1";
     private String consoleOrderFlowId;
     private List   flowIdList;
-    private String billType;
+    private String billType = "monthly";
     private String duration;
-    private String durationUnit;
-    private String orderWhat;
-    private String orderType;
+    private String durationUnit = "M";
+    private String orderWhat = "formal";
+    private String orderType = "new";
     private String servStartTime;
     private String servEndTime;
     private String rewardActivity;
-    private String consoleCustomization;
+    private JSONObject consoleCustomization;
     private String totalMoney;
     private List<EipOrderProduct> productList;
+
 }

@@ -103,7 +103,7 @@ public class BssApiService {
     @Value("${bssURL.ordercreate}")
     private   String ordercreate;
     public JSONObject createOrder(EipOrder order)  {
-        String url=getURL()+"order/confirm";
+        String url=ordercreate+"/order/confirm";
         log.info(url);
         Map<String,String> header= getHeader();
         String orderStr=JSONObject.toJSONString(order);
@@ -167,8 +167,6 @@ public class BssApiService {
                     result.put("success",false);
                     result.put("data",returnInfo);
                 }
-
-
             }catch(Exception e){
                 e.printStackTrace();
                 result.put("success",false);

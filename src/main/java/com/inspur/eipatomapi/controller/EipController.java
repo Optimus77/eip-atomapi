@@ -308,14 +308,6 @@ public class EipController {
         return  eipService.userBanlance();
     }
 
-    //1.2.6	查询用户可购买的产品列表
-    @ICPControllerLog
-    @GetMapping(value = "/eips/avliableProductList")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="avliableProductList",notes="avliableProductList")
-    public ResponseEntity avliableProductList() {
-        return  eipService.avliableProductList();
-    }
 
 
     //1.2.8 订单接口POST
@@ -323,19 +315,36 @@ public class EipController {
     @PostMapping(value = "/eips/ordercreate")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="ordercreate Eip ",notes="ordercreate Eip")
-    public ResponseEntity orderEip(@RequestBody EipOrder order) {
-        return  eipService.createOrder(order);
+    public ResponseEntity orderEip(@RequestBody EipAllocateParamWrapper eipParam) {
+        log.info("ordereip. {}",eipParam.getEipAllocateParam().toString());
+        return  eipService.createOrder(eipParam.getEipAllocateParam());
     }
 
-    //1.2.9	算费接口
+
+    @DeleteMapping(value = "/eips/{eip_id}/orderdelete")
     @ICPControllerLog
-    @PostMapping(value = "/eips/calculation")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="calculate Eip ",notes="calculate Eip")
-    public ResponseEntity calculateEip(@RequestBody EipCalculation calculation) {
+    @ApiOperation(value = "deleteEip order")
+    public ResponseEntity deleteEipOrder(@Size(min=36, max=36, message = "Must be uuid.")
+                                    @PathVariable("eip_id") String eipId) {
+        //Check the parameters
+        log.info("Delete the Eip:{} ",eipId);
+        return eipService.deleteEipOrder(eipId);
 
-        return  eipService.getCalculation(calculation);
     }
+
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @PutMapping(value = "/eips/{eip_id}/orderupdate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "update eip bandWidth", notes = "put")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+    })
+    public ResponseEntity updateEipBandWidth(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+        log.info("Update eip.{}, {}", eipId, param.getEipUpdateParam().toString());
+        return eipService.orderUpdate(eipId,param.getEipUpdateParam());
+    }
+
 
     //1.2.13	查询用户配额的接口
     @ICPControllerLog
