@@ -1,15 +1,12 @@
 package com.inspur.eipatomapi.entity.bss;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.util.List;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/24 22:35
- * @description:
- */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipOrderProduct {
 
     private String region;
@@ -18,5 +15,7 @@ public class EipOrderProduct {
     private String productName = "EIP";
     private String instanceCount = "1";
     private String instanceId;
+    private String instanceStatus;
+    private String createTime;
     private List<EipOrderProductItem> itemList;
 }

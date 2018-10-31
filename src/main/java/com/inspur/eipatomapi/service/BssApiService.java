@@ -3,6 +3,7 @@ package com.inspur.eipatomapi.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.bss.EipCalculation;
 import com.inspur.eipatomapi.entity.bss.EipOrder;
+import com.inspur.eipatomapi.entity.bss.EipOrderResult;
 import com.inspur.eipatomapi.entity.bss.EipQuota;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.HttpUtil;
@@ -98,7 +99,18 @@ public class BssApiService {
         return handlerResopnse(response);
     }
 
-
+    //1.2.8 订单返回给控制台的消息
+    @Value("${bssURL.returnMq}")
+    private   String returnMq;
+    public JSONObject resultReturnMq(EipOrderResult orderResult)  {
+        String url=returnMq;
+        log.info(url);
+        Map<String,String> header= getHeader();
+        String orderStr=JSONObject.toJSONString(orderResult);
+        log.info("body str {}",orderStr);
+        HttpResponse response=HttpUtil.post(url,header,orderStr);
+        return handlerResopnse(response);
+    }
     //1.2.8 订单接口POST
     @Value("${bssURL.ordercreate}")
     private   String ordercreate;

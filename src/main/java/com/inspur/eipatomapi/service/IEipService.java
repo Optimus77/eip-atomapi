@@ -1,7 +1,7 @@
 package com.inspur.eipatomapi.service;
 
-import com.inspur.eipatomapi.entity.EipAllocateParam;
-import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
+import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;

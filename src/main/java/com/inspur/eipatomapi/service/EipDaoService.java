@@ -1,19 +1,17 @@
 package com.inspur.eipatomapi.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
-import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.entity.eip.*;
+import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.EIPChargeType;
-import com.inspur.eipatomapi.util.EntityUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import org.apache.http.HttpStatus;
-import org.hibernate.query.Query;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 

@@ -2,7 +2,7 @@ package com.inspur.eipatomapi.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.entity.fw.*;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.HsHttpClient;
 import org.apache.http.NameValuePair;

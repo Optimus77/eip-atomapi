@@ -1,17 +1,13 @@
-package com.inspur.eipatomapi.entity;
-
-
+package com.inspur.eipatomapi.entity.fw;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
-
 @Setter
 @Getter
-public class FwAddAndDelDnat {
+public class FwSnatParam {
     private String vr_name;
-    List<FwDnatRule> dnat_rule = new ArrayList<>();
-
+    private List<FwSnat> snat_rule = new ArrayList<>();
 }

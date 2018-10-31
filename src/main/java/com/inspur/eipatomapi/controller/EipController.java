@@ -1,11 +1,9 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
-import com.inspur.eipatomapi.entity.*;
-import com.inspur.eipatomapi.entity.bss.EipCalculation;
-import com.inspur.eipatomapi.entity.bss.EipOrder;
-import com.inspur.eipatomapi.entity.bss.EipQuota;
-import com.inspur.eipatomapi.service.BssApiService;
+import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
+import com.inspur.eipatomapi.entity.eip.EipDelParam;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;

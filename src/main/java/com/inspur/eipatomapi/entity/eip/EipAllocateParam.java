@@ -1,4 +1,4 @@
-package com.inspur.eipatomapi.entity;
+package com.inspur.eipatomapi.entity.eip;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.inspur.eipatomapi.util.TypeConstraint;

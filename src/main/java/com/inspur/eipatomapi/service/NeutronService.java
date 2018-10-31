@@ -1,6 +1,6 @@
 package com.inspur.eipatomapi.service;
 
-import com.inspur.eipatomapi.entity.Eip;
+import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -34,3 +34,4 @@ bssURL:
   ordercreate: http://117.73.2.105:8086 #  //1.2.8 订单接口POST
   orderprice:  http://117.73.2.105:8085 #//1.2.7 算费接口
   quotaUrl:    http://117.73.2.105:8083 #//1.2.11	查询用户配额的接口
+  returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn

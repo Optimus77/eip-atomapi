@@ -1,39 +1,41 @@
-package com.inspur.eipatomapi.entity;
+package com.inspur.eipatomapi.entity.fw;
 
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Setter
 @Getter
-public class FwDnatVo extends FwBaseObject{
-
+public class FwSnatVo extends FwBaseObject {
     private static final long serialVersionUID = 1L;
     private String objectid;
-    private String dnatid;
+    private String snatid;
     private String securityid;
+    private String vrid;
+    private String vrname;
     private String saddrtype;
     private String saddr;
     private String daddrtype;
     private String daddr;
+    private String outflowtype;
+    private String outflow;
     private String servicename;
     private String servicecontent;
-    private String transfer;
+    private String transfertype;
     private String transferaddrtype;
     private String transferaddr;
-    private String istransferport;
-    private String transferport;
-    private String dnatlog;
-    private String dnatorder;
-    private String appnettype;
-    private String dnatstat;
+    private String mode;
+    private String snatlog;
+    private String snatorder;
+    private String snatstat;
     private String description;
+    private String sticky;
+    private String ha;
     private String mtime;
     private String muserid;
-    private String vrid;
-    private String vrname;
-    private String ha;
+    private String eif;
+    private String pos_flag;
+    private String flag;
     private String protocal;
-    private String dport;
+    private String sport;
 
 }

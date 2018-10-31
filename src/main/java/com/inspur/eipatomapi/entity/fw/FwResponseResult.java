@@ -1,4 +1,4 @@
-package com.inspur.eipatomapi.entity;
+package com.inspur.eipatomapi.entity.fw;
 
 public class FwResponseResult {
     public FwResponseResult() {

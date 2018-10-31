@@ -1,7 +1,7 @@
 package com.inspur.eipatomapi.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.entity.fw.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import org.apache.commons.lang3.StringUtils;
 

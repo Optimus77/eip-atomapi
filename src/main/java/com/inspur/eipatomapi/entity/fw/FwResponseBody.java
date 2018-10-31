@@ -1,4 +1,4 @@
-package com.inspur.eipatomapi.entity;
+package com.inspur.eipatomapi.entity.fw;
 
 import lombok.Getter;
 import lombok.Setter;
