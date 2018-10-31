@@ -83,9 +83,7 @@ public class EipController {
         }
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
-
-
-
+    
     @DeleteMapping(value = "/eips/{eip_id}")
     @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
