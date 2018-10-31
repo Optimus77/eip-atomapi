@@ -1,6 +1,9 @@
 package com.inspur.eipatomapi.entity;
 
+import com.alibaba.druid.sql.ast.expr.SQLCaseExpr;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.inspur.eipatomapi.entity.bss.EipOrderProduct;
+import com.inspur.eipatomapi.entity.bss.EipOrderProductItem;
 import com.inspur.eipatomapi.util.TypeConstraint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
@@ -8,6 +11,7 @@ import org.hibernate.validator.constraints.Range;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 public class EipAllocateParam implements Serializable {
@@ -33,4 +37,25 @@ public class EipAllocateParam implements Serializable {
 
     @JsonProperty("sharedbandwidthid")
     private String sharedBandWidthId;
+
+    //以下新增字段属性
+    private String userId;
+    private String productLineCode = "EIP";
+    private String setCount = "1";
+    private String consoleOrderFlowId;
+    private String billType ="monthly";
+    private String duration;
+    private String durationUnit = "M";
+    private String orderWhat = "formal";
+    private String orderType = "new";
+    private String servStartTime;
+    private String servEndTime;
+    private String rewardActivity;
+    private String consoleCustomization;
+    private String totalMoney;
+
+    private List<EipOrderProduct> productList;
+
+    private List<EipOrderProductItem> itemList;
+
 }
