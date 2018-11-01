@@ -10,6 +10,7 @@ import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -360,7 +361,15 @@ public class EipController {
         return eipService.getQuota();
     }
 
-
+    //续费接口
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @PostMapping(value ="/eips/renew/{eip_id}")
+    @ApiOperation(value = "renew Eip",notes = "renew Eip")
+    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,@RequestBody EipAllocateParamWrapper eipParam){
+        log.info("Renew Eip:{}",eipId,eipParam.getEipAllocateParam().toString());
+        return  eipService.renewEip(eipId,eipParam.getEipAllocateParam());
+    }
 
 
 }

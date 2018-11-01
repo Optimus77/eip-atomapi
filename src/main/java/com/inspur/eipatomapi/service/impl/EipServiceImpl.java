@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.validation.Valid;
 import java.util.*;
 
 /**
@@ -211,7 +212,7 @@ public class EipServiceImpl implements IEipService {
             String projcectid=CommonUtil.getProjectId();
             log.info(projcectid);
             if(projcectid==null){
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(ReturnStatus.SC_PARAM_ERROR),"get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
@@ -491,7 +492,7 @@ public class EipServiceImpl implements IEipService {
                 }
             } else {
                 code = ReturnStatus.SC_NOT_FOUND;
-                msg = "can not find eip wiht id ："+id;
+                msg = "Can not find eip by id ："+id;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -667,6 +668,43 @@ public class EipServiceImpl implements IEipService {
             }
         }catch (Exception e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    //订单续费接口
+    @ICPServiceLog
+    public  ResponseEntity renewEip(String eipId,EipAllocateParam param){
+        try {
+            Eip eipEntity = eipRepository.findByEipId(eipId);
+            if(null == eipEntity){
+                log.error("In disassociate process,failed to find the eip by id:{} ",eipId);
+                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_PARAM_UNKONWERROR,
+                        "Can not find eip"),
+                        HttpStatus.NOT_FOUND);
+            }
+            EipOrder order = getOrderByEipParam(param.getBandwidth(), param.getIptype(),
+                    param.getRegion(), param.getPurchasetime());
+            order.setOrderType("renew");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("eipId", eipEntity.getEipId());
+            jsonObject.put("bandWidth", param.getBandwidth());
+            jsonObject.put("purchaseTime", param.getPurchasetime());
+            order.setConsoleCustomization(jsonObject);
+
+            JSONObject result=bssApiService.createOrder(order);
+            if(result.getBoolean("success")){
+                eipEntity.setPurchaseTime(param.getPurchasetime());
+                eipRepository.save(eipEntity);
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",
+                        result.get("data")), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,
+                        "fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
