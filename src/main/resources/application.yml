@@ -26,12 +26,4 @@ http:
   statleConnectionCheckEnabled: true
 
 bssURL:
-  host: "117.73.2.105"
-  port:  8081
-  ignoSSL: true
-  userBalanceURL: http://117.73.2.105:8081  #查询用户账户余额
-  avliableProductList: http://117.50.44.72:7300  #//1.2.6	查询用户可购买的产品列表
-  ordercreate: http://117.73.2.105:8086 #  //1.2.8 订单接口POST
-  orderprice:  http://117.73.2.105:8085 #//1.2.7 算费接口
-  quotaUrl:    http://117.73.2.105:8083 #//1.2.11	查询用户配额的接口
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn

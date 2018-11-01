@@ -1,17 +1,12 @@
 package com.inspur.eipatomapi.entity.eip;
 
-import com.alibaba.druid.sql.ast.expr.SQLCaseExpr;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.inspur.eipatomapi.entity.bss.EipOrderProduct;
-import com.inspur.eipatomapi.entity.bss.EipOrderProductItem;
 import com.inspur.eipatomapi.util.TypeConstraint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
-import java.util.List;
 
 @Data
 public class EipAllocateParam implements Serializable {

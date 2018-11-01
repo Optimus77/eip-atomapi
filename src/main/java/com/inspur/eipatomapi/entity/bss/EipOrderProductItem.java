@@ -14,5 +14,5 @@ public class EipOrderProductItem {
     private String name;
     private String unit;
     private String value;
-    private String propertyType;
+    private String type;
 }

@@ -113,18 +113,5 @@ public interface IEipService {
 
     ResponseEntity getEipCount();
 
-    //1.2.1 查询当前用户余额
-    ResponseEntity userBanlance();
-
-
-    //1.2.8	订单提交接口
-    ResponseEntity createOrder(EipAllocateParam eipAllocateParam);
-
-    //1.2.13	配额接口
-    ResponseEntity getQuota();
-
-
-
-
 
 }

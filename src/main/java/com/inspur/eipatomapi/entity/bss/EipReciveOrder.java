@@ -1,6 +1,5 @@
 package com.inspur.eipatomapi.entity.bss;
 
-import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.util.List;

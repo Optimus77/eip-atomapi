@@ -54,26 +54,6 @@ public class EipServiceImpl implements IEipService {
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
 
-    //1.2.8	订单提交接口
-    @Override
-    @ICPServiceLog
-    public ResponseEntity createOrder(EipAllocateParam eipAllocateParam) {
-        EipOrder order = getOrderByEipParam(eipAllocateParam.getBandwidth(), eipAllocateParam.getIptype(),
-                eipAllocateParam.getRegion(), eipAllocateParam.getPurchasetime());
-        order.setConsoleCustomization((JSONObject)JSON.toJSON(eipAllocateParam));
-        try{
-            JSONObject result=bssApiService.createOrder(order);
-            if(result.getString("code").equals("0")){
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }catch (Exception e){
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
     /**
      * create a eip
      * @param eipOrder          config
@@ -86,22 +66,28 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            String eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization().toJSONString();
-            EipAllocateParam eipConfig = JSONObject.parseObject(eipConfigJson, new TypeReference<EipAllocateParam>(){});
+            if(eipOrder.getOrderStatus().equals("paysuccess")) {
+                String eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization().toJSONString();
+                EipAllocateParam eipConfig = JSONObject.parseObject(eipConfigJson,
+                        new TypeReference<EipAllocateParam>() {});
 
-            Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
-            if (null != eipMo) {
-                EipReturnBase eipInfo = new EipReturnBase();
-                BeanUtils.copyProperties(eipMo, eipInfo);
+                Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
+                if (null != eipMo) {
+                    EipReturnBase eipInfo = new EipReturnBase();
+                    BeanUtils.copyProperties(eipMo, eipInfo);
 
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+                } else {
+                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    log.error(msg);
+                }
+            }else {
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
-            } else {
-                code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
-                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_ERROR, "not payed."),
+                        HttpStatus.FAILED_DEPENDENCY);
             }
-
         }catch (Exception e){
             e.printStackTrace();
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
@@ -110,7 +96,6 @@ public class EipServiceImpl implements IEipService {
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
 
     /**
@@ -129,42 +114,6 @@ public class EipServiceImpl implements IEipService {
             deleteEip(eipId, null);
         }
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-    }
-
-    /**
-     * delete eip
-     * @param eipId eipid
-     * @return return
-     */
-    @ICPServiceLog
-    public ResponseEntity deleteEipOrder(String eipId) {
-        try{
-            Eip eipEntity = eipRepository.findByEipId(eipId);
-            if(null == eipEntity){
-                log.error("In disassociate process,failed to find the eip by id:{} ",eipId);
-                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_PARAM_UNKONWERROR,
-                        "Can not find eip"),
-                        HttpStatus.NOT_FOUND);
-            }
-            EipOrder order = getOrderByEipParam(eipEntity.getBandWidth(), eipEntity.getIpType(), null,
-                    eipEntity.getPurchaseTime());
-            order.setOrderType("unsubscribe");
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("eipId", eipEntity.getEipId());
-            order.setConsoleCustomization(jsonObject);
-
-            JSONObject result=bssApiService.createOrder(order);
-            if(result.getString("code").equals("0")){
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",
-                        result.get("data")), HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,
-                        "fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }catch (Exception e){
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 
     /**
@@ -558,8 +507,6 @@ public class EipServiceImpl implements IEipService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-
-
     }
     /**
      * get number of the eip
@@ -591,126 +538,6 @@ public class EipServiceImpl implements IEipService {
         }catch(Exception e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    //1.2.1 查询当前用户余额
-    @Override
-    @ICPServiceLog
-    public ResponseEntity userBanlance() {
-        try{
-            JSONObject result=bssApiService.getUserBalance(CommonUtil.getUserId());
-            if(result.getBoolean("success")){
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }catch(KeycloakTokenException e){
-            e.printStackTrace();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_PARAM_ERROR,e.getMessage(),null), HttpStatus.BAD_REQUEST);
-        } catch (Exception e){
-            e.printStackTrace();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
-
-    @ICPServiceLog
-    public ResponseEntity orderUpdate(String eipId, EipUpdateParam param) {
-        try {
-            Eip eipEntity = eipRepository.findByEipId(eipId);
-            if(null == eipEntity){
-                log.error("In disassociate process,failed to find the eip by id:{} ",eipId);
-                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_PARAM_UNKONWERROR,
-                        "Can not find eip"),
-                        HttpStatus.NOT_FOUND);
-            }
-            EipOrder order =  getOrderByEipParam(param.getBandWidth(), param.getType(), null, null);
-            order.setOrderType("upgrade");
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("eipId", eipId);
-            jsonObject.put("bandwidth", param.getBandWidth());
-            jsonObject.put("chargetype", param.getChargeType());
-            order.setConsoleCustomization(jsonObject);
-
-            JSONObject result=bssApiService.createOrder(order);
-            if(result.getBoolean("success")){
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",
-                        result.get("data")), HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,
-                        "fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }catch (Exception e){
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
-
-    //1.2.13	查询用户配额的接口
-    @Override
-    @ICPServiceLog
-    public ResponseEntity getQuota(){
-        try{
-            EipQuota quota=new EipQuota();
-            quota.setProductLineCode("EIP");
-            quota.setRegion(CommonUtil.getReginInfo());
-            quota.setProductTypeCode(null);
-            quota.setUserId(CommonUtil.getUserId());
-            JSONObject result=bssApiService.getQuota(quota);
-            if(result.getBoolean("success")){
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }catch (Exception e){
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
-
-    private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String purchasetime) {
-
-        List<EipOrderProductItem> itemList = new ArrayList<>();
-        EipOrderProductItem bandWidthItem = new EipOrderProductItem();
-        bandWidthItem.setCode("net");
-        bandWidthItem.setName("bandwidth");
-        bandWidthItem.setUnit("M");
-        bandWidthItem.setValue(String.valueOf(bandWidth));
-        bandWidthItem.setPropertyType("billingItem");
-
-        EipOrderProductItem ipTypeItem = new EipOrderProductItem();
-        ipTypeItem.setCode("provider");
-        ipTypeItem.setName(ipType);
-        ipTypeItem.setValue("BGP");
-        ipTypeItem.setPropertyType("impactFactor");
-
-        itemList.add(bandWidthItem);
-        itemList.add(ipTypeItem);
-
-        EipOrderProduct eipOrderProduct = new EipOrderProduct();
-        eipOrderProduct.setItemList(itemList);
-        eipOrderProduct.setRegion(region);
-        eipOrderProduct.setAvailableZone("");
-        eipOrderProduct.setInstanceId("");
-
-        EipOrder eipOrder = new EipOrder();
-        try {
-//            eipOrder.setUserId(CommonUtil.getUserId());
-            eipOrder.setUserId("useriduseriduserid");
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        eipOrder.setConsoleOrderFlowId(UUID.randomUUID().toString());
-        List<EipOrderProduct> orders = new ArrayList<>();
-        orders.add(eipOrderProduct);
-        eipOrder.setDuration(purchasetime);
-        eipOrder.setProductList(orders);
-
-        return eipOrder;
     }
 
     private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String result){

@@ -11,7 +11,7 @@ public class EipOrderProduct {
 
     private String region;
     private String availableZone;
-    private String productType = "EIP";
+    private String productTypeCode = "EIP";
     private String productName = "EIP";
     private String instanceCount = "1";
     private String instanceId;

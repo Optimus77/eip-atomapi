@@ -40,26 +40,6 @@ public class EipController {
     private EipServiceImpl eipService;
 
 
-    //1.2.8 订单接口POST
-    @ICPControllerLog
-    @PostMapping(value = "/eips/ordercreate")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="ordercreate Eip ",notes="ordercreate Eip")
-    public ResponseEntity orderEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig,BindingResult result) {
-        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
-        if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
-                    HttpStatus.BAD_REQUEST);
-        }
-
-        return  eipService.createOrder(eipConfig.getEipAllocateParam());
-    }
-
     @ICPControllerLog
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -69,24 +49,6 @@ public class EipController {
 
         return eipService.createEip(eipConfig);
      }
-
-
-    /**
-     *  delete eip order
-     * @param eipId
-     * @return
-     */
-    @DeleteMapping(value = "/eips/{eip_id}/orderdelete")
-    @ICPControllerLog
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "deleteEip order")
-    public ResponseEntity deleteEipOrder(@Size(min=36, max=36, message = "Must be uuid.")
-                                         @PathVariable("eip_id") String eipId) {
-        //Check the parameters
-        log.info("Delete the Eip:{} ",eipId);
-        return eipService.deleteEipOrder(eipId);
-
-    }
 
 
     @DeleteMapping(value = "/eips/{eip_id}")
@@ -325,39 +287,6 @@ public class EipController {
     public ResponseEntity getEipCount(@PathVariable  String tenantId) {
         log.info("Get eip getEipCount. {}",tenantId);
         return  eipService.getEipCount();
-    }
-    //1.2.1 查询当前用户余额
-    @ICPControllerLog
-    @GetMapping(value = "/eips/userBanlance")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="userBanlance",notes="userBanlance")
-    public ResponseEntity userBanlance() {
-        return  eipService.userBanlance();
-    }
-
-
-
-
-    @ICPControllerLog
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @PutMapping(value = "/eips/{eip_id}/orderupdate", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "update eip bandWidth", notes = "put")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-    })
-    public ResponseEntity updateEipBandWidth(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
-        log.info("Update eip.{}, {}", eipId, param.getEipUpdateParam().toString());
-        return eipService.orderUpdate(eipId,param.getEipUpdateParam());
-    }
-
-
-    //1.2.13	查询用户配额的接口
-    @ICPControllerLog
-    @GetMapping(value = "/eips/quota")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="quota Eip ",notes="quota Eip")
-    public ResponseEntity quotaEip() {
-        return eipService.getQuota();
     }
 
 
