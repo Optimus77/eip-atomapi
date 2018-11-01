@@ -26,6 +26,4 @@ public class EipCalculation {
     private String rewardActivity;
     private List<EipCalculationProduct> productList;
 
-
-
 }

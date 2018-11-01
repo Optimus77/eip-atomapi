@@ -1,6 +1,7 @@
 package com.inspur.eipatomapi.service;
 
 import com.inspur.eipatomapi.entity.bss.EipOrder;
+import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
 import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ public interface IEipService {
      * @return                   json info of eip
      */
 
-    ResponseEntity createEip(EipOrder eipConfig);
+    ResponseEntity createEip(EipReciveOrder eipConfig);
 
 
 

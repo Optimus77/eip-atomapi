@@ -18,5 +18,6 @@ public class EipCalculationProduct {
     private String productName = "EIP";
     private String instanceCount = "1";
     private String instanceId;
-    private List<EipCalculationProductItem> itemList;
+    private List<EipOrderProductItem> itemList;
+
 }

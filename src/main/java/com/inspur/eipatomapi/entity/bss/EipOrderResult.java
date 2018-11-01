@@ -5,11 +5,7 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/24 22:28
- * @description:
- */
+
 @Data
 public class EipOrderResult {
 
@@ -17,6 +13,6 @@ public class EipOrderResult {
     private String productLineCode="EIP";
     private String consoleOrderFlowId;
     private String orderId;
-    private List<EipOrderProduct> productSetList;
+    private List<EipOrderResultProduct> productSetList;
 
 }
