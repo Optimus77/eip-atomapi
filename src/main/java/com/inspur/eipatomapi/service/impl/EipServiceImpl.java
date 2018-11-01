@@ -3,6 +3,7 @@ package com.inspur.eipatomapi.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.inspur.eipatomapi.entity.bss.*;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.repository.EipRepository;
@@ -54,18 +55,20 @@ public class EipServiceImpl implements IEipService {
 
     /**
      * create a eip
-     * @param eipConfig          config
-     * @param portId             port id
+     * @param eipOrder          config
      * @return                   json info of eip
      */
     @Override
     @ICPServiceLog
-    public ResponseEntity createEip(EipAllocateParam eipConfig, String portId) {
+    public ResponseEntity createEip(EipOrder eipOrder) {
 
         String code;
         String msg;
         try {
-            Eip eipMo = eipDaoService.allocateEip(eipConfig, portId);
+            String eipConfigJson = eipOrder.getConsoleCustomization().toJSONString();
+            EipAllocateParam eipConfig = JSONObject.parseObject(eipConfigJson, new TypeReference<EipAllocateParam>(){});
+
+            Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
             if (null != eipMo) {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
@@ -99,19 +102,20 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity deleteEipList(List<String> eipIds) {
         for(String eipId: eipIds) {
             log.info("delete eip "+eipId);
-            deleteEip(eipId);
+            deleteEip(eipId, null);
         }
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
     /**
-     * delete eip
-     * @param eipId eipid
+     *  delete eip
+     * @param eipId  eip id
+     * @param eipOrder  eip order
      * @return return
      */
     @Override
     @ICPServiceLog
-    public ResponseEntity deleteEip(String eipId) {
+    public ResponseEntity deleteEip(String eipId, EipOrder eipOrder) {
         String msg;
         String code;
 

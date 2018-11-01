@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.service;
 
+import com.inspur.eipatomapi.entity.bss.EipOrder;
 import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
@@ -12,11 +13,10 @@ public interface IEipService {
     /**
      * create a eip
      * @param eipConfig          config
-     * @param portId             port id
      * @return                   json info of eip
      */
 
-    ResponseEntity createEip(EipAllocateParam eipConfig, String portId);
+    ResponseEntity createEip(EipOrder eipConfig);
 
 
 
@@ -36,10 +36,11 @@ public interface IEipService {
      * 3.delete eip
      *
      * @param eipId  eip id
+     * @param eipOrder  eip order
      * @return       result: true/false
      */
 
-    ResponseEntity deleteEip(String eipId);
+    ResponseEntity deleteEip(String eipId, EipOrder eipOrder);
 
 
 
