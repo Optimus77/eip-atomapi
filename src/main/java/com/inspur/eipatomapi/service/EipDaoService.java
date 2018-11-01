@@ -441,7 +441,6 @@ public class EipDaoService {
 
     }
 
-    @Transactional
     public void addEipPool(String ip) {
 
         String id = "firewall_id1";

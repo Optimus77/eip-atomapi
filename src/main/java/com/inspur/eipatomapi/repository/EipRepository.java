@@ -21,7 +21,7 @@ import java.util.List;
 @RepositoryRestResource(collectionResourceRel = "eip", path = "eip")
 public interface EipRepository extends JpaRepository<Eip,String> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE) //    @Query(value = "select e from Eip e where eip_id=?1  ")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Eip findByEipId(String id);
 
     Eip findByInstanceId (String instanceId);

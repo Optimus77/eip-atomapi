@@ -56,7 +56,7 @@ public class SwaggerConfig {
     private SecurityContext securityContext() {
         return SecurityContext.builder()
                 .securityReferences(defaultAuth())
-                .forPaths(PathSelectors.regex("/bss/.*")) // 注意要与Restful API路径一致
+                .forPaths(PathSelectors.regex("/eip/.*")) // 注意要与Restful API路径一致
                 .build();
     }
 

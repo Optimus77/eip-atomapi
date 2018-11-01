@@ -7,7 +7,7 @@ server:
 
   port: 8088
   servlet:
-    context-path: /bss
+    context-path: /eip
 
 # 环境 dev|prod
 spring:

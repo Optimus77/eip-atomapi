@@ -1,7 +1,6 @@
 package com.inspur.eipatomapi.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eipatomapi.entity.bss.EipCalculation;
 import com.inspur.eipatomapi.entity.bss.EipOrder;
 import com.inspur.eipatomapi.entity.bss.EipOrderResult;
 import com.inspur.eipatomapi.entity.bss.EipQuota;
@@ -87,18 +86,6 @@ public class BssApiService {
         return handlerResopnse(response);
     }
 
-    //1.2.6	查询用户可购买的产品列表
-    @Value("${bssURL.avliableProductList}")
-    private   String avliableProductList;
-    public JSONObject avliableProductList(String userId,String productLineCode,String region){
-        //String  uri=avliableProductList+"/product"+"?userId="+userId+"&productLineCode="+productLineCode+"&region="+region;
-        String uri=avliableProductList+"/mock/5bbb3efe58c3ee17c708616e/example/product";
-        log.info(uri);
-        Map<String,String> header= getHeader();
-        HttpResponse response= HttpUtil.get(uri,header);
-        return handlerResopnse(response);
-    }
-
     //1.2.8 订单返回给控制台的消息
     @Value("${bssURL.returnMq}")
     private   String returnMq;
@@ -124,20 +111,6 @@ public class BssApiService {
         return handlerResopnse(response);
     }
 
-    //1.2.7 算费接口 http://117.73.2.105:8085/product/price
-    @Value("${bssURL.orderprice}")
-    private   String orderprice;
-    public JSONObject getCalculation(EipCalculation calculation){
-        JSONObject result=new JSONObject();
-        //String  uri=orderprice+"/product/price";
-        String uri="http://117.50.44.72:7300/mock/5bd2d02958c3ee17c70862a3/product/price";
-        log.info(uri);
-        Map<String,String> header= getHeader();
-        String calculationStr=JSONObject.toJSONString(calculation);
-        log.info(" calculationStr body str {}",calculationStr);
-        HttpResponse response=HttpUtil.post(uri,header,calculationStr);
-        return handlerResopnse(response);
-    }
 
     //1.2.11	查询用户配额的接口 URL: http://117.73.2.105:8083/crm/quota
     @Value("${bssURL.quotaUrl}")

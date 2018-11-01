@@ -614,28 +614,6 @@ public class EipServiceImpl implements IEipService {
 
     }
 
-    //1.2.6	查询用户可购买的产品列表
-
-    @ICPServiceLog
-    public ResponseEntity avliableProductList() {
-        try{
-            JSONObject result=bssApiService.avliableProductList(CommonUtil.getUserId(),CommonUtil.getproductLineCode(),CommonUtil.getReginInfo());
-            if(result.getBoolean("success")){
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }catch(KeycloakTokenException e){
-            e.printStackTrace();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_PARAM_ERROR,e.getMessage(),null), HttpStatus.BAD_REQUEST);
-        } catch (Exception e){
-            e.printStackTrace();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
-
 
     @ICPServiceLog
     public ResponseEntity orderUpdate(String eipId, EipUpdateParam param) {
@@ -670,23 +648,6 @@ public class EipServiceImpl implements IEipService {
 
     }
 
-    //1.2.9	算费接口
-
-    @ICPServiceLog
-    public ResponseEntity getCalculation(EipCalculation calculation){
-
-        try{
-            JSONObject result=bssApiService.getCalculation(calculation);
-            if(result.getBoolean("success")){
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",result.get("data")), HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"fail",result.get("data")), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }catch (Exception e){
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
 
     //1.2.13	查询用户配额的接口
     @Override
