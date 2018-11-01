@@ -41,7 +41,7 @@ public interface IEipService {
      * @return       result: true/false
      */
 
-    ResponseEntity deleteEip(String eipId, EipOrder eipOrder);
+    ResponseEntity deleteEip(String eipId, EipReciveOrder eipOrder);
 
 
 

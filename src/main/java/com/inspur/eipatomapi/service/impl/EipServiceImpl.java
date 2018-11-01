@@ -154,7 +154,7 @@ public class EipServiceImpl implements IEipService {
             order.setConsoleCustomization(jsonObject);
 
             JSONObject result=bssApiService.createOrder(order);
-            if(result.getBoolean("success")){
+            if(result.getString("code").equals("0")){
                 return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"success",
                         result.get("data")), HttpStatus.OK);
             }else{
@@ -175,12 +175,13 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ResponseEntity deleteEip(String eipId, EipOrder eipOrder) {
+    public ResponseEntity deleteEip(String eipId, EipReciveOrder eipOrder) {
         String msg;
         String code;
 
         try {
             if(eipDaoService.deleteEip(eipId)){
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             } else {
                 msg = "Failed to delete eip,eip is bind to port or fip not found.";
@@ -192,6 +193,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

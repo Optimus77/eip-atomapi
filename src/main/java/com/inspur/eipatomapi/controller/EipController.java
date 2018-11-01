@@ -67,7 +67,7 @@ public class EipController {
     public ResponseEntity allocateEip(@RequestBody EipReciveOrder eipConfig) {
         log.info("Allocate a eip:{}.", eipConfig.getReturnConsoleMessage());
 
-        return eipService.createEip(eipConfig.getReturnConsoleMessage());
+        return eipService.createEip(eipConfig);
      }
 
 
@@ -96,7 +96,7 @@ public class EipController {
     public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId, @RequestBody EipReciveOrder eipConfig) {
         //Check the parameters
         log.info("Delete a eip:{}.", eipConfig.getReturnConsoleMessage());
-        return eipService.deleteEip(eipId, eipConfig.getReturnConsoleMessage());
+        return eipService.deleteEip(eipId, eipConfig);
 
     }
 
