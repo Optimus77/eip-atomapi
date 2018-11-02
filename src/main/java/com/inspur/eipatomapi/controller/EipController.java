@@ -290,15 +290,15 @@ public class EipController {
         return  eipService.getEipCount();
     }
 
-    //续费接口
-    @ICPControllerLog
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @PostMapping(value ="/eips/renew/{eip_id}")
-    @ApiOperation(value = "renew Eip",notes = "renew Eip")
-    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,@RequestBody EipAllocateParamWrapper eipParam){
-        log.info("Renew Eip:{}",eipId,eipParam.getEipAllocateParam().toString());
-        return  eipService.renewEip(eipId,eipParam.getEipAllocateParam());
-    }
+    // //续费接口
+    // @ICPControllerLog
+    // @CrossOrigin(origins = "*",maxAge = 3000)
+    // @PostMapping(value ="/eips/renew/{eip_id}")
+    // @ApiOperation(value = "renew Eip",notes = "renew Eip")
+    // public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,@RequestBody EipAllocateParamWrapper eipParam){
+    //     log.info("Renew Eip:{}",eipId,eipParam.getEipAllocateParam().toString());
+    //     return  eipService.renewEip(eipId,eipParam.getEipAllocateParam());
+    // }
 
 
 }
