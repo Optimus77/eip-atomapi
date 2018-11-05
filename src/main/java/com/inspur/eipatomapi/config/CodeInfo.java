@@ -1,11 +1,9 @@
 package com.inspur.eipatomapi.config;
 
-import com.inspur.eipatomapi.service.EipDaoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.util.Map;
 
 /**
  * @author: jiasirui

@@ -16,6 +16,7 @@ import com.inspur.eipatomapi.util.KeycloakTokenException;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
+import org.openstack4j.model.common.ActionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.openstack4j.model.compute.Address;
@@ -80,8 +81,9 @@ public class EipServiceImpl implements IEipService {
                 }
             }else {
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_ERROR, "not payed."),
-                        HttpStatus.FAILED_DEPENDENCY);
+                code = ReturnStatus.SC_RESOURCE_ERROR;
+                msg = "not payed.";
+                log.info(msg);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -104,11 +106,32 @@ public class EipServiceImpl implements IEipService {
     @Override
     @ICPServiceLog
     public ResponseEntity deleteEipList(List<String> eipIds) {
-        for(String eipId: eipIds) {
-            log.info("delete eip "+eipId);
-            deleteEip(eipId, null);
+        String errorMsg;
+        try {
+            ActionResponse actionResponse;
+            List<String > failedIds = new ArrayList<>();
+            for (String eipId : eipIds) {
+                log.info("delete eip " + eipId);
+                //deleteEip(eipId, null);
+                 actionResponse = eipDaoService.deleteEip(eipId);
+                 if(!actionResponse.isSuccess()){
+                     failedIds.add(eipId);
+                     log.error("delete eip error, eipId:{}", eipId);
+                 }
+            }
+            if(failedIds.isEmpty()){
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else {
+                errorMsg = failedIds.toString();
+                log.error(errorMsg);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            errorMsg = e.getMessage();
         }
-        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+        return new ResponseEntity<>(
+                ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, errorMsg),
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -124,11 +147,17 @@ public class EipServiceImpl implements IEipService {
         String code;
 
         try {
-            if(eipDaoService.deleteEip(eipId)){
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            } else {
-                msg = "Failed to delete eip,eip is bind to port or fip not found.";
+            if(eipOrder.getOrderStatus().equals("createSuccess")) {
+                ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
+                if (actionResponse.isSuccess()){
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                }else {
+                    msg = actionResponse.getFault();
+                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                }
+            }else{
+                msg = "Failed to delete eip,failed to create delete order.";
                 code = ReturnStatus.SC_PARAM_UNKONWERROR;
                 log.error(msg);
             }
@@ -314,7 +343,7 @@ public class EipServiceImpl implements IEipService {
         String msg;
         try {
             JSONObject result = eipDaoService.updateEipEntity(id, param);
-            if(!result.getBoolean("flag")){
+            if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
                 code = result.getString("interCode");
                 int httpResponseCode=result.getInteger("httpCode");
                 msg = result.getString("reason");
@@ -355,7 +384,7 @@ public class EipServiceImpl implements IEipService {
                     log.info(serverId);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
-                    if(!result.getBoolean("flag")){
+                    if(result.getString("interCode").equals(ReturnStatus.SC_OK)){
                         code = result.getString("interCode");
                         int httpResponseCode=result.getInteger("httpCode");
                         msg = result.getString("reason");
