@@ -280,7 +280,6 @@ public class EipController {
      *
      * @return
      */
-
     @ICPControllerLog
     @GetMapping(value = "/{tenantId}/instance_num")
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -288,16 +287,6 @@ public class EipController {
     public ResponseEntity getEipCount(@PathVariable  String tenantId) {
         log.info("Get eip getEipCount. {}",tenantId);
         return  eipService.getEipCount();
-    }
-
-    //续费接口
-    @ICPControllerLog
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @PostMapping(value ="/eips/renew/{eip_id}")
-    @ApiOperation(value = "renew Eip",notes = "renew Eip")
-    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,@RequestBody EipAllocateParamWrapper eipParam){
-        log.info("Renew Eip:{}",eipId,eipParam.getEipAllocateParam().toString());
-        return  eipService.renewEip(eipId,eipParam.getEipAllocateParam());
     }
 
 

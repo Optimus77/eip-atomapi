@@ -6,7 +6,6 @@ import java.util.List;
 
 @Data
 public class EipReciveOrder {
-    private String token;
     private String consoleOrderFlowId;
     private String orderStatus;
     private String statusTime;

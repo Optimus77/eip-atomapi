@@ -2,9 +2,7 @@ package com.inspur.eipatomapi.util;
 
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.icp.common.util.Base64Util;
-import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
-import com.inspur.icp.common.util.QueryUtil;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,10 +188,6 @@ public class CommonUtil {
                 throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
             }
         }
-    }
-
-    public static String getproductLineCode(){
-        return "EIP";
     }
 
 

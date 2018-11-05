@@ -30,11 +30,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/**
- * @Auther: jiasirui
- * @Date: 2018/9/14 09:32
- * @Description:  the Eip Service Interface
- */
 
 @Service
 public class EipServiceImpl implements IEipService {
@@ -544,7 +539,6 @@ public class EipServiceImpl implements IEipService {
         EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
         EipOrderResult eipOrderResult = new EipOrderResult();
         eipOrderResult.setUserId(eipOrder.getUserId());
-        eipOrderResult.setProductLineCode("EIP");
         eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
         eipOrderResult.setOrderId(eipReciveOrder.getOrderId());
 
