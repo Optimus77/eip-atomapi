@@ -10,6 +10,7 @@ import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.EIPChargeType;
+import com.inspur.eipatomapi.util.KeycloakTokenException;
 import com.inspur.eipatomapi.util.ReturnStatus;
 
 import org.apache.http.HttpStatus;
@@ -111,6 +112,10 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
+        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+            log.error("User have no write to delete eip:{}", eipid);
+            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+        }
 
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
@@ -162,6 +167,14 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.SC_NOT_FOUND);
             return data;
         }
+        if(!eip.getProjectId().equals(CommonUtil.getUserId())){
+            log.error("User have no write to operate eip:{}", eipid);
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
+            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
+            return data;
+        }
+
         if(!(eip.getStatus().equals("DOWN")) || (null != eip.getDnatId())
                 || (null != eip.getSnatId()) || (null != eip.getPipId())){
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
@@ -287,19 +300,27 @@ public class EipDaoService {
      * @throws Exception   e
      */
     @Transactional
-    public Boolean disassociateInstanceWithEip(String eipid) throws Exception  {
+    public ActionResponse disassociateInstanceWithEip(String eipid) throws Exception  {
 
+        String msg = null;
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if(null == eipEntity){
             log.error("In disassociate process,failed to find the eip by id:{} ",eipid);
-            return false;
+            return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
+        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+            log.error("User have no write to delete eip:{}", eipid);
+            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+        }
+
         if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())
                 || (null == eipEntity.getDnatId()) || null == eipEntity.getFloatingIp()){
-            log.error("Error status when disassociate eip,eipId:{}, status:{}, snatId:{}, dnatId:{}, fipId:{} ", eipid, eipEntity.getStatus(), eipEntity.getSnatId(), eipEntity.getDnatId());
-            return false;
+            msg = "Error status when disassociate eip,eipId:"+eipid+ "status:"+eipEntity.getStatus()+
+                    "snatId:"+eipEntity.getSnatId()+"dnatId:"+eipEntity.getDnatId()+"fipId:"+eipEntity.getFloatingIp()+"";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
         }
-        boolean delFip = false;
+
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
             ActionResponse actionResponse = neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
                     eipEntity.getInstanceId());
@@ -307,10 +328,10 @@ public class EipDaoService {
                 eipEntity.setInstanceId(null);
                 eipEntity.setInstanceType(null);
                 eipEntity.setPrivateIpAddress(null);
-                delFip = true;
             }else {
-                log.error("Failed to disassociate port with fip,eipId:{},  floatingip:{}, instanceId:{}",
-                        eipEntity.getEipId(), eipEntity.getFloatingIp(), eipEntity.getInstanceId());
+                msg = "Failed to disassociate port with fip,eipId:"+eipEntity.getEipId()+
+                        "floatingip:"+eipEntity.getFloatingIp()+ "instanceId:"+eipEntity.getInstanceId()+"";
+                log.error(msg);
             }
         }
 
@@ -318,33 +339,37 @@ public class EipDaoService {
         if (delDnatResult) {
             eipEntity.setDnatId(null);
         } else {
-            log.error("Failed to del dnat in firewall,eipId:{}, dnatId:{}",
-                    eipEntity.getEipId(), eipEntity.getDnatId());
+            msg = "Failed to del dnat in firewall,eipId:"+eipEntity.getEipId()+"dnatId:"+eipEntity.getDnatId()+"";
+            log.error(msg);
         }
 
         Boolean delSnatResult = firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId());
         if (delSnatResult) {
             eipEntity.setSnatId(null);
         } else {
-            log.error("Failed to del snat in firewall, eipId:{},snatId:{}",
-                    eipEntity.getEipId(), eipEntity.getSnatId());
+            msg = "Failed to del snat in firewall, eipId:"+eipEntity.getEipId()+"snatId:"+eipEntity.getSnatId()+"";
+            log.error(msg);
         }
 
         Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
         if(delQosResult) {
             eipEntity.setPipId(null);
         } else {
-            log.error("Failed to del qos, eipId:{},pipId:{}",eipEntity.getEipId(), eipEntity.getPipId());
+            msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
+            log.error(msg);
         }
 
         eipEntity.setStatus("DOWN");
         eipRepository.save(eipEntity);
-
-        return delDnatResult && delSnatResult && delQosResult && delFip;
+        if(null != msg) {
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }else {
+            return ActionResponse.actionSuccess();
+        }
     }
 
     @Transactional
-    public JSONObject updateEipEntity(String eipid, EipUpdateParamWrapper param) {
+    public JSONObject updateEipEntity(String eipid, EipUpdateParamWrapper param) throws KeycloakTokenException {
 
         JSONObject data=new JSONObject();
         Eip eipEntity = eipRepository.findByEipId(eipid);
@@ -353,6 +378,13 @@ public class EipDaoService {
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
             data.put("httpCode", HttpStatus.SC_NOT_FOUND);
             data.put("interCode", ReturnStatus.SC_NOT_FOUND);
+            return data;
+        }
+        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+            log.error("User have no write to operate eip:{}", eipid);
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
+            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
             return data;
         }
         if(param.getEipUpdateParam().getChargeType().equals(EIPChargeType.EIP_CHARGETYPE_PREPAID)){

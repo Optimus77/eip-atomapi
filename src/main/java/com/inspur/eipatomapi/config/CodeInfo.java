@@ -33,6 +33,7 @@ public  class CodeInfo {
     public static final String EIP_BIND_FIREWALL_QOS_ERROR="EIP_BIND_FIREWALL_QOS_ERROR";
     public static final String EIP_CHANGE_BANDWIDTH_ERROR="EIP_CHANGE_BANDWIDTH_ERROR";
     public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR";
+    public static final String EIP_FORBIDDEN="EIP_FORBIDDEN";
 
 
 
@@ -54,8 +55,7 @@ public  class CodeInfo {
         //changebandwidth interface
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="修改带宽时防火墙出错";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
-
-
+        public static final String EIP_FORBIDDEN ="无权操作";
 
 
     }
@@ -113,7 +113,7 @@ public  class CodeInfo {
         //changebandwidth interface
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="the fillware error when update the bandwidht";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="the bandwidth must bigger than orgin when choose prepaid modle";
-
+        public static final String EIP_FORBIDDEN ="Forbidden to operate.";
 
     }
 

@@ -118,7 +118,7 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Map<String, String> filteringParams = new HashMap<>();
-        //filteringParams.put("tenant_id",CommonUtil.getTokenInfo().getString("project"));
+        //filteringParams.put("user_id",CommonUtil.getUserId()); //Todo: filter
         return osClientV3.compute().servers().list(filteringParams);
     }
 

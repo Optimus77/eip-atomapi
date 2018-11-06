@@ -243,6 +243,7 @@ public class EipServiceImpl implements IEipService {
             Optional<Eip> eip = eipRepository.findById(eipId);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
+
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
@@ -384,7 +385,7 @@ public class EipServiceImpl implements IEipService {
                     log.info(serverId);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
-                    if(result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                    if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
                         code = result.getString("interCode");
                         int httpResponseCode=result.getInteger("httpCode");
                         msg = result.getString("reason");
@@ -437,10 +438,8 @@ public class EipServiceImpl implements IEipService {
                     switch (instanceType) {
                         case "1":
                             // 1：ecs
-                            if (!eipDaoService.disassociateInstanceWithEip(id)) {
-                                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-                                msg = "Failed to disassociate  port with eip " + id;
-                            } else {
+                            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(id);
+                            if (actionResponse.isSuccess()){
                                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
                                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
@@ -448,6 +447,9 @@ public class EipServiceImpl implements IEipService {
                                         .resource_id(eipEntity.getInstanceId())
                                         .resourcetype(eipEntity.getInstanceType()).build());
                                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                            }else{
+                                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                                msg = actionResponse.getFault();
                             }
                             break;
                         case "2":
@@ -495,6 +497,7 @@ public class EipServiceImpl implements IEipService {
     @ICPServiceLog
     public ResponseEntity listServer(){
         log.info("listServer start execute");
+
         try {
             List<Server> serverList= (List<Server>) neutronService.listServer();
             JSONArray dataArray=new JSONArray();
@@ -502,6 +505,7 @@ public class EipServiceImpl implements IEipService {
 
                 boolean bindFloatingIpFlag=true;
                 Addresses addresses =server.getAddresses();
+
                 Map<String, List<? extends Address>>  novaAddresses= addresses.getAddresses();
                 Set<String> keySet =novaAddresses.keySet();
                 for (String netname:keySet) {
@@ -514,7 +518,6 @@ public class EipServiceImpl implements IEipService {
                             break;
                         }
                     }
-
                 }
                 if(bindFloatingIpFlag){
                     JSONObject data=new JSONObject();
