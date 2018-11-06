@@ -2,9 +2,7 @@ package com.inspur.eipatomapi.util;
 
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.icp.common.util.Base64Util;
-import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
-import com.inspur.icp.common.util.QueryUtil;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +42,7 @@ public class CommonUtil {
     private static String userDomainId = "default";
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static String region="RegionOne";
+    private static String region1="cn-north-3a";
 
 
     private static OSClientV3 getOsClientV3(){
@@ -123,7 +122,6 @@ public class CommonUtil {
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         if(null != requestAttributes) {
             HttpServletRequest request = requestAttributes.getRequest();
-
             String keyCloackToken = request.getHeader("authorization");
             log.info(keyCloackToken);
             if (keyCloackToken == null) {
@@ -140,23 +138,25 @@ public class CommonUtil {
      * @return ret
      * @throws Exception e
      */
+    //TODO region is not correct for now
     public static String getReginInfo() throws Exception {
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        if(null != requestAttributes) {
-            HttpServletRequest request = requestAttributes.getRequest();
+        //ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+//        if(null != requestAttributes) {
+//            HttpServletRequest request = requestAttributes.getRequest();
+//            String regionName = QueryUtil.getEndpoint(request);
+//            log.info("regionName"+regionName);
+//            if(regionName==null){
+//                throw new Exception("get region fail");
+//            }
+//            return regionName;
+//        }else{
+//            throw new Exception("get region error");
+//        }
+        return region1;
 
-            String regionName = QueryUtil.getEndpoint(request);
-            if (regionName == null) {
-                log.info("====regionName:" + regionName);
-                return HttpClientUtil.doGet("http://evs.cn-north-1.inspur.com:8081/platform?regionName=" + regionName);
-            } else {
-                throw new Exception("ERROR:request region info is null,");
-            }
-        }
-        return null;
     }
 
-    public static String getProjectId() throws  KecloakTokenException{
+    public static String getProjectId() throws KeycloakTokenException {
         log.info("getProjectId");
         String token = getKeycloackToken();
         if(null == token){
@@ -169,9 +169,26 @@ public class CommonUtil {
                 return projectid_client;
             }catch (Exception e){
                 log.error("get projectid from token error");
-                throw new KecloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
+                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
             }
         }
     }
+
+    public static String getUserId()throws KeycloakTokenException {
+        log.info("getUserId");
+        String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
+        }else{
+            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+            String sub = (String) jsonObject.get("sub");
+            if(sub!=null){
+                return sub;
+            }else{
+                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
+            }
+        }
+    }
+
 
 }

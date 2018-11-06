@@ -1,12 +1,16 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
-import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
+import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
+import com.inspur.eipatomapi.entity.eip.EipDelParam;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -36,24 +40,28 @@ public class EipController {
     @Autowired
     private EipServiceImpl eipService;
 
+
     @ICPControllerLog
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
-    public ResponseEntity allocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
-        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
-        if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
-                    HttpStatus.BAD_REQUEST);
-        }
-        return eipService.createEip(eipConfig.getEipAllocateParam(), null);
+    public ResponseEntity allocateEip(@RequestBody EipReciveOrder eipConfig) {
+        log.info("Allocate a eip:{}.", eipConfig.getReturnConsoleMessage());
+
+        return eipService.createEip(eipConfig);
      }
 
+
+    @DeleteMapping(value = "/eips/{eip_id}")
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "deleteEip")
+    public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId, @RequestBody EipReciveOrder eipConfig) {
+        //Check the parameters
+        log.info("Delete a eip:{}.", eipConfig.getReturnConsoleMessage());
+        return eipService.deleteEip(eipId, eipConfig);
+
+    }
 
     @ICPControllerLog
     @GetMapping(value = "/eips")
@@ -81,19 +89,6 @@ public class EipController {
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
     }
 
-
-
-    @DeleteMapping(value = "/eips/{eip_id}")
-    @ICPControllerLog
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "deleteEip")
-    public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-                                        @PathVariable("eip_id") String eipId) {
-        //Check the parameters
-        log.info("Delete the Eip:{} ",eipId);
-        return eipService.deleteEip(eipId);
-
-    }
 
 
     @PostMapping(value = "/eips/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -285,7 +280,6 @@ public class EipController {
      *
      * @return
      */
-
     @ICPControllerLog
     @GetMapping(value = "/{tenantId}/instance_num")
     @CrossOrigin(origins = "*",maxAge = 3000)

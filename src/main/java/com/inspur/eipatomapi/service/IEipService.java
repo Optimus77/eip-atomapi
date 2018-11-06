@@ -1,9 +1,9 @@
 package com.inspur.eipatomapi.service;
 
-import com.alibaba.fastjson.JSONObject;
-import com.inspur.eipatomapi.entity.EipAllocateParam;
-import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
-import com.inspur.eipatomapi.entity.ReturnMsg;
+import com.inspur.eipatomapi.entity.bss.EipOrder;
+import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
+import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -14,11 +14,10 @@ public interface IEipService {
     /**
      * create a eip
      * @param eipConfig          config
-     * @param portId             port id
      * @return                   json info of eip
      */
 
-    ResponseEntity createEip(EipAllocateParam eipConfig, String portId);
+    ResponseEntity createEip(EipReciveOrder eipConfig);
 
 
 
@@ -38,10 +37,11 @@ public interface IEipService {
      * 3.delete eip
      *
      * @param eipId  eip id
+     * @param eipOrder  eip order
      * @return       result: true/false
      */
 
-    ResponseEntity deleteEip(String eipId);
+    ResponseEntity deleteEip(String eipId, EipReciveOrder eipOrder);
 
 
 
@@ -112,4 +112,6 @@ public interface IEipService {
 
 
     ResponseEntity getEipCount();
+
+
 }

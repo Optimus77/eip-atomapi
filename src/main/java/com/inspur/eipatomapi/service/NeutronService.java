@@ -1,6 +1,6 @@
 package com.inspur.eipatomapi.service;
 
-import com.inspur.eipatomapi.entity.Eip;
+import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +74,7 @@ public  class NeutronService {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
         ActionResponse result =  osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloatingIp());
+
         if(result.isSuccess()){
             Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
             log.info(novaAddresses.toString());
@@ -99,6 +100,9 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
+        if (server == null){
+            log.info("Not found serverid",server);
+        }
         log.info("get serverinfo  {}",server);
         return osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }

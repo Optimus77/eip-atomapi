@@ -1,9 +1,9 @@
 package com.inspur.eipatomapi.util;
 
 import com.google.gson.Gson;
-import com.inspur.eipatomapi.entity.Cookie;
-import com.inspur.eipatomapi.entity.FwLogin;
-import com.inspur.eipatomapi.entity.FwLoginResponseBody;
+import com.inspur.eipatomapi.entity.fw.Cookie;
+import com.inspur.eipatomapi.entity.fw.FwLogin;
+import com.inspur.eipatomapi.entity.fw.FwLoginResponseBody;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -501,7 +501,7 @@ public class HsHttpClient {
 		}
 		url.append(rest);
 
-		CloseableHttpClient client = HttpClients.createDefault();
+		CloseableHttpClient client = getHttpsClient();;
 		HttpPut httpPut = new HttpPut(url.toString());
 		RequestConfig config = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout).build();
 		httpPut.setConfig(config);
@@ -599,7 +599,7 @@ public class HsHttpClient {
 		}
 		url.append(rest);
 
-		CloseableHttpClient client = HttpClients.createDefault();
+		CloseableHttpClient client = getHttpsClient();;
 		HttpPut httpPut = new HttpPut(url.toString());
 		RequestConfig config = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout).build();
 		httpPut.setConfig(config);

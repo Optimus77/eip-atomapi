@@ -7,7 +7,7 @@ server:
 
   port: 8088
   servlet:
-    context-path: /bss
+    context-path: /eip
 
 # 环境 dev|prod
 spring:
@@ -16,3 +16,14 @@ spring:
 
 error:
   code: 106
+
+http:
+  maxTotal: 100
+  defaultMaxPerRoute: 20
+  connectTimeout: 1000
+  connectionRequestTimeout: 500
+  socketTimeout: 10000
+  statleConnectionCheckEnabled: true
+
+bssURL:
+  returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
