@@ -63,6 +63,7 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
+            log.info("Recive order:{}", eipOrder.toString());
             if(eipOrder.getOrderStatus().equals("paySuccess")) {
                 JSONObject eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization();
                 log.info("receive order,customization:{}", eipConfigJson);
