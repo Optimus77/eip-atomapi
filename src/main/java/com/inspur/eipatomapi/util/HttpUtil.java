@@ -64,8 +64,8 @@ public class HttpUtil {
             }
             log.debug("request line:post-" + httpPost.getRequestLine());
             StringEntity entity = new StringEntity(body, HTTP.UTF_8);
-            entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
-            entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
+//            entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
+//            entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
             httpPost.setEntity(entity);
             HttpResponse httpResponse = client.execute(httpPost);
             return httpResponse;
