@@ -501,7 +501,7 @@ public class HsHttpClient {
 		}
 		url.append(rest);
 
-		CloseableHttpClient client = HttpClients.createDefault();
+		CloseableHttpClient client = getHttpsClient();;
 		HttpPut httpPut = new HttpPut(url.toString());
 		RequestConfig config = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout).build();
 		httpPut.setConfig(config);
@@ -599,7 +599,7 @@ public class HsHttpClient {
 		}
 		url.append(rest);
 
-		CloseableHttpClient client = HttpClients.createDefault();
+		CloseableHttpClient client = getHttpsClient();;
 		HttpPut httpPut = new HttpPut(url.toString());
 		RequestConfig config = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout).build();
 		httpPut.setConfig(config);
