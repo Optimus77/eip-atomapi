@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NatService extends BaseService {
+public class NatService  {
 
     public final static Logger log = LoggerFactory.getLogger(NatService.class);
 
