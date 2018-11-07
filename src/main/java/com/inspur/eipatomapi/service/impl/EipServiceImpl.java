@@ -63,6 +63,7 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
+            log.info("Recive order:{}", eipOrder.toString());
             if(eipOrder.getOrderStatus().equals("paySuccess")) {
                 JSONObject eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization();
                 log.info("receive order,customization:{}", eipConfigJson);
@@ -81,7 +82,7 @@ public class EipServiceImpl implements IEipService {
                     log.error(msg);
                 }
             }else {
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","success"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
@@ -593,11 +594,11 @@ public class EipServiceImpl implements IEipService {
     private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
         EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
         List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             eipOrderProduct.setInstanceStatus(result);
             eipOrderProduct.setInstanceId(eipId);
-            eipOrderProduct.setStatusTime(formatter.format(new Date()));
+            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
