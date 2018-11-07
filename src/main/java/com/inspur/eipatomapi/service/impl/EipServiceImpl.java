@@ -205,7 +205,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         try {
-            String projcectid=CommonUtil.getProjectId();
+            String projcectid=CommonUtil.getUserId();
             log.info(projcectid);
             if(projcectid==null){
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
