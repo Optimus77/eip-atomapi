@@ -593,11 +593,11 @@ public class EipServiceImpl implements IEipService {
     private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
         EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
         List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             eipOrderProduct.setInstanceStatus(result);
             eipOrderProduct.setInstanceId(eipId);
-            eipOrderProduct.setStatusTime(formatter.format(new Date()));
+            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
