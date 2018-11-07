@@ -81,7 +81,7 @@ public class EipServiceImpl implements IEipService {
                     log.error(msg);
                 }
             }else {
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","success"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
