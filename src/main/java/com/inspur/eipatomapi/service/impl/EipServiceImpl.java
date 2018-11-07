@@ -100,7 +100,12 @@ public class EipServiceImpl implements IEipService {
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
         eipAllocateParam.setPurchasetime(eipOrder.getReturnConsoleMessage().getDuration());
         List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
-        eipAllocateParam.setChargetype(eipOrder.getReturnConsoleMessage().getBillType());
+        if(eipOrder.getReturnConsoleMessage().getBillType().equals("monthly")){
+            eipAllocateParam.setChargetype("PrePaid");
+        }else if(eipOrder.getReturnConsoleMessage().getBillType().equals("hourlySettlement")){
+            eipAllocateParam.setChargetype("PostPaid");
+        }
+
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             if(!eipOrderProduct.getProductLineCode().equals("EIP")){
                 continue;
@@ -117,7 +122,7 @@ public class EipServiceImpl implements IEipService {
             }
         }
         log.info("receive order,get eip param:{}", eipAllocateParam.toString());
-        /*chargetype and chargemode now use the default value */
+        /*chargemode now use the default value */
         return eipAllocateParam;
     }
 
