@@ -42,7 +42,7 @@ public class KeyClockAuthFilter implements Filter {
         HttpServletRequest req= (HttpServletRequest)servletRequest;
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         if(req.getRequestURI().startsWith(req.getContextPath()+ConstantClassField.VERSION_REST)){
-            if(req.getHeader("Authorization")==null){
+            if(req.getHeader("authorization")==null){
                 log.info("get authorization is null ");
                 JSONObject result=new JSONObject();
                 result.put("code",ReturnStatus.SC_FORBIDDEN);

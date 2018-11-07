@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QosService extends BaseService {
+public class QosService {
     private String fwIp;
     private String fwPort;
     private String fwUser;

@@ -45,7 +45,7 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
     public ResponseEntity allocateEip(@RequestBody EipReciveOrder eipConfig) {
-        log.info("Allocate a eip:{}.", eipConfig.getReturnConsoleMessage());
+        log.info("Allocate a eip:{}.", eipConfig);
 
         return eipService.createEip(eipConfig);
      }

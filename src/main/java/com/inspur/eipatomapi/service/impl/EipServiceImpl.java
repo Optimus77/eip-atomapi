@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -62,8 +63,10 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            if(eipOrder.getOrderStatus().equals("paySuccess")) {
-                JSONObject eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization();
+            log.info("Recive order:{}", eipOrder.toString());
+            EipOrder eipOrderin =  eipOrder.getReturnConsoleMessage();
+            if(eipOrder.getOrderStatus().equals("paySuccess") || eipOrderin.getBillType().equals("hourlySettlement")) {
+                JSONObject eipConfigJson = eipOrderin.getConsoleCustomization();
                 log.info("receive order,customization:{}", eipConfigJson);
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
 
@@ -72,7 +75,7 @@ public class EipServiceImpl implements IEipService {
                     EipReturnBase eipInfo = new EipReturnBase();
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
@@ -80,7 +83,7 @@ public class EipServiceImpl implements IEipService {
                     log.error(msg);
                 }
             }else {
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
@@ -90,7 +93,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
@@ -173,7 +176,7 @@ public class EipServiceImpl implements IEipService {
             if(eipOrder.getOrderStatus().equals("createSuccess")) {
                 ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
                 if (actionResponse.isSuccess()){
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                 }else {
                     msg = actionResponse.getFault();
@@ -189,7 +192,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -204,7 +207,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
         log.info("listEips  service start execute");
         try {
-            String projcectid=CommonUtil.getProjectId();
+            String projcectid=CommonUtil.getUserId();
             log.info(projcectid);
             if(projcectid==null){
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
@@ -590,8 +593,16 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String result){
+    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
         EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
+
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            eipOrderProduct.setInstanceStatus(result);
+            eipOrderProduct.setInstanceId(eipId);
+            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        }
+
         EipOrderResult eipOrderResult = new EipOrderResult();
         eipOrderResult.setUserId(eipOrder.getUserId());
         eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
@@ -605,6 +616,7 @@ public class EipServiceImpl implements IEipService {
         eipOrderResultProduct.setDuration(eipOrder.getDuration());
         eipOrderResultProduct.setOrderType(eipOrder.getOrderType());
         eipOrderResultProduct.setProductList(eipOrder.getProductList());
+
 
         eipOrderResultProducts.add(eipOrderResultProduct);
         eipOrderResult.setProductSetList(eipOrderResultProducts);
