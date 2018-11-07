@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -72,7 +73,7 @@ public class EipServiceImpl implements IEipService {
                     EipReturnBase eipInfo = new EipReturnBase();
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
@@ -80,7 +81,7 @@ public class EipServiceImpl implements IEipService {
                     log.error(msg);
                 }
             }else {
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","success"));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
@@ -90,7 +91,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
@@ -172,7 +173,7 @@ public class EipServiceImpl implements IEipService {
             if(eipOrder.getOrderStatus().equals("createSuccess")) {
                 ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
                 if (actionResponse.isSuccess()){
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                 }else {
                     msg = actionResponse.getFault();
@@ -188,7 +189,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -589,8 +590,16 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String result){
+    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
         EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
+        SimpleDateFormat formatter = new SimpleDateFormat("YYYYMMDD HH24MISS");
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            eipOrderProduct.setInstanceStatus(result);
+            eipOrderProduct.setInstanceId(eipId);
+            eipOrderProduct.setStatusTime(formatter.format(new Date()));
+        }
+
         EipOrderResult eipOrderResult = new EipOrderResult();
         eipOrderResult.setUserId(eipOrder.getUserId());
         eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
@@ -604,6 +613,7 @@ public class EipServiceImpl implements IEipService {
         eipOrderResultProduct.setDuration(eipOrder.getDuration());
         eipOrderResultProduct.setOrderType(eipOrder.getOrderType());
         eipOrderResultProduct.setProductList(eipOrder.getProductList());
+
 
         eipOrderResultProducts.add(eipOrderResultProduct);
         eipOrderResult.setProductSetList(eipOrderResultProducts);

@@ -65,7 +65,7 @@ public class BssApiService {
         log.info(url);
         Map<String,String> header= getHeader();
         String orderStr=JSONObject.toJSONString(orderResult);
-        log.info("body str {}",orderStr);
+        log.info("return mq body str {}",orderStr);
         HttpResponse response=HttpUtil.post(url,header,orderStr);
         return handlerResopnse(response);
     }
