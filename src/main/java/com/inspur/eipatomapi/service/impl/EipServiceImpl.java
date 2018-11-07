@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -62,17 +63,17 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            if(eipOrder.getOrderStatus().equals("paysuccess")) {
-                String eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization().toJSONString();
-                EipAllocateParam eipConfig = JSONObject.parseObject(eipConfigJson,
-                        new TypeReference<EipAllocateParam>() {});
+            if(eipOrder.getOrderStatus().equals("paySuccess")) {
+                JSONObject eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization();
+                log.info("receive order,customization:{}", eipConfigJson);
+                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
 
                 Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
                 if (null != eipMo) {
                     EipReturnBase eipInfo = new EipReturnBase();
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
@@ -80,7 +81,7 @@ public class EipServiceImpl implements IEipService {
                     log.error(msg);
                 }
             }else {
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","success"));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
@@ -90,10 +91,32 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
+    private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
+        EipAllocateParam eipAllocateParam = new EipAllocateParam();
+        eipAllocateParam.setPurchasetime(eipOrder.getReturnConsoleMessage().getDuration());
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            if(!eipOrderProduct.getProductLineCode().equals("EIP")){
+                continue;
+            }
+            eipAllocateParam.setRegion(eipOrderProduct.getRegion());
+            List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
+            for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
+                if(eipOrderProductItem.getCode().equals("net") && eipOrderProductItem.getUnit().equals("M")){
+                    eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
+                }else if(eipOrderProductItem.getCode().equals("provider") &&
+                        eipOrderProductItem.getType().equals("impactFactor")){
+                    eipAllocateParam.setIptype(eipOrderProductItem.getValue());
+                }
+            }
+        }
+        log.info("receive order,get eip param:{}", eipAllocateParam.toString());
+        /*chargetype and chargemode now use the default value */
+        return eipAllocateParam;
+    }
 
     /**
      * 1.delete  floatingIp
@@ -150,7 +173,7 @@ public class EipServiceImpl implements IEipService {
             if(eipOrder.getOrderStatus().equals("createSuccess")) {
                 ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
                 if (actionResponse.isSuccess()){
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                 }else {
                     msg = actionResponse.getFault();
@@ -166,7 +189,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -243,6 +266,7 @@ public class EipServiceImpl implements IEipService {
             Optional<Eip> eip = eipRepository.findById(eipId);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
+
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
@@ -384,7 +408,7 @@ public class EipServiceImpl implements IEipService {
                     log.info(serverId);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
-                    if(result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                    if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
                         code = result.getString("interCode");
                         int httpResponseCode=result.getInteger("httpCode");
                         msg = result.getString("reason");
@@ -437,10 +461,8 @@ public class EipServiceImpl implements IEipService {
                     switch (instanceType) {
                         case "1":
                             // 1：ecs
-                            if (!eipDaoService.disassociateInstanceWithEip(id)) {
-                                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-                                msg = "Failed to disassociate  port with eip " + id;
-                            } else {
+                            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(id);
+                            if (actionResponse.isSuccess()){
                                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
                                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
@@ -448,6 +470,9 @@ public class EipServiceImpl implements IEipService {
                                         .resource_id(eipEntity.getInstanceId())
                                         .resourcetype(eipEntity.getInstanceType()).build());
                                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                            }else{
+                                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                                msg = actionResponse.getFault();
                             }
                             break;
                         case "2":
@@ -495,6 +520,7 @@ public class EipServiceImpl implements IEipService {
     @ICPServiceLog
     public ResponseEntity listServer(){
         log.info("listServer start execute");
+
         try {
             List<Server> serverList= (List<Server>) neutronService.listServer();
             JSONArray dataArray=new JSONArray();
@@ -502,6 +528,7 @@ public class EipServiceImpl implements IEipService {
 
                 boolean bindFloatingIpFlag=true;
                 Addresses addresses =server.getAddresses();
+
                 Map<String, List<? extends Address>>  novaAddresses= addresses.getAddresses();
                 Set<String> keySet =novaAddresses.keySet();
                 for (String netname:keySet) {
@@ -514,7 +541,6 @@ public class EipServiceImpl implements IEipService {
                             break;
                         }
                     }
-
                 }
                 if(bindFloatingIpFlag){
                     JSONObject data=new JSONObject();
@@ -564,8 +590,16 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String result){
+    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
         EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
+
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            eipOrderProduct.setInstanceStatus(result);
+            eipOrderProduct.setInstanceId(eipId);
+            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        }
+
         EipOrderResult eipOrderResult = new EipOrderResult();
         eipOrderResult.setUserId(eipOrder.getUserId());
         eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
@@ -579,6 +613,7 @@ public class EipServiceImpl implements IEipService {
         eipOrderResultProduct.setDuration(eipOrder.getDuration());
         eipOrderResultProduct.setOrderType(eipOrder.getOrderType());
         eipOrderResultProduct.setProductList(eipOrder.getProductList());
+
 
         eipOrderResultProducts.add(eipOrderResultProduct);
         eipOrderResult.setProductSetList(eipOrderResultProducts);
