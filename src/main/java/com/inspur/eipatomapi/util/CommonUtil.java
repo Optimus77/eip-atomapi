@@ -72,33 +72,61 @@ public class CommonUtil {
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         setKeyClockInfo(jsonObject);
         log.info("decode::"+jsonObject);
-//        {"sub":"bd7ee578-3d26-4efc-97ed-c576325cf95a",
-//                "resource_access":{
-//                "vm-atomapi":{"roles":["uma_protection","vm_atomapi"]},
-//                "account":{"roles":["manage-account","manage-account-links","view-profile"]}
-//                },
-//            "allowed-origins":[],
-//            "iss":"https://10.110.22.13/auth/realms/picp",
-//            "project":"jindengke",
-//            "typ":"Bearer",
-//            "preferred_username":"jindengke",
-//            "aud":"vm-atomapi",
-//            "acr":"1",
-//            "nbf":0,
-//            "realm_access":{"roles":["uma_authorization","vm_atomapi","user"]},
-//            "azp":"vm-atomapi",
-//            "auth_time":0,
-//            "exp":1536895861,
-//            "session_state":"3cdcbe28-9ca0-44af-86f6-b960a07ff78f",
-//            "iat":1536894661,
-//            "jti":"ef531699-48e1-4075-9a89-9d4a4db10935",
-//            "email":"jindengke@inspur.com"
+//        {
+//    "sub":"bd7ee578-3d26-4efc-97ed-c576325cf95a",
+//    "resource_access":{
+//        "bss-server":{
+//            "roles":[
+//                "rolewtf",
+//                "uma_protection",
+//                "vm_atomapi"
+//            ]
+//        },
+//        "vm-atomapi":{
+//            "roles":[
+//                "uma_protection",
+//                "vm_atomapi"
+//            ]
+//        },
+//        "account":{
+//            "roles":[
+//                "manage-account",
+//                "manage-account-links",
+//                "view-profile"
+//            ]
+//        }
+//    },
+//    "allowed-origins":[
+//        "*"
+//    ],
+//    "iss":"https://10.110.22.13/auth/realms/picp",
+//    "project":"jindengke2",
+//    "typ":"Bearer",
+//    "preferred_username":"jindengke",
+//    "nonce":"077856fd-1c28-4017-84a3-5202253c78c3",
+//    "aud":"bss-client",
+//    "acr":"1",
+//    "nbf":0,
+//    "realm_access":{
+//        "roles":[
+//            "rolewtf",
+//            "uma_authorization",
+//            "vm_atomapi",
+//            "user"
+//        ]
+//    },
+//    "phone":"18865313588",
+//    "azp":"bss-client",
+//    "auth_time":1541557884,
+//    "exp":1541593884,
+//    "session_state":"60064e42-4671-45dc-96e6-c6e7e068c374",
+//    "iat":1541557887,
+//    "jti":"b525625d-d049-49a1-8664-996d504b76da",
+//    "email":"jindengke@inspur.com"
 //        }
 
         String project = (String) jsonObject.get("project");
         log.info(project);
-
-
 
 
         //String regionInfo=getReginInfo();

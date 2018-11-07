@@ -53,6 +53,7 @@ public class KeyClockAuthFilter implements Filter {
                 response.getWriter().write(result.toJSONString());
             }else{
                 log.info("get authorization {}",req.getHeader("Authorization"));
+
                 filterChain.doFilter(servletRequest, servletResponse);
             }
         }else{
