@@ -97,6 +97,7 @@ public class EipServiceImpl implements IEipService {
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
         eipAllocateParam.setPurchasetime(eipOrder.getReturnConsoleMessage().getDuration());
         List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
+        eipAllocateParam.setChargetype(eipOrder.getReturnConsoleMessage().getBillType());
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             if(!eipOrderProduct.getProductLineCode().equals("EIP")){
                 continue;
