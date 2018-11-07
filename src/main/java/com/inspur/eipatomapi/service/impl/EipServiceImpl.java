@@ -62,10 +62,10 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            if(eipOrder.getOrderStatus().equals("paysuccess")) {
-                String eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization().toJSONString();
-                EipAllocateParam eipConfig = JSONObject.parseObject(eipConfigJson,
-                        new TypeReference<EipAllocateParam>() {});
+            if(eipOrder.getOrderStatus().equals("paySuccess")) {
+                JSONObject eipConfigJson = eipOrder.getReturnConsoleMessage().getConsoleCustomization();
+                log.info("receive order,customization:{}", eipConfigJson);
+                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
 
                 Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
                 if (null != eipMo) {
@@ -93,7 +93,28 @@ public class EipServiceImpl implements IEipService {
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "failed"));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
+    private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
+        EipAllocateParam eipAllocateParam = new EipAllocateParam();
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            if(!eipOrderProduct.getProductLineCode().equals("EIP")){
+                continue;
+            }
+            eipAllocateParam.setRegion(eipOrderProduct.getRegion());
+            List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
+            for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
+                if(eipOrderProductItem.getCode().equals("net") && eipOrderProductItem.getUnit().equals("M")){
+                    eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
+                }else if(eipOrderProductItem.getCode().equals("provider") &&
+                        eipOrderProductItem.getType().equals("impactFactor")){
+                    eipAllocateParam.setIptype(eipOrderProductItem.getValue());
+                }
+            }
+        }
+        log.info("receive order,get eip param:{}", eipAllocateParam.toString());
+        /*chargetype and chargemode now use the default value */
+        return eipAllocateParam;
+    }
 
     /**
      * 1.delete  floatingIp
