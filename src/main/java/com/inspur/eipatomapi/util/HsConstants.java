@@ -15,6 +15,7 @@ public class HsConstants {
     public static final String M = "M";
     public static final String BANDWIDTH = "Bandwidth";
     public static final String SHAREDBANDWIDTH = "SharedBandwidth";
+    public static final String FAIL = "fail";
 
 	public static final String VSYS = "0";
 	public static final String VRID = "1";

@@ -61,6 +61,7 @@ public class EipServiceImpl implements IEipService {
             if (null != eipMo) {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
+                log.info("Atom create a eip success:{}", eipMo);
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
@@ -89,6 +90,7 @@ public class EipServiceImpl implements IEipService {
         try {
             ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
             if (actionResponse.isSuccess()){
+                log.info("Atom delete eip successfully, eipId:{}", eipId);
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else {
                 msg = actionResponse.getFault();
@@ -120,7 +122,7 @@ public class EipServiceImpl implements IEipService {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
                 ReturnMsg returnMsg = preCheckParam(eipConfig);
                 if(!returnMsg.getCode().equals(ReturnStatus.SC_OK)){
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
                     return new ResponseEntity<>(returnMsg, HttpStatus.BAD_REQUEST);
                 }
                 Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
@@ -136,7 +138,7 @@ public class EipServiceImpl implements IEipService {
                     log.error(msg);
                 }
             }else {
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
@@ -146,7 +148,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
@@ -193,12 +195,15 @@ public class EipServiceImpl implements IEipService {
             errorMsg = errorMsg + "can not be blank.";
         }
         String tp = param.getIptype();
-        if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") && !tp.equals("5_union")){
+        if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
+                !tp.equals("5_union") && !tp.equals("BGP")){
             errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union is allowed. ";
         }
         if(errorMsg.equals("success")) {
+            log.info(errorMsg);
            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
+            log.error(errorMsg);
            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
         }
     }
@@ -273,7 +278,7 @@ public class EipServiceImpl implements IEipService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getCause()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"failed"));
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.FAIL));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
