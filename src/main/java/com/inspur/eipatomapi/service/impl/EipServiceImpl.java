@@ -1,9 +1,8 @@
 package com.inspur.eipatomapi.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.inspur.eipatomapi.entity.ReturnMsg;
 import com.inspur.eipatomapi.entity.bss.*;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.repository.EipRepository;
@@ -63,13 +62,15 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            log.info("Recive order:{}", eipOrder.toString());
+            log.info("Recive order:{}", JSONObject.toJSONString(eipOrder));
             EipOrder eipOrderin =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals("paySuccess") || eipOrderin.getBillType().equals("hourlySettlement")) {
-                JSONObject eipConfigJson = eipOrderin.getConsoleCustomization();
-                log.info("receive order,customization:{}", eipConfigJson);
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-
+                ReturnMsg returnMsg = preCheckParam(eipConfig);
+                if(!returnMsg.getCode().equals(ReturnStatus.SC_OK)){
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "","failed"));
+                    return new ResponseEntity<>(returnMsg, HttpStatus.BAD_REQUEST);
+                }
                 Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
                 if (null != eipMo) {
                     EipReturnBase eipInfo = new EipReturnBase();
@@ -121,11 +122,35 @@ public class EipServiceImpl implements IEipService {
                 }
             }
         }
-        log.info("receive order,get eip param:{}", eipAllocateParam.toString());
+        log.info("Get eip param from order:{}", eipAllocateParam.toString());
         /*chargemode now use the default value */
         return eipAllocateParam;
     }
+    private ReturnMsg preCheckParam(EipAllocateParam param){
+        String errorMsg = "success";
+        if(param.getBandwidth() > 2000){
+            errorMsg = "value must be 1-2000.";
+        }
+        if(!param.getChargemode().equals("Bandwidth") && !param.getChargemode().equals("SharedBandwidth")){
+            errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+        }
 
+        if(!param.getChargetype().equals("PrePaid") && !param.getChargetype().equals("PostPaid")){
+            errorMsg = errorMsg + "Only PrePaid,PostPaid is allowed. ";
+        }
+        if(param.getRegion().isEmpty()){
+            errorMsg = errorMsg + "can not be blank.";
+        }
+        String tp = param.getIptype();
+        if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") && !tp.equals("5_union")){
+            errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union is allowed. ";
+        }
+        if(errorMsg.equals("success")) {
+           return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
+        }else {
+           return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
+        }
+    }
     /**
      * 1.delete  floatingIp
      * 2.Determine if Snate and Qos is deleted
@@ -513,10 +538,10 @@ public class EipServiceImpl implements IEipService {
      * add eip into eip pool for test
      */
     @Override
-    public void addEipPool(String ip) {
+    public void addEipPool(String ip,String eip) {
 
         try {
-            eipDaoService.addEipPool(ip);
+            eipDaoService.addEipPool(ip, eip);
         }catch (Exception e){
             e.printStackTrace();
         }

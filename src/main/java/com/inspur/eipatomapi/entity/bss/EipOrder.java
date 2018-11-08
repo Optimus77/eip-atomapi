@@ -5,11 +5,6 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/24 22:28
- * @description:
- */
 @Data
 public class EipOrder {
 

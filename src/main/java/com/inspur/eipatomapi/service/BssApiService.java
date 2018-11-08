@@ -22,11 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/24 14:52
- * @description:
- */
 @Service
 public class BssApiService {
 

@@ -19,11 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @Auther: jiasirui
- * @Date: 2018/9/14 09:32
- * @Description:  the class support data of openstack rest api
- */
 
 @Service
 public  class NeutronService {
@@ -43,7 +38,7 @@ public  class NeutronService {
     public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws Exception   {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
-        //osClientV3.networking().router().get().getExternalGatewayInfo().getNetworkId();
+
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
         if (null != portId) {
@@ -101,9 +96,9 @@ public  class NeutronService {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
         if (server == null){
-            log.info("Not found serverid",server);
+            log.info("Can not found serverid:{}",server);
         }
-        log.info("get serverinfo  {}",server);
+
         return osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 

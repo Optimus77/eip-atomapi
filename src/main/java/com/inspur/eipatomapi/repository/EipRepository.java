@@ -11,12 +11,6 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.LockModeType;
 import java.util.List;
 
-/**
- * @Auther: jiasirui
- * @Date: 2018/9/14 09:32
- * @Description:  the class support data of mysql
- */
-
 @Repository
 @RepositoryRestResource(collectionResourceRel = "eip", path = "eip")
 public interface EipRepository extends JpaRepository<Eip,String> {

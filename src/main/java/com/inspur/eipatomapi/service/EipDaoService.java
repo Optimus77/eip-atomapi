@@ -445,7 +445,7 @@ public class EipDaoService {
 
     }
 
-    public void addEipPool(String ip) {
+    public void addEipPool(String ip, String eip) {
 
         String id = "firewall_id1";
         Firewall firewall = new Firewall();
@@ -462,10 +462,10 @@ public class EipDaoService {
             id = fw.getId();
         }
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 200; i++) {
             EipPool eipPoolMo = new EipPool();
             eipPoolMo.setFireWallId(id);
-            eipPoolMo.setIp("13.2.3."+i);
+            eipPoolMo.setIp(eip+i);
             eipPoolMo.setState("0");
             eipPoolRepository.save(eipPoolMo);
         }

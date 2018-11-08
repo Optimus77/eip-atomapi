@@ -163,8 +163,8 @@ public class EipController {
     @PostMapping(value = "/eips/addeippool")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="addEipPool",notes="add eip")
-    public ResponseEntity addEipPool( @RequestParam String ip) {
-        eipService.addEipPool(ip);
+    public ResponseEntity addEipPool( @RequestParam String ip,  @RequestParam String eip) {
+        eipService.addEipPool(ip, eip);
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
