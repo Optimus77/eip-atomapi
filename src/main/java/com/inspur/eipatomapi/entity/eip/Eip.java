@@ -43,10 +43,12 @@ public class Eip implements Serializable {
     private String vpcId;
 
     private String chargeType = "PrePaid";
+    private String billType = "hourlySettlement";
 
     private String chargeMode = "BandWidth";
 
     private String purchaseTime;
+    private String duration;
 
     private int bandWidth;
 

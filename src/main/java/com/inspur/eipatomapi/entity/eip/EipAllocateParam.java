@@ -14,23 +14,24 @@ public class EipAllocateParam implements Serializable {
     @NotBlank(message = "can not be blank.")
     private String region;
 
+    @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
+    private String billType = "hourlySettlement";
+
+    @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
+    private String duration;
+
+    private String durationUnit = "M";
+
     @NotBlank(message = "can not be blank.")
     @TypeConstraint(allowedValues = {"5_bgp","5_sbgp", "5_telcom", "5_union"}, message = "Only 5_bgp,5_sbgp, 5_telcom, 5_union is allowed. ")
     private String iptype;
 
-    @TypeConstraint(allowedValues = {"PrePaid","PostPaid"}, message = "Only PrePaid,PostPaid is allowed. ")
-    private String chargetype = "PrePaid";
-
     @TypeConstraint(allowedValues = {"Bandwidth","SharedBandwidth"}, message = "Only Bandwidth,SharedBandwidth is allowed. ")
     private String chargemode = "Bandwidth";
-
-    @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
-    private String purchasetime;
 
     @Range(min=1,max=2000,message = "value must be 1-2000.")
     private int bandwidth;
 
     @JsonProperty("sharedbandwidthid")
     private String sharedBandWidthId;
-
 }

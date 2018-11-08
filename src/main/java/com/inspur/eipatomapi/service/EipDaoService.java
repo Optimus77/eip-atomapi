@@ -77,9 +77,9 @@ public class EipDaoService {
                         eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
                         eipMo.setFloatingIpId(floatingIP.getId());
                         eipMo.setIpType(eipConfig.getIptype());
-                        eipMo.setChargeType(eipConfig.getChargetype());
+                        eipMo.setChargeType(eipConfig.getBillType());
                         eipMo.setChargeMode(eipConfig.getChargemode());
-                        eipMo.setPurchaseTime(eipConfig.getPurchasetime());
+                        eipMo.setPurchaseTime(eipConfig.getDuration());
                         eipMo.setBandWidth(eipConfig.getBandwidth());
                         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                         String userId = CommonUtil.getUserId();

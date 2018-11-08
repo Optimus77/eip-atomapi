@@ -10,10 +10,7 @@ import com.inspur.eipatomapi.service.BssApiService;
 import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
-import com.inspur.eipatomapi.util.CommonUtil;
-import com.inspur.eipatomapi.util.KeycloakTokenException;
-import com.inspur.eipatomapi.util.ReturnMsgUtil;
-import com.inspur.eipatomapi.util.ReturnStatus;
+import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.openstack4j.model.common.ActionResponse;
 import org.slf4j.Logger;
@@ -49,7 +46,61 @@ public class EipServiceImpl implements IEipService {
 
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
+    /**
+     * create a eip
+     * @param eipConfig          config
+     * @return                   json info of eip
+     */
+    @ICPServiceLog
+    public ResponseEntity atomCreateEip(EipAllocateParam eipConfig) {
 
+        String code;
+        String msg;
+        try {
+            Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
+            if (null != eipMo) {
+                EipReturnBase eipInfo = new EipReturnBase();
+                BeanUtils.copyProperties(eipMo, eipInfo);
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+            } else {
+                code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                log.error(msg);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getCause()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * delete eip
+     * @param eipId eipid
+     * @return return
+     */
+    @ICPServiceLog
+    public ResponseEntity atomDeleteEip(String eipId) {
+        String msg;
+        String code;
+
+        try {
+            ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
+            if (actionResponse.isSuccess()){
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else {
+                msg = actionResponse.getFault();
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getCause()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     /**
      * create a eip
      * @param eipOrder          config
@@ -63,8 +114,9 @@ public class EipServiceImpl implements IEipService {
         String msg;
         try {
             log.info("Recive order:{}", JSONObject.toJSONString(eipOrder));
-            EipOrder eipOrderin =  eipOrder.getReturnConsoleMessage();
-            if(eipOrder.getOrderStatus().equals("paySuccess") || eipOrderin.getBillType().equals("hourlySettlement")) {
+            EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
+                    retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
                 ReturnMsg returnMsg = preCheckParam(eipConfig);
                 if(!returnMsg.getCode().equals(ReturnStatus.SC_OK)){
@@ -99,25 +151,23 @@ public class EipServiceImpl implements IEipService {
     }
     private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
-        eipAllocateParam.setPurchasetime(eipOrder.getReturnConsoleMessage().getDuration());
+        eipAllocateParam.setDuration(eipOrder.getReturnConsoleMessage().getDuration());
         List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
-        if(eipOrder.getReturnConsoleMessage().getBillType().equals("monthly")){
-            eipAllocateParam.setChargetype("PrePaid");
-        }else if(eipOrder.getReturnConsoleMessage().getBillType().equals("hourlySettlement")){
-            eipAllocateParam.setChargetype("PostPaid");
-        }
+
+        eipAllocateParam.setBillType(eipOrder.getReturnConsoleMessage().getBillType());
 
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-            if(!eipOrderProduct.getProductLineCode().equals("EIP")){
+            if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
                 continue;
             }
             eipAllocateParam.setRegion(eipOrderProduct.getRegion());
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equals("net") && eipOrderProductItem.getUnit().equals("M")){
+                if(eipOrderProductItem.getCode().equals(HsConstants.NET) &&
+                        eipOrderProductItem.getUnit().equals(HsConstants.M)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
-                }else if(eipOrderProductItem.getCode().equals("provider") &&
-                        eipOrderProductItem.getType().equals("impactFactor")){
+                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER) &&
+                        eipOrderProductItem.getType().equals(HsConstants.IMPACTFACTOR)){
                     eipAllocateParam.setIptype(eipOrderProductItem.getValue());
                 }
             }
@@ -131,11 +181,12 @@ public class EipServiceImpl implements IEipService {
         if(param.getBandwidth() > 2000){
             errorMsg = "value must be 1-2000.";
         }
-        if(!param.getChargemode().equals("Bandwidth") && !param.getChargemode().equals("SharedBandwidth")){
+        if(!param.getChargemode().equals(HsConstants.BANDWIDTH) &&
+                !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)){
             errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
         }
 
-        if(!param.getChargetype().equals("PrePaid") && !param.getChargetype().equals("PostPaid")){
+        if(!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
             errorMsg = errorMsg + "Only PrePaid,PostPaid is allowed. ";
         }
         if(param.getRegion().isEmpty()){
@@ -235,10 +286,11 @@ public class EipServiceImpl implements IEipService {
     @Override
     @ICPServiceLog
     public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
-        log.info("listEips  service start execute");
+
         try {
             String projcectid=CommonUtil.getUserId();
-            log.info(projcectid);
+            log.info("listEips  of user, userId:{}", projcectid);
+
             if(projcectid==null){
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
@@ -252,7 +304,7 @@ public class EipServiceImpl implements IEipService {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resource_id(eip.getInstanceId())
+                            .resourceid(eip.getInstanceId())
                             .resourcetype(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
@@ -267,7 +319,7 @@ public class EipServiceImpl implements IEipService {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resource_id(eip.getInstanceId())
+                            .resourceid(eip.getInstanceId())
                             .resourcetype(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
@@ -303,7 +355,7 @@ public class EipServiceImpl implements IEipService {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                                .resource_id(eipEntity.getInstanceId())
+                                .resourceid(eipEntity.getInstanceId())
                                 .resourcetype(eipEntity.getInstanceType()).build());
 
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
@@ -337,7 +389,7 @@ public class EipServiceImpl implements IEipService {
 
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resource_id(eipEntity.getInstanceId())
+                        .resourceid(eipEntity.getInstanceId())
                         .resourcetype(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
@@ -371,7 +423,7 @@ public class EipServiceImpl implements IEipService {
 
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resource_id(eipEntity.getInstanceId())
+                        .resourceid(eipEntity.getInstanceId())
                         .resourcetype(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
@@ -411,7 +463,7 @@ public class EipServiceImpl implements IEipService {
                 Eip eipEntity=(Eip)result.get("data");
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resource_id(eipEntity.getInstanceId())
+                        .resourceid(eipEntity.getInstanceId())
                         .resourcetype(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             }
@@ -453,7 +505,7 @@ public class EipServiceImpl implements IEipService {
                         Eip eipEntity=(Eip)result.get("data");
                         BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                         eipReturnDetail.setResourceset(Resourceset.builder()
-                                .resource_id(eipEntity.getInstanceId())
+                                .resourceid(eipEntity.getInstanceId())
                                 .resourcetype(eipEntity.getInstanceType()).build());
                         return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
                     }
@@ -500,7 +552,7 @@ public class EipServiceImpl implements IEipService {
 
                                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                                 eipReturnDetail.setResourceset(Resourceset.builder()
-                                        .resource_id(eipEntity.getInstanceId())
+                                        .resourceid(eipEntity.getInstanceId())
                                         .resourcetype(eipEntity.getInstanceType()).build());
                                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
                             }else{

@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
+import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.eip.EipDelParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
@@ -50,6 +51,24 @@ public class EipController {
         return eipService.createEip(eipConfig);
      }
 
+    @ICPControllerLog
+    @PostMapping(value = "/eips/atom")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="atomCreateEip",notes="allocate")
+    public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
+        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return eipService.atomCreateEip(eipConfig.getEipAllocateParam());
+    }
+
 
     @DeleteMapping(value = "/eips/{eip_id}")
     @ICPControllerLog
@@ -59,6 +78,18 @@ public class EipController {
         //Check the parameters
         log.info("Delete a eip:{}.", eipConfig.getReturnConsoleMessage());
         return eipService.deleteEip(eipId, eipConfig);
+
+    }
+
+    @DeleteMapping(value = "/eips/atom/{eip_id}")
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "deleteEip")
+    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+                                        @PathVariable("eip_id") String eipId) {
+        //Check the parameters
+        log.info("Atom delete the Eip:{} ",eipId);
+        return eipService.atomDeleteEip(eipId);
 
     }
 

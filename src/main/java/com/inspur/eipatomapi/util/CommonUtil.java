@@ -58,16 +58,12 @@ public class CommonUtil {
 
     public static OSClientV3 getOsClientV3Util()  {
 
-
-
         String token = getKeycloackToken();
         log.info(token);
         if(null == token){
-            log.info("can't get token, use default project admin 140785795de64945b02363661eb9e769");
+            log.error("can't get token, use default project admin 140785795de64945b02363661eb9e769");
             token = "youmustgetatokenfirst";//Todo: debugcode, delte it when push
             return getOsClientV3();
-        }else{
-            log.info("get token,use token info ");
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         setKeyClockInfo(jsonObject);
@@ -126,8 +122,7 @@ public class CommonUtil {
 //        }
 
         String project = (String) jsonObject.get("project");
-        log.info(project);
-
+        log.info("Get project from token:{}", project);
 
         //String regionInfo=getReginInfo();
         //log.warning("regionInfo"+regionInfo);
@@ -146,13 +141,13 @@ public class CommonUtil {
      * @return  string string
      */
     public static String getKeycloackToken() {
-        //important
+
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         if(null != requestAttributes) {
             HttpServletRequest request = requestAttributes.getRequest();
             String keyCloackToken = request.getHeader("authorization");
-            log.info(keyCloackToken);
             if (keyCloackToken == null) {
+                log.error("Failed to get authorization header.");
                 return null;
             } else {
                 return keyCloackToken;
