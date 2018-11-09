@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.ReturnMsg;
 import com.inspur.eipatomapi.entity.bss.*;
 import com.inspur.eipatomapi.entity.eip.*;
@@ -12,6 +13,8 @@ import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
+import org.apache.http.HttpResponse;
+import org.apache.http.protocol.HTTP;
 import org.openstack4j.model.common.ActionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,8 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private BssApiService bssApiService;
+
+    private String pushMq;
 
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
@@ -130,6 +135,24 @@ public class EipServiceImpl implements IEipService {
                 if (null != eipMo) {
                     EipReturnBase eipInfo = new EipReturnBase();
                     BeanUtils.copyProperties(eipMo, eipInfo);
+
+                    //Return message to the front desk
+                    SendMQEIP sendMQEIP = new SendMQEIP();
+                    sendMQEIP.setUserName(CommonUtil.getUserId());
+                    sendMQEIP.setHandlerName("operateEipHandler");
+                    sendMQEIP.setInstanceId(eipMo.getEipId());
+                    sendMQEIP.setInstanceStatus("active");
+                    sendMQEIP.setOperateType("create");
+                    sendMQEIP.setMessageType("success");
+                    sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_CREATION_SUCCEEDED));
+                    String url=pushMq;
+                    log.info(url);
+                    String orderStr=JSONObject.toJSONString(sendMQEIP);
+                    log.info("return mq body str {}",sendMQEIP);
+                    Map<String,String> headers = new HashMap<>();
+                    headers.put("Authorization", CommonUtil.getKeycloackToken());
+                    headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+                    HttpResponse response = HttpUtil.post(url,headers,orderStr);
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
@@ -263,6 +286,25 @@ public class EipServiceImpl implements IEipService {
             if(eipOrder.getOrderStatus().equals("createSuccess")) {
                 ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
                 if (actionResponse.isSuccess()){
+
+                    //Return message to the front desk
+                    SendMQEIP sendMQEIP = new SendMQEIP();
+                    sendMQEIP.setUserName(CommonUtil.getUserId());
+                    sendMQEIP.setHandlerName("operateEipHandler");
+                    sendMQEIP.setInstanceId(eipId);
+                    sendMQEIP.setInstanceStatus("active");
+                    sendMQEIP.setOperateType("delete");
+                    sendMQEIP.setMessageType("success");
+                    sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_DELETE_SUCCEEDED));
+                    String url=pushMq;
+                    log.info(url);
+                    String orderStr=JSONObject.toJSONString(sendMQEIP);
+                    log.info("return mq body str {}",sendMQEIP);
+                    Map<String,String> headers = new HashMap<>();
+                    headers.put("Authorization", CommonUtil.getKeycloackToken());
+                    headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+                    HttpResponse response = HttpUtil.post(url,headers,orderStr);
+
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                 }else {
