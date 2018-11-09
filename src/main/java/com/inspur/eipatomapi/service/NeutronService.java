@@ -46,7 +46,7 @@ public  class NeutronService {
         }
         NetFloatingIP netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
         if (netFloatingIP != null) {
-            log.info("Allocated Floating ip: " + netFloatingIP.getId());
+            log.info("Allocated Floating ip: {}",netFloatingIP.getId());
         } else {
             String message = String.format(
                     "Cannot create floating ip under network: %s in region: %s",

@@ -70,9 +70,10 @@ public class EipServiceImpl implements IEipService {
             }
 
         }catch (Exception e){
-            e.printStackTrace();
+
+            log.error("Exception in atomCreateEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getCause()+"";
+            msg = e.getMessage()+"";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -97,9 +98,9 @@ public class EipServiceImpl implements IEipService {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception in atomDeleteEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getCause()+"";
+            msg = e.getMessage()+"";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -144,9 +145,9 @@ public class EipServiceImpl implements IEipService {
                 log.info(msg);
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception in createEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getCause()+"";
+            msg = e.getMessage()+"";
         }
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -189,7 +190,7 @@ public class EipServiceImpl implements IEipService {
         }
 
         if(!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
-            errorMsg = errorMsg + "Only PrePaid,PostPaid is allowed. ";
+            errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
         }
         if(param.getRegion().isEmpty()){
             errorMsg = errorMsg + "can not be blank.";
@@ -197,7 +198,7 @@ public class EipServiceImpl implements IEipService {
         String tp = param.getIptype();
         if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
                 !tp.equals("5_union") && !tp.equals("BGP")){
-            errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union is allowed. ";
+            errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
         if(errorMsg.equals("success")) {
             log.info(errorMsg);
@@ -223,7 +224,7 @@ public class EipServiceImpl implements IEipService {
             ActionResponse actionResponse;
             List<String > failedIds = new ArrayList<>();
             for (String eipId : eipIds) {
-                log.info("delete eip " + eipId);
+                log.info("delete eip {}", eipId);
                 //deleteEip(eipId, null);
                  actionResponse = eipDaoService.deleteEip(eipId);
                  if(!actionResponse.isSuccess()){
@@ -238,7 +239,7 @@ public class EipServiceImpl implements IEipService {
                 log.error(errorMsg);
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception in deleteEipList", e);
             errorMsg = e.getMessage();
         }
         return new ResponseEntity<>(
@@ -274,9 +275,9 @@ public class EipServiceImpl implements IEipService {
                 log.error(msg);
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception in deleteEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getCause()+"";
+            msg = e.getMessage()+"";
         }
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.FAIL));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -338,7 +339,7 @@ public class EipServiceImpl implements IEipService {
         }catch(KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception in listEips", e);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -371,8 +372,8 @@ public class EipServiceImpl implements IEipService {
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Exception in getEipDetail", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -405,8 +406,8 @@ public class EipServiceImpl implements IEipService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Exception in getEipByInstanceId", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -439,8 +440,8 @@ public class EipServiceImpl implements IEipService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(e.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Exception in getEipByIpAddress", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -473,9 +474,9 @@ public class EipServiceImpl implements IEipService {
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception in updateEipBandWidth", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getCause()+"";
+            msg = e.getMessage()+"";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
 
@@ -523,12 +524,12 @@ public class EipServiceImpl implements IEipService {
                     break;
             }
         } catch (Exception e) {
-            log.error("eipbindPort error");
-            e.printStackTrace();
+            log.error("eipbindPort exception", e);
+
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getCause()+"";
+            msg = e.getMessage()+"";
         }
-        log.info(code + msg);
+        log.info("Error when bind port，code:{}, msg:{}.", code, msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     /**
@@ -582,9 +583,9 @@ public class EipServiceImpl implements IEipService {
                 msg = "can not find eip wiht id ："+id;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception in unBindPort", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getCause()+"";
+            msg = e.getMessage()+"";
         }
         log.error(msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -600,7 +601,7 @@ public class EipServiceImpl implements IEipService {
         try {
             eipDaoService.addEipPool(ip, eip);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception in addEipPool", e);
         }
 
     }
@@ -624,7 +625,7 @@ public class EipServiceImpl implements IEipService {
                 for (String netname:keySet) {
                     List<? extends Address> address=novaAddresses.get(netname);
                     for(Address addr:address){
-                        log.debug(server.getId()+server.getName()+"   "+addr.getType());
+                        log.debug("Get server: id:{}, name:{}, addr:{}.",server.getId(),server.getName(),addr.getType());
                         if (addr.getType().equals("floating")){
                             log.debug("===get this =======");
                             bindFloatingIpFlag=false;
@@ -642,7 +643,7 @@ public class EipServiceImpl implements IEipService {
 
             return new ResponseEntity<>(ReturnMsgUtil.success(dataArray), HttpStatus.OK);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception in listServer", e);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -662,7 +663,7 @@ public class EipServiceImpl implements IEipService {
         }catch (KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
         }catch(Exception e){
-            e.printStackTrace();
+            log.error("Exception in getEipNumber", e);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

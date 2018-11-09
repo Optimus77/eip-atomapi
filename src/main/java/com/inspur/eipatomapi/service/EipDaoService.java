@@ -192,9 +192,10 @@ public class EipDaoService {
         try{
             actionResponse = neutronService.associaInstanceWithFloatingIp(eip,serverId);
         }catch (Exception e){
-            log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :"+serverId);
-            log.error("==========openstack associaInstanceWithFloatingIp error=====eip :"+eip.getFloatingIp());
-            e.printStackTrace();
+            log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :{}",serverId);
+            log.error("==========openstack associaInstanceWithFloatingIp error=====eip :{}",eip.getFloatingIp());
+
+            log.error("Exception in associateInstanceWithEip",e);
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
             data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             data.put("interCode", ReturnStatus.SC_OPENSTACK_SERVER_ERROR);
@@ -274,8 +275,8 @@ public class EipDaoService {
                     return data;
                 }
             }catch (Exception e){
-                log.error("band server firewall error");
-                e.printStackTrace();
+                log.error("band server firewall exception",e);
+
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
