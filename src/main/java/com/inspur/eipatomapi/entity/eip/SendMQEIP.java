@@ -6,9 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.Entity;
 
-@Entity
-@Getter
-@Setter
+
 @Data
 public class SendMQEIP {
 
