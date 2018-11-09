@@ -406,6 +406,24 @@ public class EipServiceImpl implements IEipService {
                                 .resourceid(eipEntity.getInstanceId())
                                 .resourcetype(eipEntity.getInstanceType()).build());
 
+                //Return message to the front desk
+                SendMQEIP sendMQEIP = new SendMQEIP();
+                sendMQEIP.setUserName(CommonUtil.getUserId());
+                sendMQEIP.setHandlerName("operateEipHandler");
+                sendMQEIP.setInstanceId(eipId);
+                sendMQEIP.setInstanceStatus("active");
+                sendMQEIP.setOperateType("create");
+                sendMQEIP.setMessageType("success");
+                sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_CREATION_SUCCEEDED));
+                String url=pushMq;
+                log.info(url);
+                String orderStr=JSONObject.toJSONString(sendMQEIP);
+                log.info("return mq body str {}",sendMQEIP);
+                Map<String,String> headers = new HashMap<>();
+                headers.put("Authorization", CommonUtil.getKeycloackToken());
+                headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+                HttpResponse response = HttpUtil.post(url,headers,orderStr);
+
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
