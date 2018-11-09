@@ -123,6 +123,11 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="the bandwidth must bigger than orgin when choose prepaid modle";
         public static final String EIP_FORBIDDEN ="Forbidden to operate.";
 
+        //Return messages
+        public static final String EIP_CREATION_SUCCEEDED="Flexible public network IP creation succeeded";
+        public static final String EIP_DELETE_SUCCEEDED="Flexible public network IP deletion succeeded";
+        public static final String EIP_UPDATE_SUCCEEDED="Flexible public network IP updated successfully";
+
     }
 
 
