@@ -23,6 +23,7 @@ import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,7 @@ public class EipServiceImpl implements IEipService {
     @Autowired
     private BssApiService bssApiService;
 
+    @Value("${bssURL.pushMq}")
     private String pushMq;
 
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
@@ -312,7 +314,7 @@ public class EipServiceImpl implements IEipService {
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
-                msg = "Failed to delete eip,failed to create delete order.";
+                msg = "Failed to delete eip,failed to create delete. orderStatus: "+eipOrder.getOrderStatus();
                 code = ReturnStatus.SC_PARAM_UNKONWERROR;
                 log.error(msg);
             }

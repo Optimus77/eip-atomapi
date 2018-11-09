@@ -74,7 +74,7 @@ public class EipController {
     @ApiOperation(value = "deleteEip")
     public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId, @RequestBody EipReciveOrder eipConfig) {
         //Check the parameters
-        log.info("Delete a eip:{}.", eipConfig.getReturnConsoleMessage());
+        log.info("Delete a eip:{}.", eipConfig);
         return eipService.deleteEip(eipId, eipConfig);
 
     }
