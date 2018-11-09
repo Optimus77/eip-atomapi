@@ -10,7 +10,6 @@ import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -54,7 +53,6 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips/atom")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="atomCreateEip",notes="allocate")
     public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
         log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
         if (result.hasErrors()) {
@@ -84,7 +82,6 @@ public class EipController {
     @DeleteMapping(value = "/eips/atom/{eip_id}")
     @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "deleteEip")
     public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                         @PathVariable("eip_id") String eipId) {
         //Check the parameters
@@ -193,7 +190,6 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips/addeippool")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="addEipPool",notes="add eip")
     public ResponseEntity addEipPool( @RequestParam String ip,  @RequestParam String eip) {
         eipService.addEipPool(ip, eip);
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -261,11 +257,11 @@ public class EipController {
         if(param.getEipUpdateParam().getPortId()!=null){
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
             if(param.getEipUpdateParam().getPortId().trim().equals("")){
-                log.debug("unbind oprate ");
+                log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                 return eipService.unBindPort(eipId);
 
             }else{
-                log.debug("bind oprate");
+                log.info("bind operate, eipid:{}, param:{}",eipId, param.getEipUpdateParam() );
                 if(param.getEipUpdateParam().getServerId()!=null&&param.getEipUpdateParam().getType()!=null){
                     return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
                             param.getEipUpdateParam().getServerId(),
@@ -277,7 +273,7 @@ public class EipController {
         }else{
             // protid is null ,maybe unbind or update bind width
             if(param.getEipUpdateParam().getChargeType()==null&&param.getEipUpdateParam().getBandWidth()==0){
-                //
+                log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                 return eipService.unBindPort(eipId);
             }else{
                 if(param.getEipUpdateParam().getChargeType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
@@ -289,6 +285,7 @@ public class EipController {
                         msg="chargetype must be [PrePaid |PostPaid]";
                     }
                     if(chargeTypeFlag){
+                        log.info("update bandwidth, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                         return eipService.updateEipBandWidth(eipId,param);
                     }else{
 

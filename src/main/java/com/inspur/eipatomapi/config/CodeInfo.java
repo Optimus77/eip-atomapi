@@ -109,16 +109,16 @@ public  class CodeInfo {
 
         //bind interface
         public static final String EIP_BIND_NOT_FOND="404-Bad request: can't find eip info by this id";
-        public static final String EIP_BIND_HAS_BAND="404-Bad request: this eip has banded";
+        public static final String EIP_BIND_HAS_BAND="404-Bad request: this eip has bind to instance";
         public static final String EIP_BIND_PARA_SERVERID_ERROR="404-Bad request:  needs param serverid";
-        public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="band floating ip fail";
-        public static final String EIP_BIND_OPENSTACK_ERROR="openstack error when band server";
-        public static final String EIP_BIND_FIREWALL_ERROR="fillware error when band server";
-        public static final String EIP_BIND_FIREWALL_DNAT_ERROR="add DNAT rule error when band server";
-        public static final String EIP_BIND_FIREWALL_SNAT_ERROR="add SNAT rule error when band server";
-        public static final String EIP_BIND_FIREWALL_QOS_ERROR="add  QOS  rule error when band server";
+        public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="bind floating ip fail";
+        public static final String EIP_BIND_OPENSTACK_ERROR="openstack error when bind server";
+        public static final String EIP_BIND_FIREWALL_ERROR="fillware error when bind server";
+        public static final String EIP_BIND_FIREWALL_DNAT_ERROR="add DNAT rule error when bind server";
+        public static final String EIP_BIND_FIREWALL_SNAT_ERROR="add SNAT rule error when bind server";
+        public static final String EIP_BIND_FIREWALL_QOS_ERROR="add  QOS  rule error when bind server";
 
-        //changebandwidth interface
+        //changebindwidth interface
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="the fillware error when update the bandwidht";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="the bandwidth must bigger than orgin when choose prepaid modle";
         public static final String EIP_FORBIDDEN ="Forbidden to operate.";
