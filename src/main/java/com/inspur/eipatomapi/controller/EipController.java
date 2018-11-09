@@ -234,7 +234,7 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getEipNumber() {
-        log.info("Get eip number.");
+
         return  eipService.getEipNumber();
     }
 

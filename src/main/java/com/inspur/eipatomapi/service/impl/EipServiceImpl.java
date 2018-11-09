@@ -699,8 +699,9 @@ public class EipServiceImpl implements IEipService {
     @ICPServiceLog
     public ResponseEntity getEipNumber() {
         try {
-            String projectid =CommonUtil.getProjectId();
+            String projectid =CommonUtil.getUserId();
             List<Eip> eips = eipDaoService.findByProjectId(projectid);
+            log.info("Get projectid:{} eip number:{}.", projectid, eips.size());
             return new ResponseEntity<>(ReturnMsgUtil.success(eips.size()), HttpStatus.OK);
         }catch (KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
@@ -714,7 +715,7 @@ public class EipServiceImpl implements IEipService {
     @ICPServiceLog
     public ResponseEntity getEipCount() {
         try {
-            String projectid =CommonUtil.getProjectId();
+            String projectid =CommonUtil.getUserId();
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(projectid)), HttpStatus.OK);
         }catch (KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
