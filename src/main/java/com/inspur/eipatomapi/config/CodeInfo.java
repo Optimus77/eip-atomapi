@@ -34,6 +34,9 @@ public  class CodeInfo {
     public static final String EIP_CHANGE_BANDWIDTH_ERROR="EIP_CHANGE_BANDWIDTH_ERROR";
     public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR";
     public static final String EIP_FORBIDDEN="EIP_FORBIDDEN";
+    public static final String EIP_CREATION_SUCCEEDED="EIP_CREATION_SUCCEEDED";
+    public static final String EIP_DELETE_SUCCEEDED="EIP_DELETE_SUCCEEDED";
+    public static final String EIP_UPDATE_SUCCEEDED="EIP_UPDATE_SUCCEEDED";
 
 
 
@@ -56,6 +59,11 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="修改带宽时防火墙出错";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
         public static final String EIP_FORBIDDEN ="无权操作";
+
+        //Return messages
+        public static final String EIP_CREATION_SUCCEEDED="弹性公网IP创建成功";
+        public static final String EIP_DELETE_SUCCEEDED="弹性公网IP删除成功";
+        public static final String EIP_UPDATE_SUCCEEDED="弹性公网IP更新成功";
 
 
     }
