@@ -154,8 +154,9 @@ public class EipServiceImpl implements IEipService {
                     Map<String,String> headers = new HashMap<>();
                     headers.put("Authorization", CommonUtil.getKeycloackToken());
                     headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                    HttpResponse response = HttpUtil.post(url,headers,orderStr);
+                    headers.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
 
+                    HttpResponse response = HttpUtil.post(url,headers,orderStr);
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
