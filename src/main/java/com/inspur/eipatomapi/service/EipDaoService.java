@@ -147,7 +147,7 @@ public class EipDaoService {
         String msg;
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
-            msg= "Faild to find eip by id:%s"+eipid;
+            msg= "Faild to find eip by id:"+eipid+" ";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
@@ -156,20 +156,19 @@ public class EipDaoService {
             return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
         }
 
-        if (null != eipEntity.getSnatId()) {
+        if (null == eipEntity.getSnatId()) {
             msg = "Failed to softDown eip,status error.eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+
-                    "dnatId:"+ eipEntity.getDnatId()+"snatid:"+eipEntity.getSnatId()+"";
+                    "dnatId:"+ eipEntity.getDnatId()+"snatid:"+eipEntity.getSnatId()+" ";
             log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            return ActionResponse.actionSuccess();
         }
-        Boolean delSnatResult = firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId());
-        if (delSnatResult) {
+        if(firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())){
             eipEntity.setStatus("DOWN");
             eipEntity.setSnatId(null);
             eipRepository.save(eipEntity);
             return ActionResponse.actionSuccess();
         } else {
-            msg = "Failed to soft down eip in firewall, eipId:"+eipEntity.getEipId()+"snatId:"+eipEntity.getSnatId()+"";
+            msg = "Failed to soft down eip in firewall, eipId:"+eipEntity.getEipId()+"snatId:"+eipEntity.getSnatId()+" ";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }

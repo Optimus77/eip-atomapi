@@ -345,7 +345,6 @@ public class EipServiceImpl implements IEipService {
                 if(!actionResponse.isSuccess()){
                     failFlag = failFlag + 1;
                     msg = msg +  actionResponse.getFault();
-
                 }
             }
             if(failFlag == 0){
@@ -381,6 +380,7 @@ public class EipServiceImpl implements IEipService {
                 int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
 
                 eipEntity.setDuration(String.valueOf(newTime));
+                eipRepository.save(eipEntity);
                 log.info("renew eip old duration:{}, new duration:{}", oldTime, String.valueOf(newTime));
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);

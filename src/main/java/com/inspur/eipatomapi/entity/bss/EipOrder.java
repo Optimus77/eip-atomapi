@@ -18,7 +18,7 @@ public class EipOrder {
     private String duration;
     private String durationUnit = "M";
     private String orderWhat = "formal";
-    private String orderSource = "console";
+    private String orderSource = "openApi";
     private String orderType = "new";
     private String serviceStartTime;
     private String serviceEndTime;
