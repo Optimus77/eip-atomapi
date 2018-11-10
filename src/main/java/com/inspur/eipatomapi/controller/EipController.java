@@ -315,6 +315,16 @@ public class EipController {
         log.info("Get eip getEipCount. {}",tenantId);
         return  eipService.getEipCount();
     }
+    
+    @ICPControllerLog
+    @PostMapping(value = "/eips/renew/{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity renewEip( @PathVariable("eip_id") String eipId) {
+        log.info("Renew a eip:{}.", eipId);
+        
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+    }
+
 
 
 }
