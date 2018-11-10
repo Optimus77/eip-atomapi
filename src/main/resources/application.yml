@@ -27,4 +27,4 @@ http:
 
 bssURL:
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
-  pushMq:      http://tenantconservice.10.110.25.123.xip.io/console/websocket/sendMessage
+  pushMq:      http://tenantconservice.devops.inspur.com/console/websocket/sendMessage
