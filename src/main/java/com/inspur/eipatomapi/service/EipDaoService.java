@@ -8,10 +8,7 @@ import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
-import com.inspur.eipatomapi.util.CommonUtil;
-import com.inspur.eipatomapi.util.EIPChargeType;
-import com.inspur.eipatomapi.util.KeycloakTokenException;
-import com.inspur.eipatomapi.util.ReturnStatus;
+import com.inspur.eipatomapi.util.*;
 
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
@@ -77,9 +74,9 @@ public class EipDaoService {
                         eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
                         eipMo.setFloatingIpId(floatingIP.getId());
                         eipMo.setIpType(eipConfig.getIptype());
-                        eipMo.setChargeType(eipConfig.getBillType());
+                        eipMo.setBillType(eipConfig.getBillType());
                         eipMo.setChargeMode(eipConfig.getChargemode());
-                        eipMo.setPurchaseTime(eipConfig.getDuration());
+                        eipMo.setDuration(eipConfig.getDuration());
                         eipMo.setBandWidth(eipConfig.getBandwidth());
                         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                         String userId = CommonUtil.getUserId();
@@ -420,7 +417,7 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.SC_FORBIDDEN);
             return data;
         }
-        if(param.getEipUpdateParam().getChargeType().equals(EIPChargeType.EIP_CHARGETYPE_PREPAID)){
+        if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)){
             //can’t sub
             if(param.getEipUpdateParam().getBandWidth()<eipEntity.getBandWidth()){
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
@@ -432,7 +429,7 @@ public class EipDaoService {
         boolean updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()));
         if (updateStatus) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
-            eipEntity.setChargeType(param.getEipUpdateParam().getChargeType());
+            eipEntity.setBillType(param.getEipUpdateParam().getBillType());
             eipRepository.save(eipEntity);
             data.put("reason","");
             data.put("httpCode", HttpStatus.SC_OK);
@@ -467,7 +464,7 @@ public class EipDaoService {
         eip.setCreateTime(null);
         eip.setStatus(null);
         eip.setIpVersion("IPv4");
-        eip.setChargeType("");
+        eip.setBillType("");
         eip.setProjectId(projectId);
         Example<Eip> example = Example.of(eip);
         long count=eipRepository.count(example);

@@ -6,8 +6,6 @@ public class HsConstants {
 	public static final String PAYSUCCESS = "paySuccess";
     public static final String HOURLYSETTLEMENT = "hourlySettlement";
     public static final String MONTHLY = "monthly";
-    public static final String PREPAID = "PrePaid";
-    public static final String POSTPAID = "PostPaid";
     public static final String EIP = "EIP";
     public static final String PROVIDER = "provider";
     public static final String IMPACTFACTOR = "impactFactor";

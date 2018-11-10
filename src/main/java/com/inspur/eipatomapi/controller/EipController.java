@@ -7,6 +7,7 @@ import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.eip.EipDelParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
+import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
@@ -273,17 +274,18 @@ public class EipController {
             }
         }else{
             // protid is null ,maybe unbind or update bind width
-            if(param.getEipUpdateParam().getChargeType()==null&&param.getEipUpdateParam().getBandWidth()==0){
+            if(param.getEipUpdateParam().getBillType()==null&&param.getEipUpdateParam().getBandWidth()==0){
                 log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                 return eipService.unBindPort(eipId);
             }else{
-                if(param.getEipUpdateParam().getChargeType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
+                if(param.getEipUpdateParam().getBillType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
 
                     boolean chargeTypeFlag=false;
-                    if(param.getEipUpdateParam().getChargeType().equals("PrePaid")||param.getEipUpdateParam().getChargeType().equals("PostPaid")){
+                    if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)||
+                            param.getEipUpdateParam().getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
                         chargeTypeFlag=true;
                     }else{
-                        msg="chargetype must be [PrePaid |PostPaid]";
+                        msg="chargetype must be [monthly |hourlySettlement]";
                     }
                     if(chargeTypeFlag){
                         log.info("update bandwidth, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
@@ -295,7 +297,7 @@ public class EipController {
                     msg="param not correct. " +
                             "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
                             "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
-                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"chargetype\":\"xxxxxx\"}"  +
+                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}"  +
                             "";
                 }
             }

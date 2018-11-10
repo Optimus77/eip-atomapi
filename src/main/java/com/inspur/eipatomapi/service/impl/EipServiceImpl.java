@@ -377,11 +377,11 @@ public class EipServiceImpl implements IEipService {
 
                 EipOrder eipReturn = eipOrder.getReturnConsoleMessage();
                 String addTime = eipReturn.getDuration();
-                String oldTime = eipReturn.getDuration();
+                String oldTime = eipEntity.getDuration();
                 int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
 
                 eipEntity.setDuration(String.valueOf(newTime));
-
+                log.info("renew eip old duration:{}, new duration:{}", oldTime, String.valueOf(newTime));
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else{

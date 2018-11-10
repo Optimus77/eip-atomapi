@@ -20,8 +20,8 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("eip_address")
     private String eipAddress;
 
-    @JsonProperty("chargetype")
-    private String chargeType;
+    @JsonProperty("billType")
+    private String billType;
 
     @JsonProperty("chargemode")
     private String chargeMode;
@@ -29,8 +29,8 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-    @JsonProperty("purchasetime")
-    private String purchaseTime;
+    @JsonProperty("duration")
+    private String duration;
 
     @JsonProperty("iptype")
     private String ipType;
