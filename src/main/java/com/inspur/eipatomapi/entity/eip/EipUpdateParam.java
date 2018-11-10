@@ -13,7 +13,8 @@ public class EipUpdateParam {
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-    @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
+
+//    @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
     private String billType;
 
     @NonNull
