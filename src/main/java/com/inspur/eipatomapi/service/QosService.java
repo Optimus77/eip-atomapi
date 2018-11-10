@@ -40,7 +40,8 @@ public class QosService {
                     res.put("msg", "Create success,but id not found,please call find api by pip name.");
                 }
             } else {
-                res.put("msg", jo.getString("exception"));
+                log.info("add qos failed, result:{}", jo);
+                res.put("msg", jo.getJSONObject("exception"));
             }
 
             return res;
