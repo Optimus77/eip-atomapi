@@ -140,7 +140,7 @@ public class EipServiceImpl implements IEipService {
 
                     //Return message to the front desk
                     SendMQEIP sendMQEIP = new SendMQEIP();
-                    sendMQEIP.setUserName(CommonUtil.getUserId());
+                    sendMQEIP.setUserName("jindengke");
                     sendMQEIP.setHandlerName("operateEipHandler");
                     sendMQEIP.setInstanceId(eipMo.getEipId());
                     sendMQEIP.setInstanceStatus("active");
@@ -150,13 +150,14 @@ public class EipServiceImpl implements IEipService {
                     String url=pushMq;
                     log.info(url);
                     String orderStr=JSONObject.toJSONString(sendMQEIP);
-                    log.info("return mq body str {}",sendMQEIP);
+                    log.info("return mq body str {}",orderStr);
                     Map<String,String> headers = new HashMap<>();
                     headers.put("Authorization", CommonUtil.getKeycloackToken());
                     headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                    headers.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
-
                     HttpResponse response = HttpUtil.post(url,headers,orderStr);
+                    System.out.println(response.getEntity().toString());
+                    System.out.println(response.getStatusLine().getStatusCode());
+
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
@@ -292,7 +293,7 @@ public class EipServiceImpl implements IEipService {
 
                     //Return message to the front desk
                     SendMQEIP sendMQEIP = new SendMQEIP();
-                    sendMQEIP.setUserName(CommonUtil.getUserId());
+                    sendMQEIP.setUserName("jindengke");
                     sendMQEIP.setHandlerName("operateEipHandler");
                     sendMQEIP.setInstanceId(eipId);
                     sendMQEIP.setInstanceStatus("active");
@@ -302,11 +303,13 @@ public class EipServiceImpl implements IEipService {
                     String url=pushMq;
                     log.info(url);
                     String orderStr=JSONObject.toJSONString(sendMQEIP);
-                    log.info("return mq body str {}",sendMQEIP);
+                    log.info("return mq body str {}",orderStr);
                     Map<String,String> headers = new HashMap<>();
                     headers.put("Authorization", CommonUtil.getKeycloackToken());
                     headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
                     HttpResponse response = HttpUtil.post(url,headers,orderStr);
+                    System.out.println(response.getEntity().toString());
+                    System.out.println(response.getStatusLine().getStatusCode());
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -408,24 +411,6 @@ public class EipServiceImpl implements IEipService {
                 eipReturnDetail.setResourceset(Resourceset.builder()
                                 .resourceid(eipEntity.getInstanceId())
                                 .resourcetype(eipEntity.getInstanceType()).build());
-
-                //Return message to the front desk
-                SendMQEIP sendMQEIP = new SendMQEIP();
-                sendMQEIP.setUserName(CommonUtil.getUserId());
-                sendMQEIP.setHandlerName("operateEipHandler");
-                sendMQEIP.setInstanceId(eipId);
-                sendMQEIP.setInstanceStatus("active");
-                sendMQEIP.setOperateType("create");
-                sendMQEIP.setMessageType("success");
-                sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_CREATION_SUCCEEDED));
-                String url=pushMq;
-                log.info(url);
-                String orderStr=JSONObject.toJSONString(sendMQEIP);
-                log.info("return mq body str {}",sendMQEIP);
-                Map<String,String> headers = new HashMap<>();
-                headers.put("Authorization", CommonUtil.getKeycloackToken());
-                headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                HttpResponse response = HttpUtil.post(url,headers,orderStr);
 
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
