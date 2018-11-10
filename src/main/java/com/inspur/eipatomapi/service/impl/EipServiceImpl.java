@@ -328,6 +328,73 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
+    @ICPServiceLog
+    public ResponseEntity softDownEip(String eipId, EipSoftDownOrder eipOrder) {
+        String msg = "";
+        String code;
+        int failFlag = 0;
+
+        try {
+            List<EipSoftDownInstance>  eipRenewInstances  = eipOrder.getInstanceList();
+            for(EipSoftDownInstance eipRenewInstance: eipRenewInstances){
+                ActionResponse actionResponse = eipDaoService.softDownEip(eipRenewInstance.getInstanceId());
+                if(!actionResponse.isSuccess()){
+                    failFlag = failFlag + 1;
+                    msg = msg +  actionResponse.getFault();
+
+                }
+            }
+            if(failFlag == 0){
+                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,"success"));
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else {
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.FAIL));
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @ICPServiceLog
+    public ResponseEntity renewEip(String eipId, EipReciveOrder eipOrder) {
+        String msg = "";
+        String code;
+        int failFlag = 0;
+
+        try {
+            Optional<Eip> eip = eipRepository.findById(eipId);
+            if (eip.isPresent()) {
+                Eip eipEntity = eip.get();
+
+                EipOrder eipReturn = eipOrder.getReturnConsoleMessage();
+                String addTime = eipReturn.getDuration();
+                String oldTime = eipReturn.getDuration();
+                int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
+
+                eipEntity.setDuration(String.valueOf(newTime));
+
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else{
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                msg = "Failed to find eip, id:"+eipId;
+                log.error(msg);
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     /**
      *  list the eip
      * @param currentPage  the current page
@@ -774,4 +841,12 @@ public class EipServiceImpl implements IEipService {
         eipOrderResult.setProductSetList(eipOrderResultProducts);
         return eipOrderResult;
     }
+
+
+    private   EipOrderResult getEipSoftDownOrderResult(EipSoftDownOrder eipReciveOrder, String result){
+        EipOrderResult eipSoftDownOrder = new EipOrderResult();
+        eipReciveOrder.setFlowId("test");
+        return eipSoftDownOrder;
+    }
+
 }

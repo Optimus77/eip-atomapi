@@ -145,6 +145,38 @@ public class EipDaoService {
         }
     }
 
+    @Transactional
+    public ActionResponse softDownEip(String  eipid) throws Exception {
+        String msg;
+        Eip eipEntity = eipRepository.findByEipId(eipid);
+        if (null == eipEntity) {
+            msg= "Faild to find eip by id:%s"+eipid;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+            log.error("User have no write to delete eip:{}", eipid);
+            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+        }
+
+        if (null != eipEntity.getSnatId()) {
+            msg = "Failed to softDown eip,status error.eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+
+                    "dnatId:"+ eipEntity.getDnatId()+"snatid:"+eipEntity.getSnatId()+"";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+        Boolean delSnatResult = firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId());
+        if (delSnatResult) {
+            eipEntity.setStatus("DOWN");
+            eipEntity.setSnatId(null);
+            eipRepository.save(eipEntity);
+            return ActionResponse.actionSuccess();
+        } else {
+            msg = "Failed to soft down eip in firewall, eipId:"+eipEntity.getEipId()+"snatId:"+eipEntity.getSnatId()+"";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
     /**
      * associate port with eip
      * @param eipid          eip

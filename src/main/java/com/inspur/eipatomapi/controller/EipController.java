@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
+import com.inspur.eipatomapi.entity.bss.EipSoftDownOrder;
 import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.eip.EipDelParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
@@ -319,10 +320,19 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips/renew/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity renewEip( @PathVariable("eip_id") String eipId) {
-        log.info("Renew a eip:{}.", eipId);
-        
-        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
+                                   @RequestBody EipReciveOrder eipReciveOrder) {
+        log.info("Renew a eip:{}, order:{}.", eipId, eipReciveOrder.toString());
+        return eipService.renewEip(eipId, eipReciveOrder);
+    }
+
+    @ICPControllerLog
+    @PostMapping(value = "/eips/softdown/{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity softDownEip(@PathVariable("eip_id") String eipId,
+                                   @RequestBody EipSoftDownOrder eipReciveOrder) {
+        log.info("Renew a eip:{}, order:{}.", eipId, eipReciveOrder.toString());
+        return eipService.softDownEip(eipId, eipReciveOrder);
     }
 
 
