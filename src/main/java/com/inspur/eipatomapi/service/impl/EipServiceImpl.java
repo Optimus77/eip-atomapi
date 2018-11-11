@@ -287,7 +287,9 @@ public class EipServiceImpl implements IEipService {
         String code;
 
         try {
-            if(eipOrder.getOrderStatus().equals("createSuccess")) {
+            EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
+            if(eipOrder.getOrderStatus().equals("createSuccess")  ||
+             retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
                 if (actionResponse.isSuccess()){
 
