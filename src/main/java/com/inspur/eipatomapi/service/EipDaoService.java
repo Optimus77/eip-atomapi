@@ -90,10 +90,14 @@ public class EipDaoService {
                         eipPoolRepository.delete(eip);
                         eipMo = eipRepository.save(eipMo);
                         return eipMo;
+                    }else{
+                        log.error("Failed to allocate eip in eip pool.");
                     }
                 }else {
                     log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
                 }
+            }else{
+                log.error("Status of the eip is not 0, state:{})",eip.getState());
             }
         }else{
             log.error("Failed to allocate eip in eip pool.");
