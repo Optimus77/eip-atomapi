@@ -193,7 +193,7 @@ public class EipServiceImpl implements IEipService {
             eipAllocateParam.setRegion(eipOrderProduct.getRegion());
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equals(HsConstants.NET) &&
+                if(eipOrderProductItem.getCode().equals("bandwidth") &&
                         eipOrderProductItem.getUnit().equals(HsConstants.M)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER) &&
@@ -287,7 +287,9 @@ public class EipServiceImpl implements IEipService {
         String code;
 
         try {
-            if(eipOrder.getOrderStatus().equals("createSuccess")) {
+            EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
+            if(eipOrder.getOrderStatus().equals("createSuccess")  ||
+             retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
                 if (actionResponse.isSuccess()){
 

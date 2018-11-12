@@ -65,6 +65,9 @@ public class CommonUtil {
             token = "youmustgetatokenfirst";//Todo: debugcode, delte it when push
             return getOsClientV3();
         }
+        if(token.startsWith("Bearer Bearer")){
+            token = token.substring(7);
+        }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         setKeyClockInfo(jsonObject);
         log.info("decode::"+jsonObject);
