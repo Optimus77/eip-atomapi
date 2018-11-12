@@ -2,8 +2,19 @@ package com.inspur.eipatomapi.util;
 
 public class HsConstants {
 	public static final String USER = "InnetAdmin";
-//	public static final String USER = "hillstone";
-	public static final String PWD = "innetadmin";
+
+	public static final String PAYSUCCESS = "paySuccess";
+    public static final String HOURLYSETTLEMENT = "hourlySettlement";
+    public static final String MONTHLY = "monthly";
+    public static final String EIP = "EIP";
+    public static final String PROVIDER = "provider";
+    public static final String IMPACTFACTOR = "impactFactor";
+    public static final String NET = "net";
+    public static final String M = "M";
+    public static final String BANDWIDTH = "Bandwidth";
+    public static final String SHAREDBANDWIDTH = "SharedBandwidth";
+    public static final String FAIL = "fail";
+
 	public static final String VSYS = "0";
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";

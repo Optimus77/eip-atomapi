@@ -58,16 +58,15 @@ public class CommonUtil {
 
     public static OSClientV3 getOsClientV3Util()  {
 
-
-
         String token = getKeycloackToken();
         log.info(token);
         if(null == token){
-            log.info("can't get token, use default project admin 140785795de64945b02363661eb9e769");
+            log.error("can't get token, use default project admin 140785795de64945b02363661eb9e769");
             token = "youmustgetatokenfirst";//Todo: debugcode, delte it when push
             return getOsClientV3();
-        }else{
-            log.info("get token,use token info ");
+        }
+        if(token.startsWith("Bearer Bearer")){
+            token = token.substring(7);
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         setKeyClockInfo(jsonObject);
@@ -126,8 +125,7 @@ public class CommonUtil {
 //        }
 
         String project = (String) jsonObject.get("project");
-        log.info(project);
-
+        log.info("Get project from token:{}", project);
 
         //String regionInfo=getReginInfo();
         //log.warning("regionInfo"+regionInfo);
@@ -146,13 +144,13 @@ public class CommonUtil {
      * @return  string string
      */
     public static String getKeycloackToken() {
-        //important
+
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         if(null != requestAttributes) {
             HttpServletRequest request = requestAttributes.getRequest();
             String keyCloackToken = request.getHeader("authorization");
-            log.info(keyCloackToken);
             if (keyCloackToken == null) {
+                log.error("Failed to get authorization header.");
                 return null;
             } else {
                 return keyCloackToken;
@@ -185,7 +183,7 @@ public class CommonUtil {
     }
 
     public static String getProjectId() throws KeycloakTokenException {
-        log.info("getProjectId");
+
         String token = getKeycloackToken();
         if(null == token){
             log.info("can't get token, use default project admin 140785795de64945b02363661eb9e769");
@@ -194,6 +192,7 @@ public class CommonUtil {
             try{
                 OSClientV3 os= getOsClientV3Util();
                 String projectid_client=os.getToken().getProject().getId();
+                log.info("getProjectId:{}", projectid_client);
                 return projectid_client;
             }catch (Exception e){
                 log.error("get projectid from token error");
@@ -203,7 +202,7 @@ public class CommonUtil {
     }
 
     public static String getUserId()throws KeycloakTokenException {
-        log.info("getUserId");
+
         String token = getKeycloackToken();
         if(null == token){
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
@@ -211,6 +210,7 @@ public class CommonUtil {
             org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
             String sub = (String) jsonObject.get("sub");
             if(sub!=null){
+                log.info("getUserId:{}", sub);
                 return sub;
             }else{
                 throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));

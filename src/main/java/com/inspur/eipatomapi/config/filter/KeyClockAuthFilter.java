@@ -4,13 +4,13 @@ package com.inspur.eipatomapi.config.filter;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.config.ConstantClassField;
+import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.HsConstants;
-import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
+import com.inspur.icp.common.util.Base64Util;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -52,8 +52,9 @@ public class KeyClockAuthFilter implements Filter {
                 response.setContentType(HsConstants.APPLICATION_JSON);
                 response.getWriter().write(result.toJSONString());
             }else{
-                log.info("get authorization {}",req.getHeader("Authorization"));
-
+                String token = req.getHeader("Authorization");
+                log.info("get authorization {}",token);
+                CommonUtil.setKeyClockInfo(Base64Util.decodeUserInfo(token));
                 filterChain.doFilter(servletRequest, servletResponse);
             }
         }else{

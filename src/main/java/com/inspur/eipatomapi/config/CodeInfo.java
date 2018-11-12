@@ -34,6 +34,9 @@ public  class CodeInfo {
     public static final String EIP_CHANGE_BANDWIDTH_ERROR="EIP_CHANGE_BANDWIDTH_ERROR";
     public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR";
     public static final String EIP_FORBIDDEN="EIP_FORBIDDEN";
+    public static final String EIP_CREATION_SUCCEEDED="EIP_CREATION_SUCCEEDED";
+    public static final String EIP_DELETE_SUCCEEDED="EIP_DELETE_SUCCEEDED";
+    public static final String EIP_UPDATE_SUCCEEDED="EIP_UPDATE_SUCCEEDED";
 
 
 
@@ -56,6 +59,11 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="修改带宽时防火墙出错";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
         public static final String EIP_FORBIDDEN ="无权操作";
+
+        //Return messages
+        public static final String EIP_CREATION_SUCCEEDED="弹性公网IP创建成功";
+        public static final String EIP_DELETE_SUCCEEDED="弹性公网IP删除成功";
+        public static final String EIP_UPDATE_SUCCEEDED="弹性公网IP更新成功";
 
 
     }
@@ -101,19 +109,24 @@ public  class CodeInfo {
 
         //bind interface
         public static final String EIP_BIND_NOT_FOND="404-Bad request: can't find eip info by this id";
-        public static final String EIP_BIND_HAS_BAND="404-Bad request: this eip has banded";
+        public static final String EIP_BIND_HAS_BAND="404-Bad request: this eip has bind to instance";
         public static final String EIP_BIND_PARA_SERVERID_ERROR="404-Bad request:  needs param serverid";
-        public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="band floating ip fail";
-        public static final String EIP_BIND_OPENSTACK_ERROR="openstack error when band server";
-        public static final String EIP_BIND_FIREWALL_ERROR="fillware error when band server";
-        public static final String EIP_BIND_FIREWALL_DNAT_ERROR="add DNAT rule error when band server";
-        public static final String EIP_BIND_FIREWALL_SNAT_ERROR="add SNAT rule error when band server";
-        public static final String EIP_BIND_FIREWALL_QOS_ERROR="add  QOS  rule error when band server";
+        public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="bind floating ip fail";
+        public static final String EIP_BIND_OPENSTACK_ERROR="openstack error when bind server";
+        public static final String EIP_BIND_FIREWALL_ERROR="fillware error when bind server";
+        public static final String EIP_BIND_FIREWALL_DNAT_ERROR="add DNAT rule error when bind server";
+        public static final String EIP_BIND_FIREWALL_SNAT_ERROR="add SNAT rule error when bind server";
+        public static final String EIP_BIND_FIREWALL_QOS_ERROR="add  QOS  rule error when bind server";
 
-        //changebandwidth interface
+        //changebindwidth interface
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="the fillware error when update the bandwidht";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="the bandwidth must bigger than orgin when choose prepaid modle";
         public static final String EIP_FORBIDDEN ="Forbidden to operate.";
+
+        //Return messages
+        public static final String EIP_CREATION_SUCCEEDED="Flexible public network IP creation succeeded";
+        public static final String EIP_DELETE_SUCCEEDED="Flexible public network IP deletion succeeded";
+        public static final String EIP_UPDATE_SUCCEEDED="Flexible public network IP updated successfully";
 
     }
 

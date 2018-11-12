@@ -2,14 +2,16 @@ package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
+import com.inspur.eipatomapi.entity.bss.EipSoftDownOrder;
+import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.eip.EipDelParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
+import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -50,6 +52,23 @@ public class EipController {
         return eipService.createEip(eipConfig);
      }
 
+    @ICPControllerLog
+    @PostMapping(value = "/eips/atom")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
+        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return eipService.atomCreateEip(eipConfig.getEipAllocateParam());
+    }
+
 
     @DeleteMapping(value = "/eips/{eip_id}")
     @ICPControllerLog
@@ -57,8 +76,19 @@ public class EipController {
     @ApiOperation(value = "deleteEip")
     public ResponseEntity deleteEip(@PathVariable("eip_id") String eipId, @RequestBody EipReciveOrder eipConfig) {
         //Check the parameters
-        log.info("Delete a eip:{}.", eipConfig.getReturnConsoleMessage());
+        log.info("Delete a eip:{}.", eipConfig);
         return eipService.deleteEip(eipId, eipConfig);
+
+    }
+
+    @DeleteMapping(value = "/eips/atom/{eip_id}")
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+                                        @PathVariable("eip_id") String eipId) {
+        //Check the parameters
+        log.info("Atom delete the Eip:{} ",eipId);
+        return eipService.atomDeleteEip(eipId);
 
     }
 
@@ -162,9 +192,8 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips/addeippool")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="addEipPool",notes="add eip")
-    public ResponseEntity addEipPool( @RequestParam String ip) {
-        eipService.addEipPool(ip);
+    public ResponseEntity addEipPool( @RequestParam String ip,  @RequestParam String eip) {
+        eipService.addEipPool(ip, eip);
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
@@ -203,7 +232,7 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getEipNumber() {
-        log.info("Get eip number.");
+
         return  eipService.getEipNumber();
     }
 
@@ -230,11 +259,11 @@ public class EipController {
         if(param.getEipUpdateParam().getPortId()!=null){
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
             if(param.getEipUpdateParam().getPortId().trim().equals("")){
-                log.debug("unbind oprate ");
+                log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                 return eipService.unBindPort(eipId);
 
             }else{
-                log.debug("bind oprate");
+                log.info("bind operate, eipid:{}, param:{}",eipId, param.getEipUpdateParam() );
                 if(param.getEipUpdateParam().getServerId()!=null&&param.getEipUpdateParam().getType()!=null){
                     return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
                             param.getEipUpdateParam().getServerId(),
@@ -245,19 +274,21 @@ public class EipController {
             }
         }else{
             // protid is null ,maybe unbind or update bind width
-            if(param.getEipUpdateParam().getChargeType()==null&&param.getEipUpdateParam().getBandWidth()==0){
-                //
+            if(param.getEipUpdateParam().getBillType()==null&&param.getEipUpdateParam().getBandWidth()==0){
+                log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                 return eipService.unBindPort(eipId);
             }else{
-                if(param.getEipUpdateParam().getChargeType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
+                if(param.getEipUpdateParam().getBillType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
 
                     boolean chargeTypeFlag=false;
-                    if(param.getEipUpdateParam().getChargeType().equals("PrePaid")||param.getEipUpdateParam().getChargeType().equals("PostPaid")){
+                    if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)||
+                            param.getEipUpdateParam().getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
                         chargeTypeFlag=true;
                     }else{
-                        msg="chargetype must be [PrePaid |PostPaid]";
+                        msg="chargetype must be [monthly |hourlySettlement]";
                     }
                     if(chargeTypeFlag){
+                        log.info("update bandwidth, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                         return eipService.updateEipBandWidth(eipId,param);
                     }else{
 
@@ -266,7 +297,7 @@ public class EipController {
                     msg="param not correct. " +
                             "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
                             "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
-                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"chargetype\":\"xxxxxx\"}"  +
+                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}"  +
                             "";
                 }
             }
@@ -287,6 +318,25 @@ public class EipController {
         log.info("Get eip getEipCount. {}",tenantId);
         return  eipService.getEipCount();
     }
+    
+    @ICPControllerLog
+    @PostMapping(value = "/eips/renew/{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
+                                   @RequestBody EipReciveOrder eipReciveOrder) {
+        log.info("Renew a eip:{}, order:{}.", eipId, eipReciveOrder.toString());
+        return eipService.renewEip(eipId, eipReciveOrder);
+    }
+
+    @ICPControllerLog
+    @PostMapping(value = "/eips/softdown/{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity softDownEip(@PathVariable("eip_id") String eipId,
+                                   @RequestBody EipSoftDownOrder eipReciveOrder) {
+        log.info("Renew a eip:{}, order:{}.", eipId, eipReciveOrder.toString());
+        return eipService.softDownEip(eipId, eipReciveOrder);
+    }
+
 
 
 }

@@ -71,7 +71,7 @@ public class HttpUtil {
             HttpResponse httpResponse = client.execute(httpPost);
             return httpResponse;
         } catch (Exception e) {
-            log.error("IO Exception when post.{}",e.getMessage());
+            log.error("IO Exception when post.{}",e);
             return null;
         }
 
