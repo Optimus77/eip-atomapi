@@ -139,8 +139,7 @@ public class EipServiceImpl implements IEipService {
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
                     //Return message to the front desk
-                    EipServiceImpl rw = new EipServiceImpl();
-                    rw.returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
+                    returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
@@ -279,8 +278,7 @@ public class EipServiceImpl implements IEipService {
 
 
                     //Return message to the front des
-                    EipServiceImpl rw = new EipServiceImpl();
-                    rw.returnsWebsocket(eipId,eipOrder,"delete");
+                    returnsWebsocket(eipId,eipOrder,"delete");
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -348,8 +346,7 @@ public class EipServiceImpl implements IEipService {
                 log.info("renew eip:{} , add duration:{}",eipId, addTime);
 
                 //Return message to the front des
-                EipServiceImpl rw = new EipServiceImpl();
-                rw.returnsWebsocket(eipId,eipOrder,"renew");
+                returnsWebsocket(eipId,eipOrder,"renew");
 
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
