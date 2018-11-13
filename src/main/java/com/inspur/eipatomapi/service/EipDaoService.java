@@ -8,10 +8,7 @@ import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
-import com.inspur.eipatomapi.util.CommonUtil;
-import com.inspur.eipatomapi.util.EIPChargeType;
-import com.inspur.eipatomapi.util.KeycloakTokenException;
-import com.inspur.eipatomapi.util.ReturnStatus;
+import com.inspur.eipatomapi.util.*;
 
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
@@ -26,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class EipDaoService {
@@ -63,45 +61,55 @@ public class EipDaoService {
 
         EipPool eip = getOneEipFromPool();
 
-        if(null != eip){
-            if (eip.getState().equals("0")) {
-                Eip eipMo = new Eip();
-                eipMo.setEipAddress(eip.getIp());
-                eipMo.setStatus("DOWN");
-                eipMo.setFirewallId(eip.getFireWallId());
-                String networkId =  getExtNetId(eipConfig.getRegion());
-                if(null != networkId) {
-                    NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
-                    if (null != floatingIP) {
-                        eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
-                        eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
-                        eipMo.setFloatingIpId(floatingIP.getId());
-                        eipMo.setIpType(eipConfig.getIptype());
-                        eipMo.setChargeType(eipConfig.getChargetype());
-                        eipMo.setChargeMode(eipConfig.getChargemode());
-                        eipMo.setPurchaseTime(eipConfig.getPurchasetime());
-                        eipMo.setBandWidth(eipConfig.getBandwidth());
-                        eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                        String userId = CommonUtil.getUserId();
-                        log.debug("get tenantid:{} from clientv3", userId);
-                        log.debug("get tenantid from token:{}", CommonUtil.getProjectId());
-                        eipMo.setProjectId(userId);
-
-                        eipPoolRepository.delete(eip);
-                        eipMo = eipRepository.save(eipMo);
-                        return eipMo;
-                    }
-                }else {
-                    log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
-                }
-            }
-        }else{
+        if(null == eip) {
             log.error("Failed to allocate eip in eip pool.");
+            return null;
+        }
+        String networkId =  getExtNetId(eipConfig.getRegion());
+        if(null == networkId) {
+            log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
+            return null;
+        }
+        Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
+        if(null != eipEntity){
+            log.error("Fatal Error! get a duplicate eip from eip pool, eip:{}.", eipEntity.toString());
+            return null;
+        }
+        if (!eip.getState().equals("0")) {
+            log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
+            return null;
         }
 
+        NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
+        if (null == floatingIP) {
+            log.error("Fatal Error! Can not get floating ip in network:{}, region:{}, portId:{}.",
+                    networkId, eipConfig.getRegion(), portId);
+            return null;
+        }
+        Eip eipMo = new Eip();
+        eipMo.setEipAddress(eip.getIp());
+        eipMo.setStatus("DOWN");
+        eipMo.setFirewallId(eip.getFireWallId());
 
-        return null;
+        eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
+        eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
+        eipMo.setFloatingIpId(floatingIP.getId());
+        eipMo.setIpType(eipConfig.getIptype());
+        eipMo.setBillType(eipConfig.getBillType());
+        eipMo.setChargeMode(eipConfig.getChargemode());
+        eipMo.setDuration(eipConfig.getDuration());
+        eipMo.setBandWidth(eipConfig.getBandwidth());
+        eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
+        String userId = CommonUtil.getUserId();
+        log.debug("get tenantid:{} from clientv3", userId);
+        log.debug("get tenantid from token:{}", CommonUtil.getProjectId());
+        eipMo.setProjectId(userId);
+
+        eipPoolRepository.delete(eip);
+        eipMo = eipRepository.save(eipMo);
+        return eipMo;
     }
+
 
     @Transactional
     public ActionResponse deleteEip(String  eipid) throws Exception {
@@ -145,6 +153,37 @@ public class EipDaoService {
         }
     }
 
+    @Transactional
+    public ActionResponse softDownEip(String  eipid) throws Exception {
+        String msg;
+        Eip eipEntity = eipRepository.findByEipId(eipid);
+        if (null == eipEntity) {
+            msg= "Faild to find eip by id:"+eipid+" ";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+            log.error("User have no write to delete eip:{}", eipid);
+            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+        }
+
+        if (null == eipEntity.getSnatId()) {
+            msg = "Failed to softDown eip,status error.eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+
+                    "dnatId:"+ eipEntity.getDnatId()+"snatid:"+eipEntity.getSnatId()+" ";
+            log.error(msg);
+            return ActionResponse.actionSuccess();
+        }
+        if(firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())){
+            eipEntity.setStatus("DOWN");
+            eipEntity.setSnatId(null);
+            eipRepository.save(eipEntity);
+            return ActionResponse.actionSuccess();
+        } else {
+            msg = "Failed to soft down eip in firewall, eipId:"+eipEntity.getEipId()+"snatId:"+eipEntity.getSnatId()+" ";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
     /**
      * associate port with eip
      * @param eipid          eip
@@ -192,9 +231,10 @@ public class EipDaoService {
         try{
             actionResponse = neutronService.associaInstanceWithFloatingIp(eip,serverId);
         }catch (Exception e){
-            log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :"+serverId);
-            log.error("==========openstack associaInstanceWithFloatingIp error=====eip :"+eip.getFloatingIp());
-            e.printStackTrace();
+            log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :{}",serverId);
+            log.error("==========openstack associaInstanceWithFloatingIp error=====eip :{}",eip.getFloatingIp());
+
+            log.error("Exception in associateInstanceWithEip",e);
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
             data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             data.put("interCode", ReturnStatus.SC_OPENSTACK_SERVER_ERROR);
@@ -274,8 +314,8 @@ public class EipDaoService {
                     return data;
                 }
             }catch (Exception e){
-                log.error("band server firewall error");
-                e.printStackTrace();
+                log.error("band server firewall exception",e);
+
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
@@ -387,7 +427,7 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.SC_FORBIDDEN);
             return data;
         }
-        if(param.getEipUpdateParam().getChargeType().equals(EIPChargeType.EIP_CHARGETYPE_PREPAID)){
+        if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)){
             //can’t sub
             if(param.getEipUpdateParam().getBandWidth()<eipEntity.getBandWidth()){
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
@@ -399,7 +439,7 @@ public class EipDaoService {
         boolean updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()));
         if (updateStatus) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
-            eipEntity.setChargeType(param.getEipUpdateParam().getChargeType());
+            eipEntity.setBillType(param.getEipUpdateParam().getBillType());
             eipRepository.save(eipEntity);
             data.put("reason","");
             data.put("httpCode", HttpStatus.SC_OK);
@@ -415,8 +455,41 @@ public class EipDaoService {
 
     }
 
+    @Transactional
+    public ActionResponse reNewEipEntity(String eipId, String addTime)  {
+
+        Eip eipEntity = eipRepository.findByEipId(eipId);
+        if (null != eipEntity) {
+            String oldTime = eipEntity.getDuration();
+            int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
+            eipEntity.setDuration(String.valueOf(newTime));
+            eipRepository.save(eipEntity);
+            return ActionResponse.actionSuccess();
+        }
+        return ActionResponse.actionFailed("Can not find the eip by id:{}"+eipId, HttpStatus.SC_NOT_FOUND);
+    }
+
     public List<Eip> findByProjectId(String projectId){
         return eipRepository.findByProjectId(projectId);
+    }
+
+    public  Eip findByEipAddress(String eipAddr){
+        return eipRepository.findByEipAddress(eipAddr);
+    }
+
+    public Eip findByInstanceId(String instanceId) {
+        return eipRepository.findByInstanceId(instanceId);
+    }
+
+    public Eip getEipById(String id){
+
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(id);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
+
+        return eipEntity;
     }
 
     public long getInstanceNum(String projectId){
@@ -434,7 +507,7 @@ public class EipDaoService {
         eip.setCreateTime(null);
         eip.setStatus(null);
         eip.setIpVersion("IPv4");
-        eip.setChargeType("");
+        eip.setBillType("");
         eip.setProjectId(projectId);
         Example<Eip> example = Example.of(eip);
         long count=eipRepository.count(example);
@@ -445,7 +518,7 @@ public class EipDaoService {
 
     }
 
-    public void addEipPool(String ip) {
+    public void addEipPool(String ip, String eip) {
 
         String id = "firewall_id1";
         Firewall firewall = new Firewall();
@@ -462,10 +535,10 @@ public class EipDaoService {
             id = fw.getId();
         }
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 200; i++) {
             EipPool eipPoolMo = new EipPool();
             eipPoolMo.setFireWallId(id);
-            eipPoolMo.setIp("13.2.3."+i);
+            eipPoolMo.setIp(eip+i);
             eipPoolMo.setState("0");
             eipPoolRepository.save(eipPoolMo);
         }

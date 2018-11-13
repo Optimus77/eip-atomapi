@@ -1,8 +1,6 @@
 package com.inspur.eipatomapi.service;
 
-import com.inspur.eipatomapi.entity.bss.EipOrder;
 import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
-import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
 
@@ -91,7 +89,7 @@ public interface IEipService {
     /**
      * add eip into eip pool for test
      */
-    void addEipPool(String ip);
+    void addEipPool(String ip, String eip);
 
     /**
      * list all server of current users

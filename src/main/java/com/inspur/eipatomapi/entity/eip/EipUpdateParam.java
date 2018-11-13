@@ -1,6 +1,7 @@
 package com.inspur.eipatomapi.entity.eip;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.inspur.eipatomapi.util.TypeConstraint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.lang.NonNull;
@@ -12,9 +13,9 @@ public class EipUpdateParam {
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-    @NonNull
-    @JsonProperty("chargetype")
-    private String chargeType;
+
+//    @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
+    private String billType;
 
     @NonNull
     @JsonProperty("serverid")

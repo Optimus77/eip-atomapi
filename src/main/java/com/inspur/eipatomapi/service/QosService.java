@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QosService extends BaseService {
+public class QosService {
     private String fwIp;
     private String fwPort;
     private String fwUser;
@@ -40,7 +40,8 @@ public class QosService extends BaseService {
                     res.put("msg", "Create success,but id not found,please call find api by pip name.");
                 }
             } else {
-                res.put("msg", jo.getString("exception"));
+                log.info("add qos failed, result:{}", jo);
+                res.put("msg", jo.getJSONObject("exception"));
             }
 
             return res;

@@ -21,23 +21,11 @@ public class EipReturnBase implements Serializable {
     @JsonProperty("eip_address")
     private String eipAddress;
 
-    @JsonProperty("chargetype")
-    private String chargeType;
-
-    @JsonProperty("chargemode")
-    private String chargeMode;
-
-    @JsonProperty("purchasetime")
-    private String purchaseTime;
-
     @JsonProperty("bandwidth")
     private int bandWidth;
 
     @JsonProperty("iptype")
     private String ipType;
-
-    @JsonProperty("sharedbandwidth_id")
-    private String sharedBandWidthId;
 
     @JsonProperty("status")
     private String status;
@@ -45,5 +33,4 @@ public class EipReturnBase implements Serializable {
     @JsonProperty("create_at")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
-
 }
