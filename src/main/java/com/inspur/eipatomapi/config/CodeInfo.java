@@ -37,6 +37,7 @@ public  class CodeInfo {
     public static final String EIP_CREATION_SUCCEEDED="EIP_CREATION_SUCCEEDED";
     public static final String EIP_DELETE_SUCCEEDED="EIP_DELETE_SUCCEEDED";
     public static final String EIP_UPDATE_SUCCEEDED="EIP_UPDATE_SUCCEEDED";
+    public static final String EIP_RENEWAL_SUCCEEDED="EIP_RENEWAL_SUCCEEDED";
 
 
 
@@ -64,6 +65,7 @@ public  class CodeInfo {
         public static final String EIP_CREATION_SUCCEEDED="弹性公网IP创建成功";
         public static final String EIP_DELETE_SUCCEEDED="弹性公网IP删除成功";
         public static final String EIP_UPDATE_SUCCEEDED="弹性公网IP更新成功";
+        public static final String EIP_RENEWAL_SUCCEEDED="弹性公网IP续费成功";
 
 
     }
@@ -127,6 +129,7 @@ public  class CodeInfo {
         public static final String EIP_CREATION_SUCCEEDED="Flexible public network IP creation succeeded";
         public static final String EIP_DELETE_SUCCEEDED="Flexible public network IP deletion succeeded";
         public static final String EIP_UPDATE_SUCCEEDED="Flexible public network IP updated successfully";
+        public static final String EIP_RENEWAL_SUCCEEDED="Flexible public network IP continued success";
 
     }
 
