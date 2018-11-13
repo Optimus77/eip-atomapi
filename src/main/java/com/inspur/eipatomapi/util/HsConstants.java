@@ -15,6 +15,21 @@ public class HsConstants {
     public static final String SHAREDBANDWIDTH = "SharedBandwidth";
     public static final String FAIL = "fail";
 
+    public static final String BGP = "BGP";
+    public static final String BILLINGITEM = "billingItem";
+    public static final String TRANSFER = "transfer";
+    public static final String REGION = "region";
+    public static final String IPTYPE = "iptype";
+    public static final String DURATION = "duration";
+    public static final String UNSUBSCRIBE = "unsubscribe";
+    public static final String SUCCESS = "success";
+    public static final String DELETE = "DELETE";
+    public static final String POST = "post";
+    public static final String AUTHORIZATION = "Authorization";
+
+
+
+
 	public static final String VSYS = "0";
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";
