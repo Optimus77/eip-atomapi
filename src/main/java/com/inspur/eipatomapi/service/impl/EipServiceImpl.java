@@ -163,7 +163,7 @@ public class EipServiceImpl implements IEipService {
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    msg = "Failed to create a new eip in external network:" + eipConfig.getRegion();
                     log.error(msg);
                 }
             }else {
@@ -370,23 +370,15 @@ public class EipServiceImpl implements IEipService {
     @ICPServiceLog
     public ResponseEntity renewEip(String eipId, EipReciveOrder eipOrder) {
         String msg = "";
-        String code;
-        int failFlag = 0;
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
-            Optional<Eip> eip = eipRepository.findById(eipId);
-            if (eip.isPresent()) {
-                Eip eipEntity = eip.get();
+            EipOrder eipReturn = eipOrder.getReturnConsoleMessage();
+            String addTime = eipReturn.getDuration();
 
-                EipOrder eipReturn = eipOrder.getReturnConsoleMessage();
-                String addTime = eipReturn.getDuration();
-                String oldTime = eipEntity.getDuration();
-                int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
-
-                eipEntity.setDuration(String.valueOf(newTime));
-                eipRepository.save(eipEntity);
-                log.info("renew eip old duration:{}, new duration:{}", oldTime, String.valueOf(newTime));
-
+            ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+            if(actionResponse.isSuccess()){
+                log.info("renew eip:{} , add duration:{}",eipId, addTime);
                 //Return message to the front desk
                 if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
                     SendMQEIP sendMQEIP = new SendMQEIP();
@@ -411,13 +403,11 @@ public class EipServiceImpl implements IEipService {
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else{
-                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                msg = "Failed to find eip, id:"+eipId;
+                msg = actionResponse.getFault();
                 log.error(msg);
             }
         }catch (Exception e){
             log.error("Exception in deleteEip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
@@ -439,7 +429,8 @@ public class EipServiceImpl implements IEipService {
             log.info("listEips  of user, userId:{}", projcectid);
 
             if(projcectid==null){
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
@@ -461,7 +452,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPage",currentPage);
                 data.put("currentPagePer",limit);
             }else{
-                List<Eip> eipList=eipRepository.findByProjectId(projcectid);
+                List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
                 for(Eip eip:eipList){
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
@@ -495,10 +486,8 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipDetail(String eipId) {
 
         try {
-            Optional<Eip> eip = eipRepository.findById(eipId);
-            if (eip.isPresent()) {
-                Eip eipEntity = eip.get();
-
+            Eip eipEntity = eipDaoService.getEipById(eipId);
+            if (null != eipEntity) {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
@@ -529,7 +518,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipByInstanceId(String instanceId) {
 
         try {
-            Eip eipEntity = eipRepository.findByInstanceId(instanceId);
+            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
 
             if (null != eipEntity) {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -563,7 +552,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipByIpAddress(String eip) {
 
         try {
-            Eip eipEntity = eipRepository.findByEipAddress(eip);
+            Eip eipEntity = eipDaoService.findByEipAddress(eip);
 
             if (null != eipEntity) {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -637,7 +626,7 @@ public class EipServiceImpl implements IEipService {
         try {
             switch(type){
                 case "1":
-                    log.info(serverId);
+                    log.info("unbind a server:{}",serverId);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
                     if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
@@ -685,9 +674,8 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            Optional<Eip> eip = eipRepository.findById(id);
-            if (eip.isPresent()) {
-                Eip eipEntity = eip.get();
+            Eip eipEntity = eipDaoService.getEipById(id);
+            if (null != eipEntity) {
                 String instanceType = eipEntity.getInstanceType();
                 if(null != instanceType) {
                     switch (instanceType) {
