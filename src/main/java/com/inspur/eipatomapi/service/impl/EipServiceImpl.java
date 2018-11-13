@@ -139,7 +139,8 @@ public class EipServiceImpl implements IEipService {
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
                     //Return message to the front desk
-                    ReturnsWebsocket.get(eipMo.getEipId(),eipOrder,"create");
+                    EipServiceImpl rw = new EipServiceImpl();
+                    rw.returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
@@ -278,7 +279,8 @@ public class EipServiceImpl implements IEipService {
 
 
                     //Return message to the front des
-                    ReturnsWebsocket.get(eipId,eipOrder,"delete");
+                    EipServiceImpl rw = new EipServiceImpl();
+                    rw.returnsWebsocket(eipId,eipOrder,"delete");
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -346,7 +348,8 @@ public class EipServiceImpl implements IEipService {
                 log.info("renew eip:{} , add duration:{}",eipId, addTime);
 
                 //Return message to the front des
-                ReturnsWebsocket.get(eipId,eipOrder,"renew");
+                EipServiceImpl rw = new EipServiceImpl();
+                rw.returnsWebsocket(eipId,eipOrder,"renew");
 
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -794,6 +797,35 @@ public class EipServiceImpl implements IEipService {
         EipOrderResult eipSoftDownOrder = new EipOrderResult();
         eipReciveOrder.setFlowId("test");
         return eipSoftDownOrder;
+    }
+
+    public void returnsWebsocket(String eipId,EipReciveOrder eipOrder,String type){
+        if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
+            try {
+                SendMQEIP sendMQEIP = new SendMQEIP();
+                sendMQEIP.setUserName(CommonUtil.getUsername());
+                sendMQEIP.setHandlerName("operateEipHandler");
+                sendMQEIP.setInstanceId(eipId);
+                sendMQEIP.setInstanceStatus("active");
+                sendMQEIP.setOperateType(type);
+                sendMQEIP.setMessageType("success");
+                sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_RENEWAL_SUCCEEDED));
+                String url=pushMq;
+                log.info(url);
+                String orderStr=JSONObject.toJSONString(sendMQEIP);
+                log.info("return mq body str {}",orderStr);
+                Map<String,String> headers = new HashMap<>();
+                headers.put("Authorization", CommonUtil.getKeycloackToken());
+                headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+                HttpResponse response = HttpUtil.post(url,headers,orderStr);
+                log.info(response.getEntity().toString());
+                log.info(String.valueOf(response.getStatusLine().getStatusCode()));
+            } catch (KeycloakTokenException e) {
+                e.printStackTrace();
+            }
+        }else {
+            log.info("Wrong source of order",eipOrder.getReturnConsoleMessage().getOrderSource());
+        }
     }
 
 }
