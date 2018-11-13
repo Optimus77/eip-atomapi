@@ -218,5 +218,22 @@ public class CommonUtil {
         }
     }
 
+    public static String getUsername()throws KeycloakTokenException {
+
+        String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
+        }else{
+            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+            String username = (String) jsonObject.get("preferred_username");
+            if(username!=null){
+                log.info("getUsername:{}", username);
+                return username;
+            }else{
+                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
+            }
+        }
+    }
+
 
 }

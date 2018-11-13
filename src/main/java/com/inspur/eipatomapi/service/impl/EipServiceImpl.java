@@ -139,31 +139,13 @@ public class EipServiceImpl implements IEipService {
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
                     //Return message to the front desk
-                    if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())) {
-                        SendMQEIP sendMQEIP = new SendMQEIP();
-                        sendMQEIP.setUserName("jindengke");
-                        sendMQEIP.setHandlerName("operateEipHandler");
-                        sendMQEIP.setInstanceId(eipMo.getEipId());
-                        sendMQEIP.setInstanceStatus("active");
-                        sendMQEIP.setOperateType("create");
-                        sendMQEIP.setMessageType("success");
-                        sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_CREATION_SUCCEEDED));
-                        String url = pushMq;
-                        log.info(url);
-                        String orderStr = JSONObject.toJSONString(sendMQEIP);
-                        log.info("return mq body str {}", orderStr);
-                        Map<String, String> headers = new HashMap<>();
-                        headers.put("Authorization", CommonUtil.getKeycloackToken());
-                        headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                        HttpResponse response = HttpUtil.post(url, headers, orderStr);
-                        System.out.println(response.getEntity().toString());
-                        System.out.println(response.getStatusLine().getStatusCode());
-                    }
+                    ReturnsWebsocket.get(eipMo.getEipId(),eipOrder,"create");
+
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to create a new eip in external network:" + eipConfig.getRegion();
+                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
                     log.error(msg);
                 }
             }else {
@@ -294,27 +276,10 @@ public class EipServiceImpl implements IEipService {
                 ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
                 if (actionResponse.isSuccess()){
 
-                    //Return message to the front desk
-                    if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
-                        SendMQEIP sendMQEIP = new SendMQEIP();
-                        sendMQEIP.setUserName("jindengke");
-                        sendMQEIP.setHandlerName("operateEipHandler");
-                        sendMQEIP.setInstanceId(eipId);
-                        sendMQEIP.setInstanceStatus("active");
-                        sendMQEIP.setOperateType("delete");
-                        sendMQEIP.setMessageType("success");
-                        sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_DELETE_SUCCEEDED));
-                        String url = pushMq;
-                        log.info(url);
-                        String orderStr = JSONObject.toJSONString(sendMQEIP);
-                        log.info("return mq body str {}", orderStr);
-                        Map<String, String> headers = new HashMap<>();
-                        headers.put("Authorization", CommonUtil.getKeycloackToken());
-                        headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                        HttpResponse response = HttpUtil.post(url, headers, orderStr);
-                        System.out.println(response.getEntity().toString());
-                        System.out.println(response.getStatusLine().getStatusCode());
-                    }
+
+                    //Return message to the front des
+                    ReturnsWebsocket.get(eipId,eipOrder,"delete");
+
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                 }else {
@@ -379,27 +344,10 @@ public class EipServiceImpl implements IEipService {
             ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
             if(actionResponse.isSuccess()){
                 log.info("renew eip:{} , add duration:{}",eipId, addTime);
-                //Return message to the front desk
-                if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
-                    SendMQEIP sendMQEIP = new SendMQEIP();
-                    sendMQEIP.setUserName("jindengke");
-                    sendMQEIP.setHandlerName("operateEipHandler");
-                    sendMQEIP.setInstanceId(eipId);
-                    sendMQEIP.setInstanceStatus("active");
-                    sendMQEIP.setOperateType("renew");
-                    sendMQEIP.setMessageType("success");
-                    sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_RENEWAL_SUCCEEDED));
-                    String url=pushMq;
-                    log.info(url);
-                    String orderStr=JSONObject.toJSONString(sendMQEIP);
-                    log.info("return mq body str {}",orderStr);
-                    Map<String,String> headers = new HashMap<>();
-                    headers.put("Authorization", CommonUtil.getKeycloackToken());
-                    headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                    HttpResponse response = HttpUtil.post(url,headers,orderStr);
-                    System.out.println(response.getEntity().toString());
-                    System.out.println(response.getStatusLine().getStatusCode());
-                }
+
+                //Return message to the front des
+                ReturnsWebsocket.get(eipId,eipOrder,"renew");
+
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else{
