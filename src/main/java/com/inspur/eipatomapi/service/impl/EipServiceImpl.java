@@ -139,7 +139,7 @@ public class EipServiceImpl implements IEipService {
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
                     //Return message to the front desk
-                    if ("consloe".equals(eipOrder.getOrderStatus())) {
+                    if ("console".equals(eipOrder.getOrderStatus())) {
                         SendMQEIP sendMQEIP = new SendMQEIP();
                         sendMQEIP.setUserName("jindengke");
                         sendMQEIP.setHandlerName("operateEipHandler");
@@ -295,7 +295,7 @@ public class EipServiceImpl implements IEipService {
                 if (actionResponse.isSuccess()){
 
                     //Return message to the front desk
-                    if ("consloe".equals(eipOrder.getOrderStatus())){
+                    if ("console".equals(eipOrder.getOrderStatus())){
                         SendMQEIP sendMQEIP = new SendMQEIP();
                         sendMQEIP.setUserName("jindengke");
                         sendMQEIP.setHandlerName("operateEipHandler");
@@ -388,7 +388,7 @@ public class EipServiceImpl implements IEipService {
                 log.info("renew eip old duration:{}, new duration:{}", oldTime, String.valueOf(newTime));
 
                 //Return message to the front desk
-                if ("consloe".equals(eipOrder.getOrderStatus())){
+                if ("console".equals(eipOrder.getOrderStatus())){
                     SendMQEIP sendMQEIP = new SendMQEIP();
                     sendMQEIP.setUserName("jindengke");
                     sendMQEIP.setHandlerName("operateEipHandler");
