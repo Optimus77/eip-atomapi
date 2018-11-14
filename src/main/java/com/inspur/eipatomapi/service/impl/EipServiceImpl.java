@@ -191,7 +191,7 @@ public class EipServiceImpl implements IEipService {
     }
     private ReturnMsg preCheckParam(EipAllocateParam param){
         String errorMsg = "success";
-        if(param.getBandwidth() > 2000){
+        if(param.getBandwidth() > 2000 || param.getBandwidth() < 1){
             errorMsg = "value must be 1-2000.";
         }
         if(!param.getChargemode().equals(HsConstants.BANDWIDTH) &&
