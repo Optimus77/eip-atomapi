@@ -72,7 +72,8 @@ public class EipDaoService {
         }
         Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
         if(null != eipEntity){
-            log.error("Fatal Error! get a duplicate eip from eip pool, eip:{}.", eipEntity.toString());
+            log.error("Fatal Error! get a duplicate eip from eip pool, eip:{}.",
+                    eipEntity.getEipAddress(), eipEntity.getEipId());
             return null;
         }
         if (!eip.getState().equals("0")) {
@@ -99,6 +100,7 @@ public class EipDaoService {
         eipMo.setChargeMode(eipConfig.getChargemode());
         eipMo.setDuration(eipConfig.getDuration());
         eipMo.setBandWidth(eipConfig.getBandwidth());
+        eipMo.setRegion(eipConfig.getRegion());
         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
         String userId = CommonUtil.getUserId();
         log.debug("get tenantid:{} from clientv3", userId);
@@ -226,6 +228,28 @@ public class EipDaoService {
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
             data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
             return data;
+        }
+        if(eip.getFloatingIpId() == null && eip.getFloatingIp() == null) {
+            String networkId =  getExtNetId(eip.getRegion());
+            if(null == networkId) {
+                log.error("Failed to get external net in region:{}. ", eip.getRegion());
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                data.put("interCode", ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE);
+                return data;
+            }
+            NetFloatingIP floatingIP = neutronService.createFloatingIp(eip.getRegion(), networkId, portId);
+            if (null == floatingIP) {
+                log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
+                        networkId, eip.getRegion(), portId);
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                data.put("interCode", ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE);
+                return data;
+            }
+            eip.setFloatingIpId(floatingIP.getId());
+            eip.setFloatingIp(floatingIP.getFloatingIpAddress());
+            eipRepository.save(eip);
         }
         ActionResponse actionResponse;
         try{

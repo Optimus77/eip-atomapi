@@ -68,6 +68,8 @@ public class Eip implements Serializable {
 
     private String projectId;
 
+    private String region;
+
     @Column(name="create_time" ,nullable = false)
     private Date createTime = new Date(System.currentTimeMillis());
 
