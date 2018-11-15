@@ -214,7 +214,7 @@ public class EipDaoService {
             return data;
         }
 
-        if(!(eip.getStatus().equals("DOWN")) || (null != eip.getDnatId())
+        if(!("DOWN".equals(eip.getStatus())) || (null != eip.getDnatId())
                 || (null != eip.getSnatId()) || (null != eip.getPipId())){
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
