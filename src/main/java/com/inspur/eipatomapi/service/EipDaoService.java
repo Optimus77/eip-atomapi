@@ -57,27 +57,30 @@ public class EipDaoService {
      * @return result
      */
     @Transactional
-    public Eip allocateEip(EipAllocateParam eipConfig, String portId) throws Exception{
+    public  Eip allocateEip(EipAllocateParam eipConfig, String portId) throws Exception{
 
         EipPool eip = getOneEipFromPool();
-
         if(null == eip) {
             log.error("Failed to allocate eip in eip pool.");
             return null;
         }
+        if (!eip.getState().equals("0")) {
+            log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
+            eipPoolRepository.save(eip);
+            return null;
+        }
+
         String networkId =  getExtNetId(eipConfig.getRegion());
         if(null == networkId) {
             log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
+            eipPoolRepository.save(eip);
             return null;
         }
         Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
         if(null != eipEntity){
             log.error("Fatal Error! get a duplicate eip from eip pool, eip:{}.",
                     eipEntity.getEipAddress(), eipEntity.getEipId());
-            return null;
-        }
-        if (!eip.getState().equals("0")) {
-            log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
+            eipPoolRepository.save(eip);
             return null;
         }
 
@@ -85,6 +88,7 @@ public class EipDaoService {
         if (null == floatingIP) {
             log.error("Fatal Error! Can not get floating ip in network:{}, region:{}, portId:{}.",
                     networkId, eipConfig.getRegion(), portId);
+            eipPoolRepository.save(eip);
             return null;
         }
         Eip eipMo = new Eip();
@@ -107,7 +111,6 @@ public class EipDaoService {
         log.debug("get tenantid from token:{}", CommonUtil.getProjectId());
         eipMo.setProjectId(userId);
 
-        eipPoolRepository.delete(eip);
         eipMo = eipRepository.save(eipMo);
         return eipMo;
     }
@@ -569,7 +572,11 @@ public class EipDaoService {
     }
 
     private synchronized EipPool getOneEipFromPool(){
-        return eipPoolRepository.getEipByRandom();
+        EipPool eipAddress =  eipPoolRepository.getEipByRandom();
+        if(null != eipAddress) {
+            eipPoolRepository.deleteById(eipAddress.getId());
+        }
+        return eipAddress;
     }
 
 
