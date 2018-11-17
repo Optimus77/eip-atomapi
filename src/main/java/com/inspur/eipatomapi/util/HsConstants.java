@@ -2,7 +2,37 @@ package com.inspur.eipatomapi.util;
 
 public class HsConstants {
 	public static final String USER = "InnetAdmin";
-	public static final String PWD = "innetadmin";
+
+	public static final String PAYSUCCESS = "paySuccess";
+    public static final String HOURLYSETTLEMENT = "hourlySettlement";
+    public static final String MONTHLY = "monthly";
+    public static final String EIP = "EIP";
+    public static final String PROVIDER = "provider";
+    public static final String IMPACTFACTOR = "impactFactor";
+    public static final String NET = "net";
+    public static final String M = "M";
+    public static final String BANDWIDTH = "Bandwidth";
+    public static final String SHAREDBANDWIDTH = "SharedBandwidth";
+    public static final String FAIL = "fail";
+	public static final String FORBIDEN = "Forbiden";
+	public static final String EXCEPTION = "exception";
+
+
+    public static final String BGP = "BGP";
+    public static final String BILLINGITEM = "billingItem";
+    public static final String TRANSFER = "transfer";
+    public static final String REGION = "region";
+    public static final String IPTYPE = "iptype";
+    public static final String DURATION = "duration";
+    public static final String UNSUBSCRIBE = "unsubscribe";
+    public static final String SUCCESS = "success";
+    public static final String DELETE = "DELETE";
+    public static final String POST = "post";
+    public static final String AUTHORIZATION = "Authorization";
+
+
+
+
 	public static final String VSYS = "0";
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";
@@ -163,4 +193,7 @@ public class HsConstants {
 	public static final String REST_URL_SERVICE = "/rest/doc/servicebook";
 
 	public static final String COLON = ":";
+
+	// --- 1xx Informational ---
+
 }

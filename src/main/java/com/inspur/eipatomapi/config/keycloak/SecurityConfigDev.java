@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-@Profile(value = "dev")
+//@Profile(value = "dev")
 @KeycloakConfiguration
 public class SecurityConfigDev extends WebSecurityConfigurerAdapter {
 

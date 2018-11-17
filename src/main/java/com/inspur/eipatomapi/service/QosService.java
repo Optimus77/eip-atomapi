@@ -1,17 +1,22 @@
 package com.inspur.eipatomapi.service;
 
+import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.HsHttpClient;
 import com.inspur.eipatomapi.util.IpUtil;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class QosService extends BaseService {
+public class QosService {
     private String fwIp;
     private String fwPort;
     private String fwUser;
     private String fwPwd;
+
+    public final static Logger log = LoggerFactory.getLogger(QosService.class);
 
     QosService(String fwIp, String fwPort, String fwUser, String fwPwd) {
         this.fwIp = fwIp;
@@ -26,23 +31,24 @@ public class QosService extends BaseService {
         try {
             String retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", this.getCreatePipeJson(info));
             JSONObject jo = new JSONObject(retr);
-            boolean success = jo.getBoolean("success");
-            res.put("success", success);
+            boolean success = jo.getBoolean(HsConstants.SUCCESS);
+            res.put(HsConstants.SUCCESS, success);
             if (success) {
                 Map<String, String> map = this.getQosPipeId((String)info.get("pipeName"));
-                if (((String)map.get("success")).equals("true")) {
+                if (((String)map.get(HsConstants.SUCCESS)).equals("true")) {
                     res.put("id", (String)map.get("id"));
                 } else {
-                    res.put("msg", "创建成功,未能返回id,请主动调用查询接口,根据名称查询新创建的管道id");
+                    res.put("msg", "Create success,but id not found,please call find api by pip name.");
                 }
             } else {
-                res.put("msg", jo.getString("exception"));
+                log.info("add qos failed, result:{}", jo);
+                res.put("msg", jo.getJSONObject(HsConstants.EXCEPTION));
             }
 
             return res;
         } catch (Exception var7) {
-            this.logger.error(var7.getMessage());
-            res.put("success", "false");
+            log.error(var7.getMessage());
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var7.getMessage());
             return res;
         }
@@ -55,21 +61,21 @@ public class QosService extends BaseService {
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos", json);
             JSONObject jo = new JSONObject(retr);
-            boolean success = jo.getBoolean("success");
+            boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (success) {
                 res.put("success", "true");
-            } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject("exception").getString("message"))) {
+            } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject(HsConstants.EXCEPTION).getString("message"))) {
                 res.put("success", "true");
-                res.put("msg", "传入的pipeId不存在");
+                res.put("msg", "pip not found.");
             } else {
                 res.put("success", "false");
-                res.put("msg", jo.getString("exception"));
+                res.put("msg", jo.getString(HsConstants.EXCEPTION));
             }
 
             return res;
         } catch (Exception var7) {
-            this.logger.error(var7);
-            res.put("success", "false");
+            log.error(var7.getMessage());
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var7.getMessage());
             return res;
         }
@@ -77,20 +83,19 @@ public class QosService extends BaseService {
 
     HashMap<String, String> updateQosPipe(String pipeId, String pipeName, String bandWidth) {
         HashMap res = new HashMap();
-
         try {
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", this.getUpdateJson(pipeId, pipeName, bandWidth));
             JSONObject jo = new JSONObject(retr);
-            String success = jo.getString("success");
-            res.put("success", success);
-            if (!"true".equals(success)) {
-                res.put("msg", jo.getString("exception"));
+            log.info("updateQosPipe result {}",jo);
+            boolean success=jo.getBoolean(HsConstants.SUCCESS);
+            res.put(HsConstants.SUCCESS, success);
+            if (jo.getBoolean(HsConstants.SUCCESS)) {
+                res.put("msg", jo.get(HsConstants.EXCEPTION));
             }
-
             return res;
         } catch (Exception var8) {
-            this.logger.error(var8);
-            res.put("success", "false");
+            log.error(var8.getMessage());
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var8.getMessage());
             return res;
         }
@@ -130,12 +135,12 @@ public class QosService extends BaseService {
                 }
             }
 
-            res.put("success", "true");
+            res.put(HsConstants.SUCCESS, "true");
             res.put("id", id);
             return res;
         } catch (Exception var11) {
-            this.logger.error(var11);
-            res.put("success", "false");
+            log.error(var11.getMessage());
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var11.getMessage());
             return res;
         }

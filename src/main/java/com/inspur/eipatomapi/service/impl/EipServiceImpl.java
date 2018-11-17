@@ -2,186 +2,364 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eipatomapi.entity.*;
-import com.inspur.eipatomapi.repository.EipPoolRepository;
+import com.inspur.eipatomapi.config.CodeInfo;
+import com.inspur.eipatomapi.entity.ReturnMsg;
+import com.inspur.eipatomapi.entity.bss.*;
+import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.repository.EipRepository;
-import com.inspur.eipatomapi.repository.FirewallRepository;
+import com.inspur.eipatomapi.service.BssApiService;
+import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
-import com.inspur.eipatomapi.service.FirewallService;
-import com.inspur.eipatomapi.util.CommonUtil;
+import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpStatus;
+import org.apache.http.HttpResponse;
+import org.apache.http.protocol.HTTP;
 import org.openstack4j.model.common.ActionResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openstack4j.model.compute.Address;
 import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
-import org.openstack4j.model.network.NetFloatingIP;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
-/**
- * @Auther: jiasirui
- * @Date: 2018/9/14 09:32
- * @Description:  the Eip Service Interface
- */
 
 @Service
 public class EipServiceImpl implements IEipService {
 
     @Autowired
     private EipRepository eipRepository;
-    @Autowired
-    private EipPoolRepository eipPoolRepository;
-    @Autowired
-    private FirewallService firewallService;
+
     @Autowired
     private NeutronService neutronService;
+
     @Autowired
-    private FirewallRepository firewallRepository;
+    private EipDaoService eipDaoService;
 
+    @Autowired
+    private BssApiService bssApiService;
 
-    private static final  Log log = LogFactory.getLog(EipServiceImpl.class);
+    @Value("${mq.pushMq}")
+    private String pushMq;
 
-    /**
-     * allocate eip
-     * @param region     region
-     * @param networkId  network id
-     * @return           result
-     */
-    private synchronized EipPool allocateEip(String region, String networkId){
-
-        List<EipPool> eipList = eipPoolRepository.findAll();
-        for(EipPool eip: eipList) {
-            if (eip != null) {
-                String eipState="0";
-                if (eip.getState().equals(eipState)) {
-                    eipPoolRepository.delete(eip);
-                    return eip;
-                }
-            }
-        }
-        log.warn("Failed to allocate eip in network："+networkId);
-        return null;
-    }
-
-    /**
-     * find eip by id
-     * @param eipId  eip id
-     * @return  eip entity
-     */
-    private Eip findEipEntryById(String eipId){
-        Eip eipEntity = null;
-        Optional<Eip> eip = eipRepository.findById(eipId);
-        if (eip.isPresent()) {
-            eipEntity = eip.get();
-        }
-        return eipEntity;
-    }
+    public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
     /**
      * create a eip
      * @param eipConfig          config
-     * @param externalNetWorkId  external network id
-     * @param portId             port id
      * @return                   json info of eip
-     * @throws Exception         e
+     */
+    @ICPServiceLog
+    public ResponseEntity atomCreateEip(EipAllocateParam eipConfig) {
+
+        String code;
+        String msg;
+        try {
+            Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
+            if (null != eipMo) {
+                EipReturnBase eipInfo = new EipReturnBase();
+                BeanUtils.copyProperties(eipMo, eipInfo);
+                log.info("Atom create a eip success:{}", eipMo);
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+            } else {
+                code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                log.error(msg);
+            }
+
+        }catch (Exception e){
+
+            log.error("Exception in atomCreateEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * delete eip
+     * @param eipId eipid
+     * @return return
+     */
+    @ICPServiceLog
+    public ResponseEntity atomDeleteEip(String eipId) {
+        String msg;
+        String code;
+
+        try {
+            ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
+            if (actionResponse.isSuccess()){
+                log.info("Atom delete eip successfully, eipId:{}", eipId);
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else {
+                msg = actionResponse.getFault();
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            }
+        }catch (Exception e){
+            log.error("Exception in atomDeleteEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    /**
+     * create a eip
+     * @param eipOrder          config
+     * @return                   json info of eip
      */
     @Override
     @ICPServiceLog
-    public JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) throws Exception {
+    public ResponseEntity createEip(EipReciveOrder eipOrder) {
 
+        String code;
+        String msg;
+        try {
+            log.info("Recive order:{}", JSONObject.toJSONString(eipOrder));
+            EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
+                    retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
+                ReturnMsg returnMsg = preCheckParam(eipConfig);
+                if(!returnMsg.getCode().equals(ReturnStatus.SC_OK)){
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
+                    return new ResponseEntity<>(returnMsg, HttpStatus.BAD_REQUEST);
+                }
+                Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
+                if (null != eipMo) {
+                    EipReturnBase eipInfo = new EipReturnBase();
+                    BeanUtils.copyProperties(eipMo, eipInfo);
 
-        JSONObject eipWrapper=new JSONObject();
-        JSONObject eipInfo = new JSONObject();
+                    //Return message to the front desk
+                    returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
 
-        EipPool eip = allocateEip(eipConfig.getRegion(), externalNetWorkId);
-        if (null != eip) {
-            NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(),externalNetWorkId,portId);
-            if(null != floatingIP) {
-                Eip eipMo = new Eip();
-                eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
-                eipMo.setFixedIp(floatingIP.getFixedIpAddress());
-                eipMo.setEip(eip.getIp());
-                eipMo.setState("DOWN");
-                eipMo.setLinkType(eipConfig.getIpType());
-                eipMo.setFirewallId(eip.getFireWallId());
-                eipMo.setFloatingIpId(floatingIP.getId());
-
-                eipMo.setChargeType(eipConfig.getChargeType());
-                eipMo.setPurchaseTime(eipConfig.getPurchaseTime());
-
-                eipMo.setChargeMode(eipConfig.getChargeMode());
-                eipMo.setBanWidth(eipConfig.getBanWidth());
-                eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
-                eipMo.setProjectId(CommonUtil.getProjectId());
-                eipRepository.save(eipMo);
-
-                eipInfo.put("eipid", eip.getId());
-                eipInfo.put("status", eipMo.getState());
-                eipInfo.put("iptype", eipMo.getLinkType());
-                eipInfo.put("chargetype", eipMo.getChargeType());
-                eipInfo.put("chargemode", eipMo.getChargeMode());
-                eipInfo.put("purchasetime", eipMo.getPurchaseTime());
-                eipInfo.put("eip_address", eipMo.getEip());
-                eipInfo.put("bandwidth", eipMo.getBanWidth());
-                eipInfo.put("sharedbandwidth_id", eipMo.getSharedBandWidthId());
-                eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipMo.getCreateTime()));
-                eipWrapper.put("eip", eipInfo);
-                return eipWrapper;
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),HsConstants.SUCCESS));
+                    return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+                } else {
+                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    log.error(msg);
+                }
             }else {
-                log.warn("Failed to create floating ip in external network:"+externalNetWorkId);
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
+                code = ReturnStatus.SC_RESOURCE_ERROR;
+                msg = "not payed.";
+                log.info(msg);
+            }
+        }catch (Exception e){
+            log.error("Exception in createEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
+        EipAllocateParam eipAllocateParam = new EipAllocateParam();
+        eipAllocateParam.setDuration(eipOrder.getReturnConsoleMessage().getDuration());
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
+
+        eipAllocateParam.setBillType(eipOrder.getReturnConsoleMessage().getBillType());
+
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
+                continue;
+            }
+            eipAllocateParam.setRegion(eipOrderProduct.getRegion());
+            List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
+            for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
+                if(eipOrderProductItem.getCode().equals("bandwidth") &&
+                        eipOrderProductItem.getUnit().equals(HsConstants.M)){
+                    eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
+                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER) &&
+                        eipOrderProductItem.getType().equals(HsConstants.IMPACTFACTOR)){
+                    eipAllocateParam.setIptype(eipOrderProductItem.getValue());
+                }
             }
         }
-        eipInfo.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        eipWrapper.put("eip", eipInfo);
-        return eipWrapper;
+        log.info("Get eip param from order:{}", eipAllocateParam.toString());
+        /*chargemode now use the default value */
+        return eipAllocateParam;
     }
+    private ReturnMsg preCheckParam(EipAllocateParam param){
+        String errorMsg = "Param:";
+        if(param.getBandwidth() > 2000 || param.getBandwidth() < 1){
+            errorMsg = "bandwidht:value must be 1-2000.";
+        }
+        if(!param.getChargemode().equals(HsConstants.BANDWIDTH) &&
+                !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)){
+            errorMsg = errorMsg + "chargemode:Only Bandwidth,SharedBandwidth is allowed. ";
+        }
 
-
-
+        if(!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
+            errorMsg = errorMsg + "billType:Only monthly,hourlySettlement is allowed. ";
+        }
+        if(param.getRegion().isEmpty()){
+            errorMsg = errorMsg + "region:can not be blank.";
+        }
+        String tp = param.getIptype();
+        if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
+                !tp.equals("5_union") && !tp.equals("BGP")){
+            errorMsg = errorMsg +"iptype:Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+        }
+        if(errorMsg.equals("Param:")) {
+            log.info(errorMsg);
+           return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
+        }else {
+            log.error(errorMsg);
+           return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
+        }
+    }
     /**
      * 1.delete  floatingIp
      * 2.Determine if Snate and Qos is deleted
      * 3.delete eip
      *
-     * @param name  name
-     * @param eipId  eip ip
+     * @param eipIds  eip ids
      * @return       result: true/false
      */
     @Override
     @ICPServiceLog
-    public Boolean deleteEip(String name, String eipId) throws Exception {
-        Boolean result = false;
-        Eip eipEntity = findEipEntryById(eipId);
-        if (null != eipEntity) {
-            if ((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null != eipEntity.getSnatId())) {
-                log.warn("Failed to delete eip,Eip is bind to port.");
-            } else {
-                result = neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId());
-                EipPool eipPoolMo = new EipPool();
-                eipPoolMo.setFireWallId(eipEntity.getFirewallId());
-                eipPoolMo.setIp(eipEntity.getEip());
-                eipPoolMo.setState("0");
-                eipPoolRepository.save(eipPoolMo);
-                eipRepository.deleteById(eipId);
+    public ResponseEntity deleteEipList(List<String> eipIds) {
+        String errorMsg;
+        try {
+            ActionResponse actionResponse;
+            List<String > failedIds = new ArrayList<>();
+            for (String eipId : eipIds) {
+                log.info("delete eip {}", eipId);
+                //deleteEip(eipId, null);
+                 actionResponse = eipDaoService.deleteEip(eipId);
+                 if(!actionResponse.isSuccess()){
+                     failedIds.add(eipId);
+                     log.error("delete eip error, eipId:{}", eipId);
+                 }
             }
-        } else {
-            log.warn("eipid errors");
+            if(failedIds.isEmpty()){
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else {
+                errorMsg = failedIds.toString();
+                log.error(errorMsg);
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEipList", e);
+            errorMsg = e.getMessage();
         }
-        return result;
+        return new ResponseEntity<>(
+                ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, errorMsg),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     *  delete eip
+     * @param eipId  eip id
+     * @param eipOrder  eip order
+     * @return return
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity deleteEip(String eipId, EipReciveOrder eipOrder) {
+        String msg;
+        String code;
+
+        try {
+            EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
+            if(eipOrder.getOrderStatus().equals("createSuccess")  ||
+             retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                ActionResponse actionResponse =  eipDaoService.deleteEip(eipId);
+                if (actionResponse.isSuccess()){
+
+
+                    //Return message to the front des
+                    returnsWebsocket(eipId,eipOrder,"delete");
+
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.SUCCESS));
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                }else {
+                    msg = actionResponse.getFault();
+                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                }
+            }else{
+                msg = "Failed to delete eip,failed to create delete. orderStatus: "+eipOrder.getOrderStatus();
+                code = ReturnStatus.SC_PARAM_UNKONWERROR;
+                log.error(msg);
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.FAIL));
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @ICPServiceLog
+    public ResponseEntity softDownEip(String eipId, EipSoftDownOrder eipOrder) {
+        String msg = "";
+        String code;
+        int failFlag = 0;
+
+        try {
+            List<EipSoftDownInstance>  eipRenewInstances  = eipOrder.getInstanceList();
+            for(EipSoftDownInstance eipRenewInstance: eipRenewInstances){
+                ActionResponse actionResponse = eipDaoService.softDownEip(eipRenewInstance.getInstanceId());
+                if(!actionResponse.isSuccess()){
+                    failFlag = failFlag + 1;
+                    msg = msg +  actionResponse.getFault();
+                }
+            }
+            if(failFlag == 0){
+                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.SUCCESS));
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else {
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.FAIL));
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @ICPServiceLog
+    public ResponseEntity renewEip(String eipId, EipReciveOrder eipOrder) {
+        String msg = "";
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+
+        try {
+            EipOrder eipReturn = eipOrder.getReturnConsoleMessage();
+            String addTime = eipReturn.getDuration();
+
+            ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+            if(actionResponse.isSuccess()){
+                log.info("renew eip:{} , add duration:{}",eipId, addTime);
+
+                //Return message to the front des
+                returnsWebsocket(eipId,eipOrder,"renew");
+
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else{
+                msg = actionResponse.getFault();
+                log.error(msg);
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEip", e);
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -191,148 +369,60 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    public JSONObject listEips(int currentPage,int limit,boolean returnFloatingip){
-        log.info("listEips  service start execute");
-        JSONObject returnjs = new JSONObject();
+    @ICPServiceLog
+    public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
 
         try {
+            String projcectid=CommonUtil.getUserId();
+            log.info("listEips  of user, userId:{}", projcectid);
+
+            if(projcectid==null){
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data=new JSONObject();
+            JSONArray eips=new JSONArray();
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
-                Page<Eip> page = eipRepository.findAll(pageable);
-                JSONObject data=new JSONObject();
-                JSONArray eips=new JSONArray();
+                Page<Eip> page=eipRepository.findByProjectId(projcectid,pageable);
                 for(Eip eip:page.getContent()){
-                    JSONObject eipJson=new JSONObject();
-                    eipReturnValueHandler(eipJson,eip,returnFloatingip);
-                    eips.add(eipJson);
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceid(eip.getInstanceId())
+                            .resourcetype(eip.getInstanceType()).build());
+                    eips.add(eipReturnDetail);
                 }
                 data.put("eips",eips);
                 data.put("totalPages",page.getTotalPages());
                 data.put("totalElements",page.getTotalElements());
                 data.put("currentPage",currentPage);
                 data.put("currentPagePer",limit);
-                returnjs.put("data",data);
-                returnjs.put("code",HttpStatus.SC_OK);
-                returnjs.put("msg","Success");
             }else{
-                List<Eip> eipList=eipRepository.findAll();
-                JSONObject data=new JSONObject();
-                JSONArray eips=new JSONArray();
+                List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
                 for(Eip eip:eipList){
-                    JSONObject eipJson=new JSONObject();
-                    eipReturnValueHandler(eipJson,eip,returnFloatingip);
-                    eips.add(eipJson);
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceid(eip.getInstanceId())
+                            .resourcetype(eip.getInstanceType()).build());
+                    eips.add(eipReturnDetail);
                 }
                 data.put("eips",eips);
                 data.put("totalPages",1);
                 data.put("totalElements",eips.size());
                 data.put("currentPage",1);
                 data.put("currentPagePer",eips.size());
-                returnjs.put("data",data);
-                returnjs.put("code",HttpStatus.SC_OK);
-                returnjs.put("msg","Success");
             }
-
-        }catch (Exception e){
-            e.printStackTrace();
-            returnjs.put("data",e.getMessage());
-            returnjs.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("msg", e.getCause());
-
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        }catch(KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e){
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return returnjs;
     }
-
-    /**
-     * associate port with eip
-     * @param eip          eip
-     * @param serverId     server id
-     * @param instanceType instance type
-     * @return             true or false
-     * @throws Exception   e
-     */
-    private Boolean associateInstanceWithEip(Eip eip, String serverId, String instanceType) throws Exception{
-        ActionResponse actionResponse = neutronService.associaInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
-        String dnatRuleId = null;
-        String snatRuleId = null;
-        if(actionResponse.isSuccess()){
-            dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
-            snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
-            if((null != dnatRuleId) && (null != snatRuleId)){
-//                pipId = firewallService.addQos(eip.getFloatingIp(),
-//                        eip.getEip(),
-//                        String.valueOf(eip.getBanWidth()),
-
-                    eip.setInstanceId(serverId);
-                    eip.setInstanceType(instanceType);
-                    eip.setDnatId(dnatRuleId);
-                    eip.setSnatId(snatRuleId);
-                    eip.setPipId("//TODO qos function is not support now");
-                    eip.setState("1");
-                    eipRepository.save(eip);
-                    return true;
-
-            } else {
-                log.warn("Failed to add snat and dnat in firewall"+eip.getFirewallId());
-            }
-        } else {
-            log.warn("Failed to associate port with eip, serverId:"+serverId);
-        }
-        if(actionResponse.isSuccess() ){
-            neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
-        }
-        if(null != snatRuleId){
-            firewallService.delSnat(snatRuleId, eip.getFirewallId());
-        }
-        if(null != dnatRuleId){
-            firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-        }
-
-        return false;
-    }
-
-    /**
-     * disassociate port with eip
-     * @param eipEntity    eip entity
-     * @return             reuslt, true or false
-     * @throws Exception   e
-     */
-    private Boolean disassociateInstanceWithEip(Eip eipEntity) throws Exception  {
-        ActionResponse actionResponse= neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
-                                                                                         eipEntity.getInstanceId());
-        if(actionResponse.isSuccess()) {
-            eipEntity.setInstanceId(null);
-            eipEntity.setInstanceType(null);
-        } else {
-            log.warn("Failed to disassociate port with eip, floatingipid:" + eipEntity.getFloatingIpId());
-        }
-        Boolean delDnatResult = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
-        if(delDnatResult){
-            eipEntity.setDnatId(null);
-        }else{
-            log.warn("Failed to del dnat in firewall" + eipEntity.getFirewallId());
-        }
-        Boolean delSnatResult = firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId());
-        if(delSnatResult) {
-            eipEntity.setSnatId(null);
-        }else {
-            log.warn("Failed to del snat in firewall" + eipEntity.getFirewallId());
-        }
-
-        Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-        if(delQosResult) {
-            eipEntity.setPipId(null);
-        } else {
-            log.warn("Failed to del qos" + eipEntity.getPipId());
-        }
-
-        eipEntity.setState("0");
-        eipRepository.save(eipEntity);
-
-        return delDnatResult && delSnatResult && delQosResult && (actionResponse.isSuccess());
-    }
-
 
     /**
      * get detail of the eip
@@ -341,35 +431,96 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public JSONObject getEipDetail(String eipId) {
+    public ResponseEntity getEipDetail(String eipId) {
 
-        JSONObject returnjs = new JSONObject();
         try {
-            Optional<Eip> eip = eipRepository.findById(eipId);
-            if (eip.isPresent()) {
-                Eip eipEntity = eip.get();
-                JSONObject eipWrapper=new JSONObject();
-                JSONObject eipInfo = new JSONObject();
-                eipReturnValueHandler(eipInfo,eipEntity,false);
-                eipWrapper.put("eip", eipInfo);
-                returnjs.put("code", HttpStatus.SC_OK);
-                returnjs.put("data",eipWrapper);
-                returnjs.put("msg", "");
+            Eip eipEntity = eipDaoService.getEipById(eipId);
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                                .resourceid(eipEntity.getInstanceId())
+                                .resourcetype(eipEntity.getInstanceType()).build());
+
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
-                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
-                returnjs.put("data",null);
-                returnjs.put("msg", "can not find instance use this id:" + eipId+"");
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "Can not find eip by id:" + eipId+"."),
+                        HttpStatus.NOT_FOUND);
+
             }
-            log.info(returnjs.toJSONString());
-            return returnjs;
         } catch (Exception e) {
-            e.printStackTrace();
-            returnjs.put("data",e.getMessage());
-            returnjs.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("msg", e.getCause());
-            return returnjs;
+            log.error("Exception in getEipDetail", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    /**
+     * get eip by instance id
+     * @param  instanceId  the instance id
+     * @return the json result
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipByInstanceId(String instanceId) {
+
+        try {
+            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceid(eipEntity.getInstanceId())
+                        .resourcetype(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+            } else {
+                log.warn("Failed to find eip by instance id, instanceId:{}", instanceId);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find instance by this id:" + instanceId+""),
+                        HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            log.error("Exception in getEipByInstanceId", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
+     * get eip by eip
+     * @param  eip  the eip
+     * @return the json result
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipByIpAddress(String eip) {
+
+        try {
+            Eip eipEntity = eipDaoService.findByEipAddress(eip);
+
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceid(eipEntity.getInstanceId())
+                        .resourcetype(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+            } else {
+                log.warn("Failed to find eip by eip, eip:{}", eip);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find eip by this eip address:" + eip+""),
+                        HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            log.error("Exception in getEipByIpAddress", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -380,61 +531,32 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public JSONObject updateEipBandWidth(String id, EipUpdateParamWrapper param) {
-
-        JSONObject returnjs = new JSONObject();
+    public ResponseEntity updateEipBandWidth(String id, EipUpdateParamWrapper param) {
+        String code;
+        String msg;
         try {
-            Optional<Eip> eip = eipRepository.findById(id);
-            if (eip.isPresent()) {
-                Eip eipEntity = eip.get();
-                if(param.getEipUpdateParam().getChargeType()!=null){
-                    if(param.getEipUpdateParam().getBandWidth()==0){
-                        log.info("=====error==>>========="+param.getEipUpdateParam().getBandWidth());
-                        returnjs.put("code",HttpStatus.SC_BAD_REQUEST);
-                        returnjs.put("data","{}");
-                        returnjs.put("msg", "bindwidth is null");
-                    }else{
-                        boolean updateStatus=firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(),eipEntity.getId(),String.valueOf(param.getEipUpdateParam().getBandWidth()));
-                        if(updateStatus){
-                            log.info("before change："+eipEntity.getBanWidth());
-                            eipEntity.setBanWidth(param.getEipUpdateParam().getBandWidth());
-                            log.info("after  change："+eipEntity.getBanWidth());
-                            eipRepository.save(eipEntity);
-                            JSONObject eipJSON = new JSONObject();
-                            eipReturnValueHandler(eipJSON,eipEntity,false);
-                            returnjs.put("eip",eipJSON);
-                            returnjs.put("code",HttpStatus.SC_OK);
-                            returnjs.put("data",new JSONObject().put("data",returnjs));
-                            returnjs.put("msg", "");
-                        }else{
-                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                            returnjs.put("data",null);
-                            returnjs.put("msg", "the qos set is not success,please contact the dev");
-                        }
-                    }
-                }else{
-                    returnjs.put("code",HttpStatus.SC_BAD_REQUEST);
-                    returnjs.put("data",null);
-                    returnjs.put("msg", "need the param bindwidth");
-                }
-            } else {
-                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
-                returnjs.put("data",null);
-                returnjs.put("msg", "can not find instance use this id:" +id+"");
+            JSONObject result = eipDaoService.updateEipEntity(id, param);
+            if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                code = result.getString("interCode");
+                int httpResponseCode=result.getInteger("httpCode");
+                msg = result.getString("reason");
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+            }else{
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                Eip eipEntity=(Eip)result.get("data");
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceid(eipEntity.getInstanceId())
+                        .resourcetype(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             }
-        }catch (NumberFormatException e){
-            e.printStackTrace();
-            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("data",null);
-            returnjs.put("msg", "BandWidth must be a Integer"+e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("data",null);
-            returnjs.put("error", e.getMessage()+"");
+            log.error("Exception in updateEipBandWidth", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
         }
-        log.info(returnjs.toString());
-        return returnjs;
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 
@@ -446,64 +568,47 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public JSONObject eipBindServer(String id, String type,String serverId){
-        JSONObject returnjs = new JSONObject();
+    public ResponseEntity eipbindPort(String id, String type,String serverId, String portId){
+        String code;
+        String msg;
         try {
-            Optional<Eip> eip = eipRepository.findById(id);
-            if (eip.isPresent()) {
-                Eip eipEntity = eip.get();
-                switch(type){
-                    case "1":
-                        log.info(serverId);
-                        // 1：ecs
-                        if(!associateInstanceWithEip(eipEntity, serverId, type)){
-                            log.warn("Failed to associate port with eip:%s."+ id);
-                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                            returnjs.put("data","{}");
-                            returnjs.put("msg", "can't associate  port with eip"+ id);
-                        }else{
-                            JSONObject eipJSON = new JSONObject();
-                            eipReturnValueHandler(eipJSON,eipEntity,false);
-                            JSONObject eipjs=new JSONObject();
-                            eipjs.put("eip",eipJSON);
-                            returnjs.put("code",HttpStatus.SC_OK);
-                            returnjs.put("data",eipjs);
-                            returnjs.put("msg", "successful");
-                        }
-                        break;
-                    case "2":
-                        // 2：cps
-                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
-                        returnjs.put("data","{}");
-                        returnjs.put("msg", "no support type param "+type);
-                        break;
-                    case "3":
-                        // 3：slb
-                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
-                        returnjs.put("data","{}");
-                        returnjs.put("msg", "no appropriate support type param "+type);
-                        break;
-                    default:
-                        log.info("no support type");
-                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
-                        returnjs.put("data","{}");
-                        returnjs.put("msg", "no support type param "+type);
-                        break;
-                }
+            switch(type){
+                case "1":
+                    log.info("unbind a server:{}",serverId);
+                    // 1：ecs
+                    JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
+                    if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                        code = result.getString("interCode");
+                        int httpResponseCode=result.getInteger("httpCode");
+                        msg = result.getString("reason");
+                        log.error(msg);
+                        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
 
-            } else {
-                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
-                returnjs.put("data",null);
-                returnjs.put("msg", "can find eip wiht id ："+id);
+                    }else{
+                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                        Eip eipEntity=(Eip)result.get("data");
+                        BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                        eipReturnDetail.setResourceset(Resourceset.builder()
+                                .resourceid(eipEntity.getInstanceId())
+                                .resourcetype(eipEntity.getInstanceType()).build());
+                        return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                    }
+                case "2":
+                case "3":
+                default:
+                    code = ReturnStatus.SC_PARAM_ERROR;
+                    msg = "no support type param "+type;
+                    log.warn(msg);
+                    break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("data",null);
-            returnjs.put("msg", e.getMessage()+"");
+            log.error("eipbindPort exception", e);
+
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
         }
-        log.info(returnjs.toString());
-        return returnjs;
+        log.info("Error when bind port，code:{}, msg:{}.", code, msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     /**
      * un bind port
@@ -512,65 +617,55 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public JSONObject eipUnbindServer(String id){
+    public ResponseEntity unBindPort(String id){
 
-        JSONObject returnjs = new JSONObject();
+        String code;
+        String msg;
         try {
-            Optional<Eip> eip = eipRepository.findById(id);
-            if (eip.isPresent()) {
-                Eip eipEntity = eip.get();
+            Eip eipEntity = eipDaoService.getEipById(id);
+            if (null != eipEntity) {
                 String instanceType = eipEntity.getInstanceType();
-                switch(instanceType){
-                    case "1":
-                        // 1：ecs
-                        if(!disassociateInstanceWithEip(eipEntity)){
-                            log.info("Failed to disassociate port with eip"+id);
-                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                            returnjs.put("data","{}");
-                            returnjs.put("msg", "can't associate  port with eip"+ id);
-                        }else{
-                            JSONObject eipJSON = new JSONObject();
-                            eipReturnValueHandler(eipJSON,eipEntity,false);
-                            JSONObject eipjs=new JSONObject();
-                            eipjs.put("eip",eipJSON);
-                            returnjs.put("code",HttpStatus.SC_OK);
-                            returnjs.put("data",eipjs);
-                            returnjs.put("msg", "success");
-                        }
-                        break;
-                    case "2":
-                        // 2：cps
-                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
-                        returnjs.put("data","{}");
-                        returnjs.put("msg", "no support cps ");
-                        break;
-                    case "3":
-                        // 3：slb
-                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
-                        returnjs.put("data","{}");
-                        returnjs.put("msg", "no support slb ");
-                        break;
-                    default:
-                        //default ecs
-                        log.info("Unhandled instance type.");
-                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
-                        returnjs.put("data","{}");
-                        returnjs.put("msg", "no support instance type. ");
-                        break;
+                if(null != instanceType) {
+                    switch (instanceType) {
+                        case "1":
+                            // 1：ecs
+                            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(id);
+                            if (actionResponse.isSuccess()){
+                                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                                eipReturnDetail.setResourceset(Resourceset.builder()
+                                        .resourceid(eipEntity.getInstanceId())
+                                        .resourcetype(eipEntity.getInstanceType()).build());
+                                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                            }else{
+                                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                                msg = actionResponse.getFault();
+                            }
+                            break;
+                        case "2":
+                        case "3":
+                        default:
+                            //default ecs
+                            code = ReturnStatus.SC_PARAM_ERROR;
+                            msg = "no support instance type " + instanceType;
+                            break;
+                    }
+                }else{
+                    code = ReturnStatus.SC_RESOURCE_ERROR;
+                    msg = "Failed to get instance type.";
                 }
             } else {
-                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
-                returnjs.put("data","{}");
-                returnjs.put("msg", "can find eip wiht id ："+id);
+                code = ReturnStatus.SC_NOT_FOUND;
+                msg = "can not find eip wiht id ："+id;
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("data","{}");
-            returnjs.put("msg", e.getMessage()+"");
+            log.error("Exception in unBindPort", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
         }
-
-        return returnjs;
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -578,37 +673,22 @@ public class EipServiceImpl implements IEipService {
      * add eip into eip pool for test
      */
     @Override
-    public void addEipPool(String ip) {
-        String id = "firewall_id1";
-        Firewall firewall = new Firewall();
-        firewall.setIp(ip);
-        firewall.setPort("443");
-        firewall.setUser("hillstone");
-        firewall.setPasswd("hillstone");
-        firewall.setParam1("eth0/0/0");
-        firewall.setParam2("eth0/0/1");
-        firewall.setParam3("eth0/0/2");
-        firewallRepository.save(firewall);
-        List<Firewall> firewalls = firewallRepository.findAll();
-        for(Firewall fw : firewalls){
-            id = fw.getId();
-        }
+    public void addEipPool(String ip,String eip) {
 
-        for (int i = 0; i < 10; i++) {
-            EipPool eipPoolMo = new EipPool();
-            eipPoolMo.setFireWallId(id);
-            eipPoolMo.setIp("1.2.3."+i);
-            eipPoolMo.setState("0");
-            eipPoolRepository.save(eipPoolMo);
+        try {
+            eipDaoService.addEipPool(ip, eip);
+        }catch (Exception e){
+            log.error("Exception in addEipPool", e);
         }
 
     }
 
 
     @Override
-    public JSONObject listServer(){
+    @ICPServiceLog
+    public ResponseEntity listServer(){
         log.info("listServer start execute");
-        JSONObject returnjs = new JSONObject();
+
         try {
             List<Server> serverList= (List<Server>) neutronService.listServer();
             JSONArray dataArray=new JSONArray();
@@ -616,19 +696,19 @@ public class EipServiceImpl implements IEipService {
 
                 boolean bindFloatingIpFlag=true;
                 Addresses addresses =server.getAddresses();
+
                 Map<String, List<? extends Address>>  novaAddresses= addresses.getAddresses();
                 Set<String> keySet =novaAddresses.keySet();
                 for (String netname:keySet) {
                     List<? extends Address> address=novaAddresses.get(netname);
                     for(Address addr:address){
-                        log.debug(server.getId()+server.getName()+"   "+addr.getType());
+                        log.debug("Get server: id:{}, name:{}, addr:{}.",server.getId(),server.getName(),addr.getType());
                         if (addr.getType().equals("floating")){
                             log.debug("===get this =======");
                             bindFloatingIpFlag=false;
                             break;
                         }
                     }
-
                 }
                 if(bindFloatingIpFlag){
                     JSONObject data=new JSONObject();
@@ -637,54 +717,112 @@ public class EipServiceImpl implements IEipService {
                     dataArray.add(data);
                 }
             }
-            returnjs.put("code",HttpStatus.SC_OK);
-            returnjs.put("data",dataArray);
-            returnjs.put("msg", "success");
+
+            return new ResponseEntity<>(ReturnMsgUtil.success(dataArray), HttpStatus.OK);
         }catch (Exception e){
-            e.printStackTrace();
-            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            returnjs.put("data","{}");
-            returnjs.put("msg", e.getMessage()+"");
+            log.error("Exception in listServer", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+    /**
+     * get number of the eip
+     * @return the json result
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipNumber() {
+        try {
+            String projectid =CommonUtil.getUserId();
+            List<Eip> eips = eipDaoService.findByProjectId(projectid);
+            log.info("Get projectid:{} eip number:{}.", projectid, eips.size());
+            return new ResponseEntity<>(ReturnMsgUtil.success(eips.size()), HttpStatus.OK);
+        }catch (KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
+            log.error("Exception in getEipNumber", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-        return returnjs;
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipCount() {
+        try {
+            String projectid =CommonUtil.getUserId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(projectid)), HttpStatus.OK);
+        }catch (KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
+        EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
+
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            eipOrderProduct.setInstanceStatus(result);
+            eipOrderProduct.setInstanceId(eipId);
+            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        }
+
+        EipOrderResult eipOrderResult = new EipOrderResult();
+        eipOrderResult.setUserId(eipOrder.getUserId());
+        eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
+        eipOrderResult.setOrderId(eipReciveOrder.getOrderId());
+
+        List<EipOrderResultProduct> eipOrderResultProducts = new ArrayList<>();
+        EipOrderResultProduct eipOrderResultProduct = new EipOrderResultProduct();
+        eipOrderResultProduct.setOrderDetailFlowId(eipReciveOrder.getOrderDetailFlowIdList().get(0));
+        eipOrderResultProduct.setProductSetStatus(result);
+        eipOrderResultProduct.setBillType(eipOrder.getBillType());
+        eipOrderResultProduct.setDuration(eipOrder.getDuration());
+        eipOrderResultProduct.setOrderType(eipOrder.getOrderType());
+        eipOrderResultProduct.setProductList(eipOrder.getProductList());
+
+
+        eipOrderResultProducts.add(eipOrderResultProduct);
+        eipOrderResult.setProductSetList(eipOrderResultProducts);
+        return eipOrderResult;
     }
 
 
-    private JSONObject eipReturnValueHandler(JSONObject eipJson,Eip eip,boolean containsFloatingInfo){
+    private   EipOrderResult getEipSoftDownOrderResult(EipSoftDownOrder eipReciveOrder, String result){
+        EipOrderResult eipSoftDownOrder = new EipOrderResult();
+        eipReciveOrder.setFlowId("test");
+        return eipSoftDownOrder;
+    }
 
-
-        eipJson.put("eipid",eip.getId());
-        eipJson.put("status",eip.getState());
-        eipJson.put("iptype",eip.getLinkType());
-        eipJson.put("eip_address",eip.getEip());
-
-        eipJson.put("bandwidth",eip.getBanWidth());
-
-        eipJson.put("chargetype",eip.getChargeType());
-        eipJson.put("chargemode",eip.getChargeMode());
-
-        eipJson.put("instanceId",eip.getInstanceId());
-        eipJson.put("instanceType",eip.getInstanceType());
-        eipJson.put("private_ip_address",eip.getFixedIp());
-
-        if(containsFloatingInfo){
-            eipJson.put("floating_ip",eip.getFloatingIp());
-            eipJson.put("floating_ipId",eip.getFloatingIpId());
+    public void returnsWebsocket(String eipId,EipReciveOrder eipOrder,String type){
+        if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
+            try {
+                SendMQEIP sendMQEIP = new SendMQEIP();
+                sendMQEIP.setUserName(CommonUtil.getUsername());
+                sendMQEIP.setHandlerName("operateEipHandler");
+                sendMQEIP.setInstanceId(eipId);
+                sendMQEIP.setInstanceStatus("active");
+                sendMQEIP.setOperateType(type);
+                sendMQEIP.setMessageType(HsConstants.SUCCESS);
+                sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_RENEWAL_SUCCEEDED));
+                String url=pushMq;
+                log.info(url);
+                String orderStr=JSONObject.toJSONString(sendMQEIP);
+                log.info("return mq body str {}",orderStr);
+                Map<String,String> headers = new HashMap<>();
+                headers.put("Authorization", CommonUtil.getKeycloackToken());
+                headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+                HttpResponse response = HttpUtil.post(url,headers,orderStr);
+                log.info(response.getEntity().toString());
+                log.info(String.valueOf(response.getStatusLine().getStatusCode()));
+            } catch (KeycloakTokenException e) {
+                e.printStackTrace();
+            }
+        }else {
+            log.info("Wrong source of order",eipOrder.getReturnConsoleMessage().getOrderSource());
         }
-
-        eipJson.put("Sharedbandwidth_id",eip.getSharedBandWidthId());
-
-        eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
-
-        JSONObject resourceset=new JSONObject();
-        resourceset.put("resourcetype",eip.getInstanceType());
-        resourceset.put("resource_id",eip.getInstanceId());
-        eipJson.put("resourceset",resourceset);
-
-        return eipJson;
-
     }
 
 }

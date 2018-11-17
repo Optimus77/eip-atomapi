@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 
-@Profile(value = "dev")
+//@Profile(value = "dev")
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class KeycloakClientRequestFactoryDev extends KeycloakClientRequestFactory implements ClientHttpRequestFactory {
