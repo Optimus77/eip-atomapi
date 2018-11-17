@@ -57,26 +57,30 @@ public class EipDaoService {
      * @return result
      */
     @Transactional
-    public Eip allocateEip(EipAllocateParam eipConfig, String portId) throws Exception{
+    public  Eip allocateEip(EipAllocateParam eipConfig, String portId) throws Exception{
 
         EipPool eip = getOneEipFromPool();
-
         if(null == eip) {
             log.error("Failed to allocate eip in eip pool.");
             return null;
         }
+        if (!eip.getState().equals("0")) {
+            log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
+            eipPoolRepository.save(eip);
+            return null;
+        }
+
         String networkId =  getExtNetId(eipConfig.getRegion());
         if(null == networkId) {
             log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
+            eipPoolRepository.save(eip);
             return null;
         }
         Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
         if(null != eipEntity){
-            log.error("Fatal Error! get a duplicate eip from eip pool, eip:{}.", eipEntity.toString());
-            return null;
-        }
-        if (!eip.getState().equals("0")) {
-            log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
+            log.error("Fatal Error! get a duplicate eip from eip pool, eip:{}.",
+                    eipEntity.getEipAddress(), eipEntity.getEipId());
+            eipPoolRepository.save(eip);
             return null;
         }
 
@@ -84,6 +88,7 @@ public class EipDaoService {
         if (null == floatingIP) {
             log.error("Fatal Error! Can not get floating ip in network:{}, region:{}, portId:{}.",
                     networkId, eipConfig.getRegion(), portId);
+            eipPoolRepository.save(eip);
             return null;
         }
         Eip eipMo = new Eip();
@@ -99,13 +104,13 @@ public class EipDaoService {
         eipMo.setChargeMode(eipConfig.getChargemode());
         eipMo.setDuration(eipConfig.getDuration());
         eipMo.setBandWidth(eipConfig.getBandwidth());
+        eipMo.setRegion(eipConfig.getRegion());
         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
         String userId = CommonUtil.getUserId();
         log.debug("get tenantid:{} from clientv3", userId);
         log.debug("get tenantid from token:{}", CommonUtil.getProjectId());
         eipMo.setProjectId(userId);
 
-        eipPoolRepository.delete(eip);
         eipMo = eipRepository.save(eipMo);
         return eipMo;
     }
@@ -214,7 +219,7 @@ public class EipDaoService {
             return data;
         }
 
-        if(!(eip.getStatus().equals("DOWN")) || (null != eip.getDnatId())
+        if(!("DOWN".equals(eip.getStatus())) || (null != eip.getDnatId())
                 || (null != eip.getSnatId()) || (null != eip.getPipId())){
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
@@ -226,6 +231,28 @@ public class EipDaoService {
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
             data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
             return data;
+        }
+        if(eip.getFloatingIpId() == null && eip.getFloatingIp() == null) {
+            String networkId =  getExtNetId(eip.getRegion());
+            if(null == networkId) {
+                log.error("Failed to get external net in region:{}. ", eip.getRegion());
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                data.put("interCode", ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE);
+                return data;
+            }
+            NetFloatingIP floatingIP = neutronService.createFloatingIp(eip.getRegion(), networkId, portId);
+            if (null == floatingIP) {
+                log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
+                        networkId, eip.getRegion(), portId);
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                data.put("interCode", ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE);
+                return data;
+            }
+            eip.setFloatingIpId(floatingIP.getId());
+            eip.setFloatingIp(floatingIP.getFloatingIpAddress());
+            eipRepository.save(eip);
         }
         ActionResponse actionResponse;
         try{
@@ -545,7 +572,11 @@ public class EipDaoService {
     }
 
     private synchronized EipPool getOneEipFromPool(){
-        return eipPoolRepository.getEipByRandom();
+        EipPool eipAddress =  eipPoolRepository.getEipByRandom();
+        if(null != eipAddress) {
+            eipPoolRepository.deleteById(eipAddress.getId());
+        }
+        return eipAddress;
     }
 
 

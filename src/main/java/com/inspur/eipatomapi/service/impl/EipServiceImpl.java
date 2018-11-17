@@ -190,27 +190,27 @@ public class EipServiceImpl implements IEipService {
         return eipAllocateParam;
     }
     private ReturnMsg preCheckParam(EipAllocateParam param){
-        String errorMsg = "success";
+        String errorMsg = "Param:";
         if(param.getBandwidth() > 2000 || param.getBandwidth() < 1){
-            errorMsg = "value must be 1-2000.";
+            errorMsg = "bandwidht:value must be 1-2000.";
         }
         if(!param.getChargemode().equals(HsConstants.BANDWIDTH) &&
                 !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)){
-            errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+            errorMsg = errorMsg + "chargemode:Only Bandwidth,SharedBandwidth is allowed. ";
         }
 
         if(!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
-            errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            errorMsg = errorMsg + "billType:Only monthly,hourlySettlement is allowed. ";
         }
         if(param.getRegion().isEmpty()){
-            errorMsg = errorMsg + "can not be blank.";
+            errorMsg = errorMsg + "region:can not be blank.";
         }
         String tp = param.getIptype();
         if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
                 !tp.equals("5_union") && !tp.equals("BGP")){
-            errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+            errorMsg = errorMsg +"iptype:Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
-        if(errorMsg.equals("success")) {
+        if(errorMsg.equals("Param:")) {
             log.info(errorMsg);
            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
