@@ -26,5 +26,6 @@ http:
   statleConnectionCheckEnabled: true
 
 bssURL:
+  openstackIp: 10.110.25.117
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
   pushMq:      http://tenantconservice.devops.inspur.com/console/websocket/sendMessage

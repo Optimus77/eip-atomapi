@@ -13,7 +13,7 @@ import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
+import org.springframework.beans.factory.annotation.Value;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,6 +33,9 @@ public class CommonUtil {
     @Setter
     private static JSONObject KeyClockInfo;
 
+    public static String openstackIp;
+
+    public static String openstackPort;
 
 
     private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
@@ -43,6 +46,16 @@ public class CommonUtil {
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static String region="RegionOne";
     private static String region1="cn-north-3a";
+
+    @Value("${bssURL.openstackIp}")
+    public void setOpenstackIp(String openstackIp) {
+        this.openstackIp = openstackIp;
+    }
+
+//    @Value("${bssURL.openstackPort}")
+//    public void setOpenstackPort(String openstackPort) {
+//        this.openstackPort = openstackPort;
+//    }
 
 
     private static OSClientV3 getOsClientV3(){
