@@ -121,20 +121,19 @@ public class EipDaoService {
         String msg;
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
-            msg= "Faild to find eip by id:%s"+eipid;
+            msg= "Faild to find eip by id:"+eipid;
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
         if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
-            log.error("User have no write to delete eip:{}", eipid);
-            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
                 || (null != eipEntity.getSnatId())) {
-            msg = "Failed to delete eip,status error.eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+
-                    "dnatId:"+ eipEntity.getDnatId()+"snatid:"+eipEntity.getSnatId()+"";
+            msg = "Failed to delete eip,status error"+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
@@ -168,15 +167,14 @@ public class EipDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
         if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
-            log.error("User have no write to delete eip:{}", eipid);
-            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
         if (null == eipEntity.getSnatId()) {
-            msg = "Failed to softDown eip,status error.eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+
-                    "dnatId:"+ eipEntity.getDnatId()+"snatid:"+eipEntity.getSnatId()+" ";
+            msg = "Failed to softDown eip, eip:"+eipEntity.toString();
             log.error(msg);
-            return ActionResponse.actionSuccess();
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
         if(firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())){
             eipEntity.setStatus("DOWN");
@@ -184,7 +182,7 @@ public class EipDaoService {
             eipRepository.save(eipEntity);
             return ActionResponse.actionSuccess();
         } else {
-            msg = "Failed to soft down eip in firewall, eipId:"+eipEntity.getEipId()+"snatId:"+eipEntity.getSnatId()+" ";
+            msg = "Failed to softDown eip, eip:"+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
@@ -212,7 +210,7 @@ public class EipDaoService {
             return data;
         }
         if(!eip.getProjectId().equals(CommonUtil.getUserId())){
-            log.error("User have no write to operate eip:{}", eipid);
+            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
             data.put("httpCode", HttpStatus.SC_FORBIDDEN);
             data.put("interCode", ReturnStatus.SC_FORBIDDEN);
@@ -310,36 +308,19 @@ public class EipDaoService {
                     data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
                     return data;
                 }
-                if(dnatRuleId!=null&&snatRuleId!=null&&pipId!=null){
-                    eip.setInstanceId(serverId);
-                    eip.setInstanceType(instanceType);
-                    eip.setDnatId(dnatRuleId);
-                    eip.setSnatId(snatRuleId);
-                    eip.setPipId(pipId);
-                    eip.setPortId(portId);
-                    eip.setStatus("ACTIVE");
-                    eipRepository.save(eip);
-                    data.put("reason","success");
-                    data.put("httpCode", HttpStatus.SC_OK);
-                    data.put("interCode", ReturnStatus.SC_OK);
-                    data.put("data",eip);
-                    return data;
-                }else{
-                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
-                    if(dnatRuleId!=null){
-                        firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                    }
-                    if(snatRuleId!=null){
-                        firewallService.delSnat(snatRuleId, eip.getFirewallId());
-                    }
-                    if(pipId!=null){
-                        firewallService.delQos(pipId,eip.getFirewallId());
-                    }
-                    data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
-                    data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                    data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
-                    return data;
-                }
+                eip.setInstanceId(serverId);
+                eip.setInstanceType(instanceType);
+                eip.setDnatId(dnatRuleId);
+                eip.setSnatId(snatRuleId);
+                eip.setPipId(pipId);
+                eip.setPortId(portId);
+                eip.setStatus("ACTIVE");
+                eipRepository.save(eip);
+                data.put("reason","success");
+                data.put("httpCode", HttpStatus.SC_OK);
+                data.put("interCode", ReturnStatus.SC_OK);
+                data.put("data",eip);
+                return data;
             }catch (Exception e){
                 log.error("band server firewall exception",e);
 
@@ -377,7 +358,7 @@ public class EipDaoService {
         }
         if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
             log.error("User have no write to delete eip:{}", eipid);
-            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
         if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())

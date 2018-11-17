@@ -48,7 +48,7 @@ public class EipServiceImpl implements IEipService {
     @Autowired
     private BssApiService bssApiService;
 
-    @Value("${bssURL.pushMq}")
+    @Value("${mq.pushMq}")
     private String pushMq;
 
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
@@ -141,7 +141,7 @@ public class EipServiceImpl implements IEipService {
                     //Return message to the front desk
                     returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
 
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),HsConstants.SUCCESS));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
@@ -280,7 +280,7 @@ public class EipServiceImpl implements IEipService {
                     //Return message to the front des
                     returnsWebsocket(eipId,eipOrder,"delete");
 
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.SUCCESS));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                 }else {
                     msg = actionResponse.getFault();
@@ -317,7 +317,7 @@ public class EipServiceImpl implements IEipService {
                 }
             }
             if(failFlag == 0){
-                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,"success"));
+                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.SUCCESS));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
@@ -348,7 +348,7 @@ public class EipServiceImpl implements IEipService {
                 //Return message to the front des
                 returnsWebsocket(eipId,eipOrder,"renew");
 
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else{
                 msg = actionResponse.getFault();
@@ -805,7 +805,7 @@ public class EipServiceImpl implements IEipService {
                 sendMQEIP.setInstanceId(eipId);
                 sendMQEIP.setInstanceStatus("active");
                 sendMQEIP.setOperateType(type);
-                sendMQEIP.setMessageType("success");
+                sendMQEIP.setMessageType(HsConstants.SUCCESS);
                 sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_RENEWAL_SUCCEEDED));
                 String url=pushMq;
                 log.info(url);

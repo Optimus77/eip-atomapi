@@ -31,7 +31,7 @@ public class NatService  {
             params.add(new BasicNameValuePair("query", gson.toJson(query)));
             String retr = HsHttpClient.hsHttpGet(manage.getManageIP(), null, manage.getManageUser(), manage.getManagePwd(), "/rest/Snat?isDynamic=0&" + URLEncodedUtils.format(params, "UTF-8"));
             JSONObject jo = new JSONObject(retr);
-            jo.getBoolean("success");
+            jo.getBoolean(HsConstants.SUCCESS);
             return snats;
         } catch (Exception var8) {
             log.error("Exception when get snat.",var8);
@@ -48,7 +48,7 @@ public class NatService  {
                     HsConstants.REST_SNAT + HsConstants.REST_SNAT_ADD_UPDATE_DELETE, addSnatPayload("add",snat));
 
             JSONObject jo = new JSONObject(retr);
-            if (jo.getBoolean("success")) {
+            if (jo.getBoolean(HsConstants.SUCCESS)) {
                 FwSnat hsSnat = gson.fromJson(jo.getJSONArray("result").getJSONObject(0)
                         .getJSONObject("vr").getJSONObject("vrouter")
                         .getJSONObject("snat_rule").toString(), FwSnat.class);
@@ -56,8 +56,8 @@ public class NatService  {
                 body.setObject(resultVo);
             }
 
-            body.setSuccess(jo.getBoolean("success"));
-            body.setException((gson.fromJson(jo.getJSONObject("exception").toString(),
+            body.setSuccess(jo.getBoolean(HsConstants.SUCCESS));
+            body.setException((gson.fromJson(jo.getJSONObject(HsConstants.EXCEPTION).toString(),
                     FwResponseException.class)));
 
         } catch (Exception e) {
@@ -78,8 +78,8 @@ public class NatService  {
             payloadMap.put("snat_rule", idMap);
             String retr = HsHttpClient.hsHttpDelete(snat.getManageIP(), snat.getManagePort(), snat.getManageUser(), snat.getManagePwd(), "/rest/Snat?target=snat_rule", gson.toJson(payloadMap));
             JSONObject jo = new JSONObject(retr);
-            body.setSuccess(jo.getBoolean("success"));
-            body.setException(gson.fromJson(jo.getJSONObject("exception").toString(),
+            body.setSuccess(jo.getBoolean(HsConstants.SUCCESS));
+            body.setException(gson.fromJson(jo.getJSONObject(HsConstants.EXCEPTION).toString(),
                     FwResponseException.class));
         } catch (Exception var8) {
             var8.printStackTrace();
@@ -95,9 +95,9 @@ public class NatService  {
         try {
             String retr = HsHttpClient.hsHttpPost(dnat.getManageIP(), dnat.getManagePort(), dnat.getManageUser(), dnat.getManagePwd(), "/rest/Dnat?target=dnat_rule", this.getPayload(dnat));
             JSONObject jo = new JSONObject(retr);
-            body.setSuccess(jo.getBoolean("success"));
+            body.setSuccess(jo.getBoolean(HsConstants.SUCCESS));
             if (!body.isSuccess()) {
-                body.setException(gson.fromJson(jo.getJSONObject("exception").toString(),
+                body.setException(gson.fromJson(jo.getJSONObject(HsConstants.EXCEPTION).toString(),
                         FwResponseException.class));
                 return body;
             } else {
@@ -106,7 +106,6 @@ public class NatService  {
                 JSONObject jo_vr_item = jo_vr.getJSONObject("vr");
                 JSONObject jo_vrouter = jo_vr_item.getJSONObject("vrouter");
                 body.setObject(gson.fromJson(jo_vrouter.getJSONObject("dnat_rule").toString(), FwPortMapResult.class));
-                FwPortMapResult result = (FwPortMapResult) body.getObject();
                 return body;
             }
         } catch (Exception var11) {
@@ -129,9 +128,9 @@ public class NatService  {
                     dnat.getManageUser(), dnat.getManagePwd(),
                     "/rest/Dnat?target=dnat_rule", this.getPayload(dnat));
             JSONObject jo = new JSONObject(retr);
-            body.setSuccess(jo.getBoolean("success"));
+            body.setSuccess(jo.getBoolean(HsConstants.SUCCESS));
             if (!body.isSuccess()) {
-                body.setException(gson.fromJson(jo.getJSONObject("exception").toString(),
+                body.setException(gson.fromJson(jo.getJSONObject(HsConstants.EXCEPTION).toString(),
                         FwResponseException.class));
             }
 

@@ -1,7 +1,6 @@
 package com.inspur.eipatomapi.entity.eip;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -11,8 +10,7 @@ import java.util.Date;
 
 @Entity
 @Table(name="eip")
-@Getter
-@Setter
+@Data
 public class Eip implements Serializable {
 
     @Id

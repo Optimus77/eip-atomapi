@@ -47,10 +47,10 @@ public class CommonUtil {
     private static String region="RegionOne";
     private static String region1="cn-north-3a";
 
-    @Value("${bssURL.openstackIp}")
-    public void setOpenstackIp(String openstackIp) {
-        this.openstackIp = openstackIp;
-    }
+//    @Value("${bssURL.openstackIp}")
+//    public void setOpenstackIp(String openstackIp) {
+//        this.openstackIp = openstackIp;
+//    }
 
 //    @Value("${bssURL.openstackPort}")
 //    public void setOpenstackPort(String openstackPort) {

@@ -14,6 +14,9 @@ public class HsConstants {
     public static final String BANDWIDTH = "Bandwidth";
     public static final String SHAREDBANDWIDTH = "SharedBandwidth";
     public static final String FAIL = "fail";
+	public static final String FORBIDEN = "Forbiden";
+	public static final String EXCEPTION = "exception";
+
 
     public static final String BGP = "BGP";
     public static final String BILLINGITEM = "billingItem";
@@ -190,4 +193,7 @@ public class HsConstants {
 	public static final String REST_URL_SERVICE = "/rest/doc/servicebook";
 
 	public static final String COLON = ":";
+
+	// --- 1xx Informational ---
+
 }

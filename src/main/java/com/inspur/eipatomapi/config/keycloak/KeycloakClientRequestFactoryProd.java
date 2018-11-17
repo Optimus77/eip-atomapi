@@ -20,6 +20,8 @@ import org.apache.http.util.EntityUtils;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.adapters.springsecurity.client.KeycloakClientRequestFactory;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Profile;
@@ -37,7 +39,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-@Profile(value = "prod")
+//@Profile(value = "prod")
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class KeycloakClientRequestFactoryProd extends KeycloakClientRequestFactory implements ClientHttpRequestFactory {
@@ -54,7 +56,7 @@ public class KeycloakClientRequestFactoryProd extends KeycloakClientRequestFacto
     @Value("${keycloak.realm}")
     private String realm;
 
-
+    public final static Logger log = LoggerFactory.getLogger(KeycloakClientRequestFactoryProd.class);
     @Override
     protected void postProcessHttpRequest(HttpUriRequest request) {
         KeycloakSecurityContext context = this.getKeycloakSecurityContext();
@@ -143,10 +145,12 @@ public class KeycloakClientRequestFactoryProd extends KeycloakClientRequestFacto
         X509TrustManager trustManager = new X509TrustManager() {
             @Override
             public void checkClientTrusted(java.security.cert.X509Certificate[] paramArrayOfX509Certificate, String paramString) {
+                log.info("Todo, add checkClientTrusted.");
             }
 
             @Override
             public void checkServerTrusted(java.security.cert.X509Certificate[] paramArrayOfX509Certificate, String paramString) {
+                log.info("Todo: add checkServerTrusted");
             }
 
             @Override

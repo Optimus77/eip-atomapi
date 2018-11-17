@@ -3,6 +3,7 @@ package com.inspur.eipatomapi.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.fw.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
+import com.inspur.eipatomapi.util.HsConstants;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -33,7 +34,7 @@ public class FirewallService {
         if(firewall.isPresent()){
             fireWallEntity =  firewall.get();
         } else {
-            log.warn("Failed to find the firewall by id:"+ id);
+            log.warn("Failed to find the firewall by id:{}", id);
         }
         return fireWallEntity;
     }
@@ -138,7 +139,7 @@ public class FirewallService {
             HashMap<String, String> res = qs.createQosPipe(map);
             JSONObject resJson= (JSONObject) JSONObject.toJSON(res);
             log.info("{}",resJson);
-            if(resJson.getBoolean("success")) {
+            if(resJson.getBoolean(HsConstants.SUCCESS)) {
                 pipid = res.get("id");
                 if (StringUtils.isBlank(pipid)) {
                     Map<String, String> idmap = qs.getQosPipeId(eipid);
@@ -166,12 +167,12 @@ public class FirewallService {
             HashMap<String, String> result = qs.updateQosPipe(pipId, pipNmae, bindwidth);
             JSONObject resJson= (JSONObject) JSONObject.toJSON(result);
             log.info("",resJson);
-            if (resJson.getBoolean("success")) {
+            if (resJson.getBoolean(HsConstants.SUCCESS)) {
                 log.info("updateQosBandWidth: " + firewallId + " --success==bindwidth：" + bindwidth);
             } else {
                 log.info("updateQosBandWidth: " + firewallId + " --fail==bindwidth：" + bindwidth);
             }
-            return resJson.getBoolean("success");
+            return resJson.getBoolean(HsConstants.SUCCESS);
         }
         return Boolean.parseBoolean("False");
     }

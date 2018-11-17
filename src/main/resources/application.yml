@@ -20,18 +20,16 @@ http:
   socketTimeout: 10000
   statleConnectionCheckEnabled: true
 
-bssURL:
-  openstackIp: 10.110.25.117
+mq:
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
   pushMq:      http://tenantconservice.devops.inspur.com/console/websocket/sendMessage
 
+openstackIp: 10.110.25.117
 
 # Mysql
 
 # 环境 dev|prod
 spring:
-  profiles:
-    active: dev
   resources:
     # Swagger
     add-mappings: true
@@ -79,4 +77,4 @@ keycloak:
 
 # Logback
 logging:
-  config: classpath:logback-dev.xml
+  config: classpath:logback.xml
