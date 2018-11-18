@@ -139,13 +139,13 @@ public class EipServiceImpl implements IEipService {
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
                     //Return message to the front desk
-                    returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
+                    returnsWebsocket(eipMo.getEipId(),eipOrder,HsConstants.SUCCESS);
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),HsConstants.SUCCESS));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    msg = "Failed to allocate eip by config:" + eipConfig.toString();
                     log.error(msg);
                 }
             }else {
@@ -574,7 +574,7 @@ public class EipServiceImpl implements IEipService {
         try {
             switch(type){
                 case "1":
-                    log.info("unbind a server:{}",serverId);
+                    log.info("bind a server:{} with eipId:{}",serverId,id);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
                     if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){

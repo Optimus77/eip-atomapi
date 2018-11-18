@@ -78,9 +78,8 @@ public class EipDaoService {
         }
         Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
         if(null != eipEntity){
-            log.error("Fatal Error! get a duplicate eip from eip pool, eip:{}.",
+            log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{} eipId:{}.",
                     eipEntity.getEipAddress(), eipEntity.getEipId());
-            eipPoolRepository.save(eip);
             return null;
         }
 
@@ -363,8 +362,7 @@ public class EipDaoService {
 
         if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())
                 || (null == eipEntity.getDnatId()) || null == eipEntity.getFloatingIp()){
-            msg = "Error status when disassociate eip,eipId:"+eipid+ "status:"+eipEntity.getStatus()+
-                    "snatId:"+eipEntity.getSnatId()+"dnatId:"+eipEntity.getDnatId()+"fipId:"+eipEntity.getFloatingIp()+"";
+            msg = "Error status when disassociate eip:"+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
         }
@@ -377,8 +375,7 @@ public class EipDaoService {
                 eipEntity.setInstanceType(null);
                 eipEntity.setPrivateIpAddress(null);
             }else {
-                msg = "Failed to disassociate port with fip,eipId:"+eipEntity.getEipId()+
-                        "floatingip:"+eipEntity.getFloatingIp()+ "instanceId:"+eipEntity.getInstanceId()+"";
+                msg = "Failed to disassociate port with fip:"+eipEntity.toString();
                 log.error(msg);
             }
         }
