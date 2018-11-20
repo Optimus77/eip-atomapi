@@ -7,7 +7,7 @@ server:
 
   port: 8088
   servlet:
-    context-path: /vpc/eip
+    context-path: /eip
 
 error:
   code: 106
