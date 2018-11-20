@@ -178,19 +178,19 @@ public class EipController {
 
     @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @PutMapping(value = "/eips/{eip_id}/bindwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/eips/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "update eip bandWidth", notes = "put")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ResponseEntity changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+    public ResponseEntity changeEipBandWidth(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
         log.info("Update eip.{}, {}", eipId, param.getEipUpdateParam().toString());
         return eipService.updateEipBandWidth(eipId,param);
     }
 
 
     @ICPControllerLog
-    @PostMapping(value = "/eips/addeippool")
+    @PostMapping(value = "/eips/ips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity addEipPool( @RequestParam String ip,  @RequestParam String eip) {
         eipService.addEipPool(ip, eip);
@@ -208,7 +208,7 @@ public class EipController {
 
 
     @ICPControllerLog
-    @GetMapping(value = "/eips/instance/{instance_id}")
+    @GetMapping(value = "/instances/{instance_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@Size(min=36, max=36, message = "Must be uuid.")
@@ -219,7 +219,7 @@ public class EipController {
 
 
     @ICPControllerLog
-    @GetMapping(value = "/eips/eipaddress/{eipaddress}")
+    @GetMapping(value = "/eipaddress/{eipaddress}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByEipAddress",notes="get")
     public ResponseEntity getEipByEipAddress(@PathVariable String eipaddress) {
@@ -228,7 +228,7 @@ public class EipController {
     }
 
     @ICPControllerLog
-    @GetMapping(value = "/eips/eipnumber")
+    @GetMapping(value = "/eips/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getEipNumber() {
@@ -320,7 +320,7 @@ public class EipController {
     }
     
     @ICPControllerLog
-    @PostMapping(value = "/eips/renew/{eip_id}")
+    @PostMapping(value = "/renew/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
                                    @RequestBody EipReciveOrder eipReciveOrder) {
@@ -329,7 +329,7 @@ public class EipController {
     }
 
     @ICPControllerLog
-    @PostMapping(value = "/eips/softdown/{eip_id}")
+    @PostMapping(value = "/softdown/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity softDownEip(@PathVariable("eip_id") String eipId,
                                    @RequestBody EipSoftDownOrder eipReciveOrder) {
