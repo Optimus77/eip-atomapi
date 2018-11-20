@@ -22,7 +22,7 @@ http:
 
 mq:
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
-  pushMq:      http://tenantconservice.devops.inspur.com/console/websocket/sendMessage
+  pushMq:      http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
 
 openstackIp: 10.110.25.117
 
