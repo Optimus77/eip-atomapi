@@ -32,7 +32,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
-@Api(value = "eips", description = "eip API")
+@Api(value = "/v1", description = "eip API")
 @Validated
 public class EipController {
 
@@ -119,19 +119,6 @@ public class EipController {
     }
 
 
-
-    @PostMapping(value = "/eips/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ICPControllerLog
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "deleiplist")
-    public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
-        //Check the parameters
-
-        log.info("Delete the Eips:{}.", param.getEipids().toString());
-        return eipService.deleteEipList(param.getEipids());
-    }
-
-
     /**
      * get eip instance detail
      * @param eipId  the id of eip
@@ -175,19 +162,6 @@ public class EipController {
         log.info("Unbind eip.{}.", eipId);
         return eipService.unBindPort(eipId);
     }
-
-    @ICPControllerLog
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @PutMapping(value = "/eips/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "update eip bandWidth", notes = "put")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-    })
-    public ResponseEntity changeEipBandWidth(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
-        log.info("Update eip.{}, {}", eipId, param.getEipUpdateParam().toString());
-        return eipService.updateEipBandWidth(eipId,param);
-    }
-
 
     @ICPControllerLog
     @PostMapping(value = "/eips/ips")
