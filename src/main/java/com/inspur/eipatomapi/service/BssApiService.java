@@ -53,7 +53,7 @@ public class BssApiService {
     }
 
     //1.2.8 订单返回给控制台的消息
-    @Value("${bssURL.returnMq}")
+    @Value("${mq.returnMq}")
     private   String returnMq;
     public JSONObject resultReturnMq(EipOrderResult orderResult)  {
         String url=returnMq;
@@ -82,23 +82,23 @@ public class BssApiService {
                 log.info("BSS RETURN ==>{}",returnInfo);
                 if(returnInfo.containsKey("code")){
                     if(returnInfo.getInteger("code")==0){
-                        result.put("success",true);
+                        result.put(HsConstants.SUCCESS,true);
                         result.put("data",returnInfo.get("result"));
                     }else{
-                        result.put("success",false);
+                        result.put(HsConstants.SUCCESS,false);
                         result.put("data",returnInfo);
                     }
                 }else{
-                    result.put("success",false);
+                    result.put(HsConstants.SUCCESS,false);
                     result.put("data",returnInfo);
                 }
             }catch(Exception e){
                 e.printStackTrace();
-                result.put("success",false);
+                result.put(HsConstants.SUCCESS,false);
                 result.put("data",e.getMessage());
             }
         }else{
-            result.put("success",false);
+            result.put(HsConstants.SUCCESS,false);
             result.put("data",sb.toString());
         }
         return result;

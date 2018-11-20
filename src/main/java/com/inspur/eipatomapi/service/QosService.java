@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.service;
 
+import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.HsHttpClient;
 import com.inspur.eipatomapi.util.IpUtil;
 import java.util.HashMap;
@@ -30,24 +31,24 @@ public class QosService {
         try {
             String retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", this.getCreatePipeJson(info));
             JSONObject jo = new JSONObject(retr);
-            boolean success = jo.getBoolean("success");
-            res.put("success", success);
+            boolean success = jo.getBoolean(HsConstants.SUCCESS);
+            res.put(HsConstants.SUCCESS, success);
             if (success) {
                 Map<String, String> map = this.getQosPipeId((String)info.get("pipeName"));
-                if (((String)map.get("success")).equals("true")) {
+                if (((String)map.get(HsConstants.SUCCESS)).equals("true")) {
                     res.put("id", (String)map.get("id"));
                 } else {
                     res.put("msg", "Create success,but id not found,please call find api by pip name.");
                 }
             } else {
                 log.info("add qos failed, result:{}", jo);
-                res.put("msg", jo.getJSONObject("exception"));
+                res.put("msg", jo.getJSONObject(HsConstants.EXCEPTION));
             }
 
             return res;
         } catch (Exception var7) {
             log.error(var7.getMessage());
-            res.put("success", "false");
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var7.getMessage());
             return res;
         }
@@ -60,21 +61,21 @@ public class QosService {
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos", json);
             JSONObject jo = new JSONObject(retr);
-            boolean success = jo.getBoolean("success");
+            boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (success) {
                 res.put("success", "true");
-            } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject("exception").getString("message"))) {
+            } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject(HsConstants.EXCEPTION).getString("message"))) {
                 res.put("success", "true");
                 res.put("msg", "pip not found.");
             } else {
                 res.put("success", "false");
-                res.put("msg", jo.getString("exception"));
+                res.put("msg", jo.getString(HsConstants.EXCEPTION));
             }
 
             return res;
         } catch (Exception var7) {
             log.error(var7.getMessage());
-            res.put("success", "false");
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var7.getMessage());
             return res;
         }
@@ -86,15 +87,15 @@ public class QosService {
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", this.getUpdateJson(pipeId, pipeName, bandWidth));
             JSONObject jo = new JSONObject(retr);
             log.info("updateQosPipe result {}",jo);
-            boolean success=jo.getBoolean("success");
-            res.put("success", success);
-            if (jo.getBoolean("success")) {
-                res.put("msg", jo.get("exception"));
+            boolean success=jo.getBoolean(HsConstants.SUCCESS);
+            res.put(HsConstants.SUCCESS, success);
+            if (jo.getBoolean(HsConstants.SUCCESS)) {
+                res.put("msg", jo.get(HsConstants.EXCEPTION));
             }
             return res;
         } catch (Exception var8) {
             log.error(var8.getMessage());
-            res.put("success", "false");
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var8.getMessage());
             return res;
         }
@@ -134,12 +135,12 @@ public class QosService {
                 }
             }
 
-            res.put("success", "true");
+            res.put(HsConstants.SUCCESS, "true");
             res.put("id", id);
             return res;
         } catch (Exception var11) {
             log.error(var11.getMessage());
-            res.put("success", "false");
+            res.put(HsConstants.SUCCESS, "false");
             res.put("msg", var11.getMessage());
             return res;
         }
