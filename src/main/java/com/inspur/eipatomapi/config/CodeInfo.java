@@ -17,7 +17,7 @@ public  class CodeInfo {
     private static final String LANGUAGE_CN ="cn";
     private static final String LANGUAGE_EN="en";
 
-
+    public static final String ERROR_KEY="Error can not get the key.";
     public static final String KEYCLOAK_NULL="KEYCLOAK_NULL";
     public static final String KEYCLOAK_TOKEN_EXPIRED="KEYCLOAK_TOKEN_EXPIRED";
 
@@ -38,6 +38,7 @@ public  class CodeInfo {
     public static final String EIP_DELETE_SUCCEEDED="EIP_DELETE_SUCCEEDED";
     public static final String EIP_UPDATE_SUCCEEDED="EIP_UPDATE_SUCCEEDED";
     public static final String EIP_RENEWAL_SUCCEEDED="EIP_RENEWAL_SUCCEEDED";
+    public static final String EIP_FORBIDEN_WITH_ID="EIP_FORBIDEN_WITH_ID";
 
 
 
@@ -60,6 +61,7 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="修改带宽时防火墙出错";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
         public static final String EIP_FORBIDDEN ="无权操作";
+        public static final String EIP_FORBIDEN_WITH_ID ="无权操作 :{}";
 
         //Return messages
         public static final String EIP_CREATION_SUCCEEDED="弹性公网IP创建成功";
@@ -76,7 +78,7 @@ public  class CodeInfo {
             return String.valueOf(field.get(new EnCode()));
         } catch (Exception e) {
             e.printStackTrace();
-            return "error can't get "+key+" info";
+            return ERROR_KEY;
         }
     }
 
@@ -89,7 +91,7 @@ public  class CodeInfo {
                 return String.valueOf(field.get(new CnCode()));
             } catch (Exception e) {
                 //e.printStackTrace();
-                return "error can't get "+key+" info";
+                return ERROR_KEY;
             }
         }else if(language.equals(LANGUAGE_EN)){
             try {
@@ -97,7 +99,7 @@ public  class CodeInfo {
                 return String.valueOf(field.get(new EnCode()));
             } catch (Exception e) {
                 //e.printStackTrace();
-                return "error can't get "+key+" info";
+                return ERROR_KEY;
             }
         }else{
             return "can,t get this language";
@@ -124,7 +126,7 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDTH_ERROR="the fillware error when update the bandwidht";
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="the bandwidth must bigger than orgin when choose prepaid modle";
         public static final String EIP_FORBIDDEN ="Forbidden to operate.";
-
+        public static final String EIP_FORBIDEN_WITH_ID ="Forbidden to operate,id:{}.";
         //Return messages
         public static final String EIP_CREATION_SUCCEEDED="Flexible public network IP creation succeeded";
         public static final String EIP_DELETE_SUCCEEDED="Flexible public network IP deletion succeeded";

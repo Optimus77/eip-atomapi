@@ -48,7 +48,7 @@ public class EipServiceImpl implements IEipService {
     @Autowired
     private BssApiService bssApiService;
 
-    @Value("${bssURL.pushMq}")
+    @Value("${mq.pushMq}")
     private String pushMq;
 
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
@@ -139,13 +139,13 @@ public class EipServiceImpl implements IEipService {
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
                     //Return message to the front desk
-                    returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
+                    returnsWebsocket(eipMo.getEipId(),eipOrder,HsConstants.SUCCESS);
 
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),"success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),HsConstants.SUCCESS));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    msg = "Failed to allocate eip by config:" + eipConfig.toString();
                     log.error(msg);
                 }
             }else {
@@ -190,27 +190,27 @@ public class EipServiceImpl implements IEipService {
         return eipAllocateParam;
     }
     private ReturnMsg preCheckParam(EipAllocateParam param){
-        String errorMsg = "success";
+        String errorMsg = "Param:";
         if(param.getBandwidth() > 2000 || param.getBandwidth() < 1){
-            errorMsg = "value must be 1-2000.";
+            errorMsg = "bandwidht:value must be 1-2000.";
         }
         if(!param.getChargemode().equals(HsConstants.BANDWIDTH) &&
                 !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)){
-            errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+            errorMsg = errorMsg + "chargemode:Only Bandwidth,SharedBandwidth is allowed. ";
         }
 
         if(!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
-            errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            errorMsg = errorMsg + "billType:Only monthly,hourlySettlement is allowed. ";
         }
         if(param.getRegion().isEmpty()){
-            errorMsg = errorMsg + "can not be blank.";
+            errorMsg = errorMsg + "region:can not be blank.";
         }
         String tp = param.getIptype();
         if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
                 !tp.equals("5_union") && !tp.equals("BGP")){
-            errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+            errorMsg = errorMsg +"iptype:Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
-        if(errorMsg.equals("success")) {
+        if(errorMsg.equals("Param:")) {
             log.info(errorMsg);
            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
@@ -280,7 +280,7 @@ public class EipServiceImpl implements IEipService {
                     //Return message to the front des
                     returnsWebsocket(eipId,eipOrder,"delete");
 
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.SUCCESS));
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
                 }else {
                     msg = actionResponse.getFault();
@@ -317,7 +317,7 @@ public class EipServiceImpl implements IEipService {
                 }
             }
             if(failFlag == 0){
-                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,"success"));
+                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.SUCCESS));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
@@ -348,7 +348,7 @@ public class EipServiceImpl implements IEipService {
                 //Return message to the front des
                 returnsWebsocket(eipId,eipOrder,"renew");
 
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else{
                 msg = actionResponse.getFault();
@@ -574,7 +574,7 @@ public class EipServiceImpl implements IEipService {
         try {
             switch(type){
                 case "1":
-                    log.info("unbind a server:{}",serverId);
+                    log.info("bind a server:{} with eipId:{}",serverId,id);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
                     if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
@@ -805,7 +805,7 @@ public class EipServiceImpl implements IEipService {
                 sendMQEIP.setInstanceId(eipId);
                 sendMQEIP.setInstanceStatus("active");
                 sendMQEIP.setOperateType(type);
-                sendMQEIP.setMessageType("success");
+                sendMQEIP.setMessageType(HsConstants.SUCCESS);
                 sendMQEIP.setMessage(CodeInfo.getCodeMessage(CodeInfo.EIP_RENEWAL_SUCCEEDED));
                 String url=pushMq;
                 log.info(url);

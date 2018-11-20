@@ -9,11 +9,6 @@ server:
   servlet:
     context-path: /eip
 
-# 环境 dev|prod
-spring:
-  profiles:
-    active: dev
-
 error:
   code: 106
 
@@ -25,6 +20,61 @@ http:
   socketTimeout: 10000
   statleConnectionCheckEnabled: true
 
-bssURL:
+mq:
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
   pushMq:      http://tenantconservice.devops.inspur.com/console/websocket/sendMessage
+
+openstackIp: 10.110.25.117
+
+# Mysql
+
+# 环境 dev|prod
+spring:
+  resources:
+    # Swagger
+    add-mappings: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    druid:
+      url: jdbc:mysql://10.110.1.26:3306/icp_eip?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+      username: eip
+      password: eip0914
+      initialSize: 5
+      minIdle: 3
+      maxActive: 200
+      maxWait: 60000
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+  data:
+    rest:
+      base-path: /dbstructapi
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /api-docs
+
+# KeyCloak
+keycloak:
+  enabled: true
+  disable-trust-manager: true
+  auth-server-url: http://10.110.22.13/auth
+  realm: picp
+  public-client: false
+  credentials:
+    secret: 060ae88a-bb7c-4fec-abdd-3c482cc184ac
+  resource: bss-server
+  ssl-required: none
+  bearer-only: true
+  cors: true
+  cors-max-age: 1728000
+  cors-allowed-headers: Authorization, Origin, X-Requested-With, Content-Type, X-Custom-Header
+  cors-allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+
+# Logback
+logging:
+  config: classpath:logback.xml
