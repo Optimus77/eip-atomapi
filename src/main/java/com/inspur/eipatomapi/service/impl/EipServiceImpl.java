@@ -139,13 +139,13 @@ public class EipServiceImpl implements IEipService {
                     BeanUtils.copyProperties(eipMo, eipInfo);
 
                     //Return message to the front desk
-                    returnsWebsocket(eipMo.getEipId(),eipOrder,"create");
+                    returnsWebsocket(eipMo.getEipId(),eipOrder,HsConstants.SUCCESS);
 
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipMo.getEipId(),HsConstants.SUCCESS));
                     return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    msg = "Failed to allocate eip by config:" + eipConfig.toString();
                     log.error(msg);
                 }
             }else {
@@ -333,22 +333,17 @@ public class EipServiceImpl implements IEipService {
 
 
     @ICPServiceLog
-    public ResponseEntity renewEip(String eipId, EipReciveOrder eipOrder) {
+    public ResponseEntity renewEip(String eipId,  EipAllocateParam eipUpdateInfo) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
-            EipOrder eipReturn = eipOrder.getReturnConsoleMessage();
-            String addTime = eipReturn.getDuration();
+            String addTime = eipUpdateInfo.getDuration();
 
             ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
             if(actionResponse.isSuccess()){
                 log.info("renew eip:{} , add duration:{}",eipId, addTime);
 
-                //Return message to the front des
-                returnsWebsocket(eipId,eipOrder,"renew");
-
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             }else{
                 msg = actionResponse.getFault();
@@ -358,9 +353,39 @@ public class EipServiceImpl implements IEipService {
             log.error("Exception in deleteEip", e);
             msg = e.getMessage()+"";
         }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+//
+//    @ICPServiceLog
+//    public ResponseEntity renewEip(String eipId, EipReciveOrder eipOrder) {
+//        String msg = "";
+//        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+//
+//        try {
+//            EipOrder eipReturn = eipOrder.getReturnConsoleMessage();
+//            String addTime = eipReturn.getDuration();
+//
+//            ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+//            if(actionResponse.isSuccess()){
+//                log.info("renew eip:{} , add duration:{}",eipId, addTime);
+//
+//                //Return message to the front des
+//                returnsWebsocket(eipId,eipOrder,"renew");
+//
+//                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+//                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+//            }else{
+//                msg = actionResponse.getFault();
+//                log.error(msg);
+//            }
+//        }catch (Exception e){
+//            log.error("Exception in deleteEip", e);
+//            msg = e.getMessage()+"";
+//        }
+//        bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
+//        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
     /**
      *  list the eip
@@ -375,7 +400,6 @@ public class EipServiceImpl implements IEipService {
         try {
             String projcectid=CommonUtil.getUserId();
             log.info("listEips  of user, userId:{}", projcectid);
-
             if(projcectid==null){
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
@@ -574,7 +598,7 @@ public class EipServiceImpl implements IEipService {
         try {
             switch(type){
                 case "1":
-                    log.info("unbind a server:{}",serverId);
+                    log.info("bind a server:{} with eipId:{}",serverId,id);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
                     if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){

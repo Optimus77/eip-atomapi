@@ -11,12 +11,16 @@ import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.beans.factory.annotation.Value;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class CommonUtil {
 
@@ -47,16 +51,19 @@ public class CommonUtil {
     private static String region="RegionOne";
     private static String region1="cn-north-3a";
 
-//    @Value("${bssURL.openstackIp}")
-//    public void setOpenstackIp(String openstackIp) {
-//        this.openstackIp = openstackIp;
-//    }
 
-//    @Value("${bssURL.openstackPort}")
-//    public void setOpenstackPort(String openstackPort) {
-//        this.openstackPort = openstackPort;
-//    }
+    public static Map<String,String> userConfig = new HashMap<>(16);
 
+    static {
+        try {
+            Properties properties = PropertiesLoaderUtils.loadAllProperties("application.yml");
+            for(Object key:properties.keySet()){
+                userConfig.put(key.toString(),properties.get(key).toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
@@ -143,7 +150,7 @@ public class CommonUtil {
         //String regionInfo=getReginInfo();
         //log.warning("regionInfo"+regionInfo);
         //accord the param region get the first param ip
-        return OSClientUtil.getOSClientV3("10.110.25.117",token,project,region);
+        return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,region);
     }
 
     public static JSONObject getTokenInfo(){
