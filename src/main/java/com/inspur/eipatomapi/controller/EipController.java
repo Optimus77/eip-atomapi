@@ -74,7 +74,7 @@ public class EipController {
     }
 
     @ICPControllerLog
-    @GetMapping(value = "/eips")
+    @GetMapping(value = "/eips/list")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
     public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
