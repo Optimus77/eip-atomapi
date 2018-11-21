@@ -123,7 +123,7 @@ public class EipController {
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String instanceid,
                                              @RequestParam(required = false) String eipaddress) {
-        if((null == instanceid) && (null != eipaddress) ){
+        if((null == instanceid) && (null == eipaddress) ){
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
         if(null != instanceid) {
@@ -232,8 +232,8 @@ public class EipController {
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
-    public ResponseEntity getEipCount(@PathVariable  String tenantId) {
-        log.info("Get eip getEipCount. {}",tenantId);
+    public ResponseEntity getEipCount() {
+        log.info("Get eip getEipCount.");
         return  eipService.getEipCount();
     }
 
