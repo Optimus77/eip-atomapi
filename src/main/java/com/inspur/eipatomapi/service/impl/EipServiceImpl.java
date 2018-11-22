@@ -339,7 +339,12 @@ public class EipServiceImpl implements IEipService {
 
         try {
             String addTime = eipUpdateInfo.getDuration();
-
+            if(null == addTime){
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);
+            }else if(addTime.trim().equals("0")){
+                //Todo: shutdown eip. make snat disable
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }
             ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
             if(actionResponse.isSuccess()){
                 log.info("renew eip:{} , add duration:{}",eipId, addTime);

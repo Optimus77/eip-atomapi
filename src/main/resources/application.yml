@@ -21,9 +21,9 @@ http:
   statleConnectionCheckEnabled: true
 
 mq:
-  returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
-  pushMq:      http://api.devops.inspur.com/console/websocket/v1/messages
-
+  returnMq:    http://common-atom.console.svc.cluster.local:8080/common/productreturn
+  returnNotify: http://common-atom.console.svc.cluster.local:8080/common/productnotify
+  pushMq:   http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
 openstackIp: 10.110.25.117
 
 # Mysql
