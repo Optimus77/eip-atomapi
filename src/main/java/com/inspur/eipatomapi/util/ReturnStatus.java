@@ -9,7 +9,7 @@ public class ReturnStatus {
     public static final String SC_PARAM_UNKONWERROR = "106.997400";
     public static final String SC_RESOURCE_ERROR    = "106.994400";
     public static final String SC_RESOURCE_NOTENOUGH = "106.993400";
-    public static final String EIP_BIND_HAS_BAND     ="106.991.400";
+    public static final String EIP_BIND_HAS_BAND     ="106.991400";
 
     public static final String SC_NOT_FOUND                  = "106.994404";
     public static final String SC_OPENSTACK_FIP_UNAVAILABLE  = "106.101404";

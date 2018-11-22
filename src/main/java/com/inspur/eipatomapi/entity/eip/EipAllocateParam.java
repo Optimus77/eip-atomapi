@@ -14,7 +14,7 @@ public class EipAllocateParam implements Serializable {
     @NotBlank(message = "can not be blank.")
     private String region;
 
-    @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
+    @TypeConstraint(allowedValues = {"monthly","hourlySettlement", "other"}, message = "Only monthly,hourlySettlement is allowed. ")
     private String billType = "hourlySettlement";
 
     @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
