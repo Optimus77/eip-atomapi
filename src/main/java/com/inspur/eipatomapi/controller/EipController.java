@@ -78,7 +78,9 @@ public class EipController {
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
-    public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
+    public ResponseEntity listEip(@RequestParam(required = false) String currentPage ,
+                                  @RequestParam(required = false )String limit,
+                                  @RequestParam(required = false )String status) {
         log.info("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
         if(currentPage==null||limit==null){
             currentPage="0";
@@ -97,7 +99,7 @@ public class EipController {
                 limit="0";
             }
         }
-        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
+        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
 
 
@@ -123,8 +125,9 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
-                                             @RequestParam(required = false) String eipaddress) {
-        if((null == resourceid) && (null == eipaddress) ){
+                                             @RequestParam(required = false) String eipaddress,
+                                             @RequestParam (required =false) String status) {
+        if((null == resourceid) && (null == eipaddress) && (null ==status)){
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
         if((null != resourceid) && (null != eipaddress) ){
@@ -136,6 +139,9 @@ public class EipController {
         } else if(null != eipaddress) {
             log.info("EipController get eip by ip:{} ", eipaddress);
             return eipService.getEipByIpAddress(eipaddress);
+        } else if (null !=status){
+            log.info("EipController get eip by stats：{}",status);
+            return eipService.getEipByStatus(status);
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
@@ -153,8 +159,8 @@ public class EipController {
     @GetMapping(value = "/servers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity getServerList() {
-        return eipService.listServer();
+    public ResponseEntity getServerList(@RequestParam String region) {
+        return eipService.listServer(region);
     }
 
 

@@ -301,35 +301,35 @@ public class EipServiceImpl implements IEipService {
     }
 
 
-    @ICPServiceLog
-    public ResponseEntity softDownEip(String eipId, EipSoftDownOrder eipOrder) {
-        String msg = "";
-        String code;
-        int failFlag = 0;
-
-        try {
-            List<EipSoftDownInstance>  eipRenewInstances  = eipOrder.getInstanceList();
-            for(EipSoftDownInstance eipRenewInstance: eipRenewInstances){
-                ActionResponse actionResponse = eipDaoService.softDownEip(eipRenewInstance.getInstanceId());
-                if(!actionResponse.isSuccess()){
-                    failFlag = failFlag + 1;
-                    msg = msg +  actionResponse.getFault();
-                }
-            }
-            if(failFlag == 0){
-                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.SUCCESS));
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            }else {
-                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            }
-        }catch (Exception e){
-            log.error("Exception in deleteEip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
-        }
-        bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.FAIL));
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    @ICPServiceLog
+//    public ResponseEntity softDownEip(String eipId, EipSoftDownOrder eipOrder) {
+//        String msg = "";
+//        String code;
+//        int failFlag = 0;
+//
+//        try {
+//            List<EipSoftDownInstance>  eipRenewInstances  = eipOrder.getInstanceList();
+//            for(EipSoftDownInstance eipRenewInstance: eipRenewInstances){
+//                ActionResponse actionResponse = eipDaoService.softDownEip(eipRenewInstance.getInstanceId());
+//                if(!actionResponse.isSuccess()){
+//                    failFlag = failFlag + 1;
+//                    msg = msg +  actionResponse.getFault();
+//                }
+//            }
+//            if(failFlag == 0){
+//                bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.SUCCESS));
+//                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+//            }else {
+//                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+//            }
+//        }catch (Exception e){
+//            log.error("Exception in deleteEip", e);
+//            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+//            msg = e.getMessage()+"";
+//        }
+//        bssApiService.resultReturnMq(getEipSoftDownOrderResult(eipOrder,HsConstants.FAIL));
+//        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
 
     @ICPServiceLog
@@ -342,8 +342,15 @@ public class EipServiceImpl implements IEipService {
             if(null == addTime){
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);
             }else if(addTime.trim().equals("0")){
-                //Todo: shutdown eip. make snat disable
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+
+                ActionResponse actionResponse = eipDaoService.softDownEip(eipId);
+                if(actionResponse.isSuccess()) {
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                }else {
+                    return new ResponseEntity<>(ReturnMsgUtil.error(
+                            String.valueOf(actionResponse.getCode()), actionResponse.getFault()),
+                            HttpStatus.BAD_REQUEST);
+                }
             }
             ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
             if(actionResponse.isSuccess()){
@@ -400,7 +407,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
+    public ResponseEntity listEips(int currentPage,int limit, String status){
 
         try {
             String projcectid=CommonUtil.getUserId();
@@ -416,6 +423,9 @@ public class EipServiceImpl implements IEipService {
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
                 Page<Eip> page=eipRepository.findByProjectId(projcectid,pageable);
                 for(Eip eip:page.getContent()){
+                    if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                        continue;
+                    }
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
@@ -431,6 +441,9 @@ public class EipServiceImpl implements IEipService {
             }else{
                 List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
                 for(Eip eip:eipList){
+                    if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                        continue;
+                    }
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
@@ -552,6 +565,15 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
+    /**
+     * get eip by eip
+     * @return the json result
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getEipByStatus(String status) {
+        return new ResponseEntity(HttpStatus.MULTI_STATUS);
+    }
     /**
      * update eip band width
      * @param id    id
@@ -715,11 +737,11 @@ public class EipServiceImpl implements IEipService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity listServer(){
+    public ResponseEntity listServer(String region){
         log.info("listServer start execute");
 
         try {
-            List<Server> serverList= (List<Server>) neutronService.listServer();
+            List<Server> serverList= (List<Server>) neutronService.listServer(region);
             JSONArray dataArray=new JSONArray();
             for(Server server:serverList){
 
