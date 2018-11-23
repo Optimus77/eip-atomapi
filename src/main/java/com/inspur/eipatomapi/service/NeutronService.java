@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.service;
 
 import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
@@ -30,7 +31,7 @@ public  class NeutronService {
      * @param id   id
      * @return NetFloatingIP entity
      */
-    public NetFloatingIP getFloatingIp(String id) throws Exception {
+    public NetFloatingIP getFloatingIp(String id)  {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         return osClientV3.networking().floatingip().get(id);
     }
@@ -68,14 +69,17 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
         Server server = osClientV3.compute().servers().get(serverId);
-        ActionResponse result =  osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloatingIp());
+        if(null == server) {
+            return ActionResponse.actionFailed("Can not find server by id"+ serverId, HttpStatus.SC_NOT_FOUND);
+        }
+        ActionResponse result = osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloatingIp());
 
-        if(result.isSuccess()){
+        if (result.isSuccess()) {
             Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
             log.info(novaAddresses.toString());
-            Set<String> keySet =novaAddresses.keySet();
-            for (String netname:keySet) {
-                List<? extends Address> address=novaAddresses.get(netname);
+            Set<String> keySet = novaAddresses.keySet();
+            for (String netname : keySet) {
+                List<? extends Address> address = novaAddresses.get(netname);
                 log.info(address.toString());
                 for (Address addr : address) {
                     log.debug(server.getId() + server.getName() + "   " + addr.getType());
@@ -84,9 +88,10 @@ public  class NeutronService {
                     }
                 }
             }
-        }else{
+        } else {
             log.error("openstack api return faild when bind instance to eip.");
         }
+
         return result;
     }
 
