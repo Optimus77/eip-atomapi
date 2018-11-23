@@ -150,8 +150,8 @@ public class EipController {
     @GetMapping(value = "/servers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity getServerList() {
-        return eipService.listServer();
+    public ResponseEntity getServerList(@RequestParam String region) {
+        return eipService.listServer(region);
     }
 
 

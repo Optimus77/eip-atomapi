@@ -92,7 +92,7 @@ public class EipDaoService {
         }
         Eip eipMo = new Eip();
         eipMo.setEipAddress(eip.getIp());
-        eipMo.setStatus("DOWN");
+        eipMo.setStatus(HsConstants.DOWN);
         eipMo.setFirewallId(eip.getFireWallId());
 
         eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
@@ -107,7 +107,7 @@ public class EipDaoService {
         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
         String userId = CommonUtil.getUserId();
         log.debug("get tenantid:{} from clientv3", userId);
-        log.debug("get tenantid from token:{}", CommonUtil.getProjectId());
+        //log.debug("get tenantid from token:{}", CommonUtil.getProjectId(eipConfig.getRegion()));
         eipMo.setProjectId(userId);
 
         eipMo = eipRepository.save(eipMo);
@@ -138,7 +138,7 @@ public class EipDaoService {
         }
         boolean delFipResult = true;
         if(null != eipEntity.getFloatingIpId()) {
-            delFipResult = neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId());
+            delFipResult = neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId());
         }
         if(delFipResult) {
             EipPool eipPoolMo = new EipPool();
@@ -169,22 +169,18 @@ public class EipDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-
-        if (null == eipEntity.getSnatId()) {
-            msg = "Failed to softDown eip, eip:"+eipEntity.toString();
-            log.error(msg);
-            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+        eipEntity.setStatus(HsConstants.DOWN);
+        if (null != eipEntity.getSnatId()) {
+            if (firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())) {
+                eipEntity.setSnatId(null);
+            } else {
+                msg = "Failed to delete snat when softDown eip, eip:" + eipEntity.toString();
+                log.error(msg);
+                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            }
         }
-        if(firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())){
-            eipEntity.setStatus("DOWN");
-            eipEntity.setSnatId(null);
-            eipRepository.save(eipEntity);
-            return ActionResponse.actionSuccess();
-        } else {
-            msg = "Failed to softDown eip, eip:"+eipEntity.toString();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        }
+        eipRepository.save(eipEntity);
+        return ActionResponse.actionSuccess();
     }
     /**
      * associate port with eip
@@ -216,7 +212,7 @@ public class EipDaoService {
             return data;
         }
 
-        if(!("DOWN".equals(eip.getStatus())) || (null != eip.getDnatId())
+        if(!(HsConstants.DOWN.equals(eip.getStatus())) || (null != eip.getDnatId())
                 || (null != eip.getSnatId()) || (null != eip.getPipId())){
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
@@ -255,8 +251,9 @@ public class EipDaoService {
         try{
             actionResponse = neutronService.associaInstanceWithFloatingIp(eip,serverId);
         }catch (Exception e){
-            log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :{}",serverId);
-            log.error("==========openstack associaInstanceWithFloatingIp error=====eip :{}",eip.getFloatingIp());
+            log.error("==========openstack associaInstanceWithFloatingIp error========");
+            log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :{},eip :{}",
+                   serverId, eip.toString());
 
             log.error("Exception in associateInstanceWithEip",e);
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
@@ -273,7 +270,7 @@ public class EipDaoService {
                 dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
                 log.info("dnatRuleId:  "+dnatRuleId);
                 if(dnatRuleId==null){
-                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE);
@@ -283,10 +280,9 @@ public class EipDaoService {
                 snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
                 log.info("snatRuleId:  "+snatRuleId);
                 if(snatRuleId==null){
-                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
-                    if(dnatRuleId!=null){
-                        firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                    }
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
+                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
@@ -295,13 +291,9 @@ public class EipDaoService {
 
                 pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
                 if(pipId==null){
-                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId);
-                    if(dnatRuleId!=null){
-                        firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                    }
-                    if(snatRuleId!=null){
-                        firewallService.delSnat(snatRuleId, eip.getFirewallId());
-                    }
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
+                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
@@ -313,9 +305,9 @@ public class EipDaoService {
                 eip.setSnatId(snatRuleId);
                 eip.setPipId(pipId);
                 eip.setPortId(portId);
-                eip.setStatus("ACTIVE");
+                eip.setStatus(HsConstants.ACTIVE);
                 eipRepository.save(eip);
-                data.put("reason","success");
+                data.put("reason",HsConstants.SUCCESS);
                 data.put("httpCode", HttpStatus.SC_OK);
                 data.put("interCode", ReturnStatus.SC_OK);
                 data.put("data",eip);
@@ -360,7 +352,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-        if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())
+        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) || (null == eipEntity.getSnatId())
                 || (null == eipEntity.getDnatId()) || null == eipEntity.getFloatingIp()){
             msg = "Error status when disassociate eip:"+eipEntity.toString();
             log.error(msg);
@@ -369,7 +361,7 @@ public class EipDaoService {
 
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
             ActionResponse actionResponse = neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
-                    eipEntity.getInstanceId());
+                    eipEntity.getInstanceId(), eipEntity.getRegion());
             if (actionResponse.isSuccess()) {
                 eipEntity.setInstanceId(null);
                 eipEntity.setInstanceType(null);
@@ -404,7 +396,7 @@ public class EipDaoService {
             log.error(msg);
         }
 
-        eipEntity.setStatus("DOWN");
+        eipEntity.setStatus(HsConstants.DOWN);
         eipRepository.save(eipEntity);
         if(null != msg) {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -464,15 +456,23 @@ public class EipDaoService {
     public ActionResponse reNewEipEntity(String eipId, String addTime)  {
 
         Eip eipEntity = eipRepository.findByEipId(eipId);
-        if (null != eipEntity) {
-            String oldTime = eipEntity.getDuration();
-            int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
-            eipEntity.setDuration(String.valueOf(newTime));
-            eipRepository.save(eipEntity);
-            return ActionResponse.actionSuccess();
+        if (null == eipEntity) {
+            return ActionResponse.actionFailed("Can not find the eip by id:{}"+eipId, HttpStatus.SC_NOT_FOUND);
         }
-        return ActionResponse.actionFailed("Can not find the eip by id:{}"+eipId, HttpStatus.SC_NOT_FOUND);
+        String oldTime = eipEntity.getDuration();
+        int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
+        eipEntity.setDuration(String.valueOf(newTime));
+        if((newTime > 0) && (null ==eipEntity.getSnatId()) && (null != eipEntity.getDnatId())){
+            String snatRuleId = firewallService.addSnat(eipEntity.getFloatingIp(), eipEntity.getEipAddress(),
+                    eipEntity.getFirewallId());
+            eipEntity.setSnatId(snatRuleId);
+            log.info("renew eip entity add snat, id:{}.  ",snatRuleId);
+        }
+        eipEntity.setStatus(HsConstants.ACTIVE);
+        eipRepository.save(eipEntity);
+        return ActionResponse.actionSuccess();
     }
+
 
     public List<Eip> findByProjectId(String projectId){
         return eipRepository.findByProjectId(projectId);

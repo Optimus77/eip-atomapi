@@ -94,7 +94,7 @@ public interface IEipService {
     /**
      * list all server of current users
      */
-    ResponseEntity listServer();
+    ResponseEntity listServer(String userRegion);
 
     /**
      * get eip by floating ip
