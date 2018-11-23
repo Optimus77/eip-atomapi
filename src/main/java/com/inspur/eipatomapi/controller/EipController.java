@@ -35,7 +35,7 @@ import java.util.List;
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1", description = "eip API")
 @Validated
-//@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*")
 public class EipController {
 
     private final static Logger log = LoggerFactory.getLogger(EipController.class);
@@ -124,8 +124,9 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
-                                             @RequestParam(required = false) String eipaddress) {
-        if((null == resourceid) && (null == eipaddress) ){
+                                             @RequestParam(required = false) String eipaddress,
+                                             @RequestParam (required =false) String status) {
+        if((null == resourceid) && (null == eipaddress) && (null ==status)){
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
         if(null != resourceid) {
@@ -134,6 +135,9 @@ public class EipController {
         } else if(null != eipaddress) {
             log.info("EipController get eip by ip:{} ", eipaddress);
             return eipService.getEipByIpAddress(eipaddress);
+        } else if (null !=status){
+            log.info("EipController get eip by stats：{}",status);
+            return eipService.getEipByStatus(status);
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }

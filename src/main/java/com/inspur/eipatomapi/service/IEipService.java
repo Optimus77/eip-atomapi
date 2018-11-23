@@ -108,6 +108,12 @@ public interface IEipService {
 
     ResponseEntity getEipByIpAddress(String eip);
 
+    /**
+     * get eip by status
+     * @param eip
+     * @return
+     */
+    ResponseEntity getEipByStatus(String eip);
 
     ResponseEntity getEipCount();
 
