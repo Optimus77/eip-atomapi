@@ -111,6 +111,7 @@ public class EipDaoService {
         eipMo.setProjectId(userId);
 
         eipMo = eipRepository.save(eipMo);
+        log.info("User:{} success allocate eip:{}",userId, eipMo.toString());
         return eipMo;
     }
 
@@ -148,6 +149,7 @@ public class EipDaoService {
 
             eipRepository.deleteById(eipEntity.getEipId());
             eipPoolRepository.save(eipPoolMo);
+            log.info("Success delete eip:{}",eipPoolMo.getIp());
             return ActionResponse.actionSuccess();
         } else {
             msg = "Failed to delete floating ip, floatingIpId:"+eipEntity.getFloatingIpId();
@@ -507,16 +509,16 @@ public class EipDaoService {
         long num =(long)map.get("num");
         log.info("get count use jdbc {}",num);
 
-        //demo do't use this type, default value must be set value;
-        Eip eip  = new Eip();
-        eip.setCreateTime(null);
-        eip.setStatus(null);
-        eip.setIpVersion("IPv4");
-        eip.setBillType("");
-        eip.setProjectId(projectId);
-        Example<Eip> example = Example.of(eip);
-        long count=eipRepository.count(example);
-        log.info("get count use jdbc {}",count);
+//        //demo do't use this type, default value must be set value;
+//        Eip eip  = new Eip();
+//        eip.setCreateTime(null);
+//        eip.setStatus(null);
+//        eip.setIpVersion("IPv4");
+//        eip.setBillType("");
+//        eip.setProjectId(projectId);
+//        Example<Eip> example = Example.of(eip);
+//        long count=eipRepository.count(example);
+//        log.info("get count use jdbc {}",count);
 
         return num;
 
