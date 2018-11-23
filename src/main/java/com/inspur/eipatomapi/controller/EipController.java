@@ -78,7 +78,9 @@ public class EipController {
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
-    public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
+    public ResponseEntity listEip(@RequestParam(required = false) String currentPage ,
+                                  @RequestParam(required = false )String limit,
+                                  @RequestParam(required = false )String status) {
         log.info("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
         if(currentPage==null||limit==null){
             currentPage="0";
@@ -97,7 +99,7 @@ public class EipController {
                 limit="0";
             }
         }
-        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
+        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
 
 

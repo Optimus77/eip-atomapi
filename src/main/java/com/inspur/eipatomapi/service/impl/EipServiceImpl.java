@@ -407,7 +407,7 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip){
+    public ResponseEntity listEips(int currentPage,int limit, String status){
 
         try {
             String projcectid=CommonUtil.getUserId();
@@ -423,6 +423,9 @@ public class EipServiceImpl implements IEipService {
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
                 Page<Eip> page=eipRepository.findByProjectId(projcectid,pageable);
                 for(Eip eip:page.getContent()){
+                    if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                        continue;
+                    }
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
@@ -438,6 +441,9 @@ public class EipServiceImpl implements IEipService {
             }else{
                 List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
                 for(Eip eip:eipList){
+                    if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                        continue;
+                    }
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()

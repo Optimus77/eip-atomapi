@@ -49,7 +49,7 @@ public interface IEipService {
      * @param limit  element of per page
      * @return       result
      */
-    ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip);
+    ResponseEntity listEips(int currentPage,int limit, String status);
 
     /**
      * get detail of the eip
