@@ -35,7 +35,7 @@ import java.util.List;
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1", description = "eip API")
 @Validated
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 public class EipController {
 
     private final static Logger log = LoggerFactory.getLogger(EipController.class);
