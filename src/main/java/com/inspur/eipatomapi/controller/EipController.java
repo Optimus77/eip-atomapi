@@ -127,6 +127,9 @@ public class EipController {
         if((null == resourceid) && (null == eipaddress) ){
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
+        if((null != resourceid) && (null != eipaddress) ){
+            return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
+        }
         if(null != resourceid) {
             log.info("EipController get eip by instance id:{} ", resourceid);
             return eipService.getEipByInstanceId(resourceid);
