@@ -35,6 +35,7 @@ import java.util.List;
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1", description = "eip API")
 @Validated
+@CrossOrigin(origins = "*")
 public class EipController {
 
     private final static Logger log = LoggerFactory.getLogger(EipController.class);
@@ -77,26 +78,27 @@ public class EipController {
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
-    public ResponseEntity listEip(@RequestParam(required = false) String currentPage , @RequestParam(required = false )String limit) {
+    public ResponseEntity listEip(@RequestParam(required = false) String currentPage ,
+                                  @RequestParam(required = false )String limit,
+                                  @RequestParam(required = false )String status) {
         log.info("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
         if(currentPage==null||limit==null){
             currentPage="0";
             limit="0";
         }else{
             try{
-                int currentPageNum=Integer.parseInt(currentPage);
-                int limitNum =Integer.parseInt(limit);
-                if(currentPageNum<0||limitNum<0){
-                    currentPage="0";
+                int currentPageNum = Integer.parseInt(currentPage);
+                int limitNum = Integer.parseInt(limit);
+                if (currentPageNum < 0 || limitNum < 0) {
+                    currentPage = "0";
                 }
             }catch (Exception e){
-                e.printStackTrace();
                 log.error("number is not correct ");
                 currentPage="0";
                 limit="0";
             }
         }
-        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),false);
+        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
 
 
@@ -121,14 +123,17 @@ public class EipController {
     @GetMapping(value = "/eips/search")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
-    public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String instanceid,
+    public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
                                              @RequestParam(required = false) String eipaddress) {
-        if((null == instanceid) && (null == eipaddress) ){
+        if((null == resourceid) && (null == eipaddress) ){
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
-        if(null != instanceid) {
-            log.info("EipController get eip by instance id:{} ", instanceid);
-            return eipService.getEipByInstanceId(instanceid);
+        if((null != resourceid) && (null != eipaddress) ){
+            return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
+        }
+        if(null != resourceid) {
+            log.info("EipController get eip by instance id:{} ", resourceid);
+            return eipService.getEipByInstanceId(resourceid);
         } else if(null != eipaddress) {
             log.info("EipController get eip by ip:{} ", eipaddress);
             return eipService.getEipByIpAddress(eipaddress);
@@ -149,8 +154,8 @@ public class EipController {
     @GetMapping(value = "/servers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity getServerList() {
-        return eipService.listServer();
+    public ResponseEntity getServerList(@RequestParam String region) {
+        return eipService.listServer(region);
     }
 
 
@@ -208,8 +213,6 @@ public class EipController {
                     if(chargeTypeFlag){
                         log.info("update bandwidth, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                         return eipService.updateEipBandWidth(eipId,param);
-                    }else{
-
                     }
                 }else{
                     msg="param not correct. " +
