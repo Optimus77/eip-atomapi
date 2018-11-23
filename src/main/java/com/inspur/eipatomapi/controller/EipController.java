@@ -87,13 +87,12 @@ public class EipController {
             limit="0";
         }else{
             try{
-                int currentPageNum=Integer.parseInt(currentPage);
-                int limitNum =Integer.parseInt(limit);
-                if(currentPageNum<0||limitNum<0){
-                    currentPage="0";
+                int currentPageNum = Integer.parseInt(currentPage);
+                int limitNum = Integer.parseInt(limit);
+                if (currentPageNum < 0 || limitNum < 0) {
+                    currentPage = "0";
                 }
             }catch (Exception e){
-                e.printStackTrace();
                 log.error("number is not correct ");
                 currentPage="0";
                 limit="0";
@@ -211,8 +210,6 @@ public class EipController {
                     if(chargeTypeFlag){
                         log.info("update bandwidth, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                         return eipService.updateEipBandWidth(eipId,param);
-                    }else{
-
                     }
                 }else{
                     msg="param not correct. " +
