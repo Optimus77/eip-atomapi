@@ -566,15 +566,6 @@ public class EipServiceImpl implements IEipService {
     }
 
     /**
-     * get eip by eip
-     * @return the json result
-     */
-    @Override
-    @ICPServiceLog
-    public ResponseEntity getEipByStatus(String status) {
-        return new ResponseEntity(HttpStatus.MULTI_STATUS);
-    }
-    /**
      * update eip band width
      * @param id    id
      * @param param param
