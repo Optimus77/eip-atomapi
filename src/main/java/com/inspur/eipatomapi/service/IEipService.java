@@ -49,7 +49,7 @@ public interface IEipService {
      * @param limit  element of per page
      * @return       result
      */
-    ResponseEntity listEips(int currentPage,int limit,boolean returnFloatingip);
+    ResponseEntity listEips(int currentPage,int limit, String status);
 
     /**
      * get detail of the eip
@@ -94,7 +94,7 @@ public interface IEipService {
     /**
      * list all server of current users
      */
-    ResponseEntity listServer();
+    ResponseEntity listServer(String userRegion);
 
     /**
      * get eip by floating ip
