@@ -124,10 +124,12 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
-                                             @RequestParam(required = false) String eipaddress,
-                                             @RequestParam (required =false) String status) {
-        if((null == resourceid) && (null == eipaddress) && (null ==status)){
+                                             @RequestParam(required = false) String eipaddress) {
+        if((null == resourceid) && (null == eipaddress) ){
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
+        }
+        if((null != resourceid) && (null != eipaddress) ){
+            return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
         }
         if(null != resourceid) {
             log.info("EipController get eip by instance id:{} ", resourceid);
@@ -135,9 +137,6 @@ public class EipController {
         } else if(null != eipaddress) {
             log.info("EipController get eip by ip:{} ", eipaddress);
             return eipService.getEipByIpAddress(eipaddress);
-        } else if (null !=status){
-            log.info("EipController get eip by stats：{}",status);
-            return eipService.getEipByStatus(status);
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
