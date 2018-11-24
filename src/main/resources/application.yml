@@ -66,8 +66,8 @@ keycloak:
   realm: picp
   public-client: false
   credentials:
-    secret: be97c023-1ad2-485f-b83d-d4a64af76758
-  resource: bss-server
+    secret: a2d9a847-0030-42e1-af1c-910ee471cb34
+  resource: iaas-server
   ssl-required: none
   bearer-only: true
   cors: true
