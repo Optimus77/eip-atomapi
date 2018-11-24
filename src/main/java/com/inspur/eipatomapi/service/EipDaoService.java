@@ -292,7 +292,6 @@ public class EipDaoService {
                 }
 
                 pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
-
                 if(pipId==null && false == CommonUtil.isDebug){
                     neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
                     firewallService.delDnat(dnatRuleId, eip.getFirewallId());
