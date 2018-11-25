@@ -28,7 +28,7 @@ public class CommonUtil {
     public final static Logger log = LoggerFactory.getLogger(CommonUtil.class);
 
 
-    public static boolean isDebug = false;
+    public static boolean isDebug = true;
     public static boolean qosDebug = true;
 
     public static String getDate() {
