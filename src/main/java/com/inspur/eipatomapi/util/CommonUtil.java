@@ -90,9 +90,9 @@ public class CommonUtil {
         if(isDebug){
             userRegion = debugRegion;
         }
-        if(token.startsWith("Bearer Bearer")){
-            token = token.substring(7);
-        }
+        // if(token.startsWith("Bearer Bearer")){
+        //     token = token.substring(7);
+        // }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         setKeyClockInfo(jsonObject);
         log.info("decode::"+jsonObject);
@@ -101,7 +101,9 @@ public class CommonUtil {
             log.info("Get project from token:{}", project);
 //            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
             log.info("get openstack ip:{}", userConfig.get("openstackIp"));
-            return OSClientUtil.getOSClientV3("10.3.1.105",token,project,userRegion);
+            log.info("token:{}", token);
+            log.info("debug region:{}", debugRegion);
+            return OSClientUtil.getOSClientV3("10.3.1.105",token,project, debugRegion);
         }else {
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
         }
@@ -118,23 +120,29 @@ public class CommonUtil {
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
      */
-    public static String getKeycloackToken() {
+    // public static String getKeycloackToken() {
 
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        if(null != requestAttributes) {
-            HttpServletRequest request = requestAttributes.getRequest();
-            String keyCloackToken = request.getHeader("authorization");
-            if (keyCloackToken == null) {
-                log.error("Failed to get authorization header.");
-                return null;
-            } else {
-                return keyCloackToken;
-            }
-        }
-        return null;
+    //     ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+    //     if(null != requestAttributes) {
+    //         HttpServletRequest request = requestAttributes.getRequest();
+    //         String keyCloackToken = request.getHeader("authorization");
+    //         if (keyCloackToken == null) {
+    //             log.error("Failed to get authorization header.");
+    //             return null;
+    //         } else {
+    //             return keyCloackToken;
+    //         }
+    //     }
+    //     return null;
+    // }
+
+    public static String getKeycloackToken(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String keyCloackToken  = (String) request.getHeader("Authorization");
+        //Bearer
+        return keyCloackToken;
     }
-
-
+    
     public static String getProjectId(String userRegion) throws KeycloakTokenException {
 
         String token = getKeycloackToken();
