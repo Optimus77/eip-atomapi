@@ -11,6 +11,7 @@ import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -25,9 +26,10 @@ import java.util.Properties;
 public class CommonUtil {
 
     public final static Logger log = LoggerFactory.getLogger(CommonUtil.class);
+
+
     public static boolean isDebug = false;
     public static boolean qosDebug = true;
-
 
     public static String getDate() {
         Date currentTime = new Date();
@@ -97,7 +99,9 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.info("Get project from token:{}", project);
-            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+//            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+            log.info("get openstack ip:{}", userConfig.get("openstackIp"));
+            return OSClientUtil.getOSClientV3("10.3.1.105",token,project,userRegion);
         }else {
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
         }
