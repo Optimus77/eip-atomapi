@@ -292,7 +292,7 @@ public class EipDaoService {
                 }
 
                 pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
-                if(pipId==null){
+                if(pipId==null && !CommonUtil.qosDebug){
                     neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
                     firewallService.delDnat(dnatRuleId, eip.getFirewallId());
                     firewallService.delSnat(snatRuleId, eip.getFirewallId());
@@ -391,7 +391,7 @@ public class EipDaoService {
         }
 
         Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-        if(delQosResult) {
+        if(delQosResult || CommonUtil.qosDebug) {
             eipEntity.setPipId(null);
         } else {
             msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
@@ -436,7 +436,7 @@ public class EipDaoService {
             }
         }
         boolean updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()));
-        if (updateStatus) {
+        if (updateStatus ||CommonUtil.qosDebug) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
             eipRepository.save(eipEntity);
@@ -542,7 +542,7 @@ public class EipDaoService {
             id = fw.getId();
         }
 
-        for (int i = 0; i < 200; i++) {
+        for (int i = 11; i < 77; i++) {
             EipPool eipPoolMo = new EipPool();
             eipPoolMo.setFireWallId(id);
             eipPoolMo.setIp(eip+i);

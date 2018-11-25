@@ -25,7 +25,8 @@ import java.util.Properties;
 public class CommonUtil {
 
     public final static Logger log = LoggerFactory.getLogger(CommonUtil.class);
-    public static boolean isDebug = true;
+    public static boolean isDebug = false;
+    public static boolean qosDebug = true;
 
 
     public static String getDate() {
@@ -75,7 +76,7 @@ public class CommonUtil {
                 .authenticate().useRegion(debugRegion);
     }
 
-    public static OSClientV3 getOsClientV3Util(String userRegion)  {
+    public static OSClientV3 getOsClientV3Util(String userRegion) throws KeycloakTokenException {
 
         String token = getKeycloackToken();
         log.info(token);
@@ -93,11 +94,14 @@ public class CommonUtil {
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         setKeyClockInfo(jsonObject);
         log.info("decode::"+jsonObject);
+        if(jsonObject.has("project")){
+            String project = (String) jsonObject.get("project");
+            log.info("Get project from token:{}", project);
+            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+        }else {
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
+        }
 
-        String project = (String) jsonObject.get("project");
-        log.info("Get project from token:{}", project);
-
-        return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
     }
 
     public static JSONObject getTokenInfo(){
