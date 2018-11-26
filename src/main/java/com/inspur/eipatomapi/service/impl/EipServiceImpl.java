@@ -734,28 +734,28 @@ public class EipServiceImpl implements IEipService {
             List<Server> serverList= (List<Server>) neutronService.listServer(region);
             JSONArray dataArray=new JSONArray();
             for(Server server:serverList){
-
-                boolean bindFloatingIpFlag=true;
                 Addresses addresses =server.getAddresses();
-
-                Map<String, List<? extends Address>>  novaAddresses= addresses.getAddresses();
-                Set<String> keySet =novaAddresses.keySet();
-                for (String netname:keySet) {
-                    List<? extends Address> address=novaAddresses.get(netname);
-                    for(Address addr:address){
-                        log.debug("Get server: id:{}, name:{}, addr:{}.",server.getId(),server.getName(),addr.getType());
-                        if (addr.getType().equals("floating")){
-                            log.debug("===get this =======");
-                            bindFloatingIpFlag=false;
-                            break;
+                if(!server.getName().trim().startsWith("CPS")) {
+                    boolean bindFloatingIpFlag=true;
+                    Map<String, List<? extends Address>> novaAddresses = addresses.getAddresses();
+                    Set<String> keySet = novaAddresses.keySet();
+                    for (String netname : keySet) {
+                        List<? extends Address> address = novaAddresses.get(netname);
+                        for (Address addr : address) {
+                            log.debug("Get server: id:{}, name:{}, addr:{}.", server.getId(), server.getName(), addr.getType());
+                            if (addr.getType().equals("floating")) {
+                                log.debug("===get this =======");
+                                bindFloatingIpFlag = false;
+                                break;
+                            }
                         }
                     }
-                }
-                if(bindFloatingIpFlag){
-                    JSONObject data=new JSONObject();
-                    data.put("id",server.getId());
-                    data.put("name",server.getName());
-                    dataArray.add(data);
+                    if(bindFloatingIpFlag){
+                        JSONObject data=new JSONObject();
+                        data.put("id",server.getId());
+                        data.put("name",server.getName());
+                        dataArray.add(data);
+                    }
                 }
             }
 

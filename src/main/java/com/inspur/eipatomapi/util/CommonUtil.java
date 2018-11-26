@@ -12,17 +12,18 @@ import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
+@Component
 public class CommonUtil {
 
     public final static Logger log = LoggerFactory.getLogger(CommonUtil.class);
@@ -40,7 +41,8 @@ public class CommonUtil {
     @Setter
     private static JSONObject KeyClockInfo;
 
-    public static String openstackIp;
+    @Value("${openstackIp}")
+    private String openstackIp;
 
     public static String openstackPort;
 
@@ -57,15 +59,9 @@ public class CommonUtil {
 
     public static Map<String,String> userConfig = new HashMap<>(16);
 
-    static {
-        try {
-            Properties properties = PropertiesLoaderUtils.loadAllProperties("application.yml");
-            for(Object key:properties.keySet()){
-                userConfig.put(key.toString(),properties.get(key).toString());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @PostConstruct
+    public void init(){
+        userConfig.put("openstackIp",openstackIp);
     }
 
     private static OSClientV3 getOsClientV3(){
@@ -99,9 +95,8 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.info("Get project from token:{}", project);
-//            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
-            log.info("get openstack ip:{}", userConfig.get("openstackIp"));
-            return OSClientUtil.getOSClientV3("10.3.1.105",token,project,userRegion);
+            log.info("Get openstack ip:{}, region:{}",userConfig.get("openstackIp"), userRegion);
+            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
         }
@@ -118,22 +113,12 @@ public class CommonUtil {
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
      */
-    public static String getKeycloackToken() {
-
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        if(null != requestAttributes) {
-            HttpServletRequest request = requestAttributes.getRequest();
-            String keyCloackToken = request.getHeader("authorization");
-            if (keyCloackToken == null) {
-                log.error("Failed to get authorization header.");
-                return null;
-            } else {
-                return keyCloackToken;
-            }
-        }
-        return null;
+    public static String getKeycloackToken(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String keyCloackToken  = (String) request.getHeader("Authorization");
+        //Bearer
+        return keyCloackToken;
     }
-
 
     public static String getProjectId(String userRegion) throws KeycloakTokenException {
 
