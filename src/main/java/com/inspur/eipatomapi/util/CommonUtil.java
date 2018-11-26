@@ -77,7 +77,6 @@ public class CommonUtil {
     public static OSClientV3 getOsClientV3Util(String userRegion) throws KeycloakTokenException {
 
         String token = getKeycloackToken();
-        log.info(token);
         if(null == token){
             log.error("can't get token, use default project admin 140785795de64945b02363661eb9e769");
             return getOsClientV3();

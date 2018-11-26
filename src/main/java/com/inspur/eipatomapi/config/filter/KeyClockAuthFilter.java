@@ -38,7 +38,7 @@ public class KeyClockAuthFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)throws IOException, ServletException {
-        log.info("******************KeyClockAuthFilter doFilter");
+        log.info("*******************************************");
         HttpServletRequest req= (HttpServletRequest)servletRequest;
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         if(req.getRequestURI().startsWith(req.getContextPath()+ConstantClassField.VERSION_REST)){
