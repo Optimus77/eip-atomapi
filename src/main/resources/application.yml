@@ -21,9 +21,9 @@ http:
   statleConnectionCheckEnabled: true
 
 mq:
-  returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
-  pushMq:      http://api.devops.inspur.com/console/websocket/v1/messages
-
+  returnMq:    http://common-atom.console.svc.cluster.local:8080/common/productreturn
+  returnNotify: http://common-atom.console.svc.cluster.local:8080/common/productnotify
+  pushMq:   http://api.devops.inspur.com/console/websocket/v1/messages
 openstackIp: 10.110.25.117
 
 # Mysql
@@ -66,8 +66,8 @@ keycloak:
   realm: picp
   public-client: false
   credentials:
-    secret: be97c023-1ad2-485f-b83d-d4a64af76758
-  resource: bss-server
+    secret: a2d9a847-0030-42e1-af1c-910ee471cb34
+  resource: iaas-server
   ssl-required: none
   bearer-only: true
   cors: true

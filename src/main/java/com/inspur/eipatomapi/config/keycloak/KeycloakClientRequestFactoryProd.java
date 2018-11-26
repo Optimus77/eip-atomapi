@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 
+
 //@Profile(value = "dev")
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
