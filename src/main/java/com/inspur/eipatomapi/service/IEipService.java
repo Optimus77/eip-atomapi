@@ -1,9 +1,10 @@
 package com.inspur.eipatomapi.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
+import org.springframework.http.ResponseEntity;
 
-import com.inspur.eipatomapi.entity.EipAllocateParam;
-import com.inspur.eipatomapi.entity.EipUpdateParamWrapper;
+import java.util.List;
 
 
 public interface IEipService {
@@ -11,13 +12,10 @@ public interface IEipService {
     /**
      * create a eip
      * @param eipConfig          config
-     * @param externalNetWorkId  external network id
-     * @param portId             port id
      * @return                   json info of eip
-     * @throws Exception         e
      */
 
-    JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId)throws Exception;
+    ResponseEntity createEip(EipReciveOrder eipConfig);
 
 
 
@@ -26,12 +24,24 @@ public interface IEipService {
      * 2.Determine if Snate and Qos is deleted
      * 3.delete eip
      *
-     * @param name  name
-     * @param eipId  eip ip
+     * @param eipIds  eip ids
      * @return       result: true/false
      */
 
-    Boolean deleteEip(String name, String eipId)throws Exception ;
+    ResponseEntity deleteEipList(List<String> eipIds);
+    /**
+     * 1.delete  eip
+     * 2.Determine if Snate and Qos is deleted
+     * 3.delete eip
+     *
+     * @param eipId  eip id
+     * @param eipOrder  eip order
+     * @return       result: true/false
+     */
+
+    ResponseEntity deleteEip(String eipId, EipReciveOrder eipOrder);
+
+
 
     /**
      *  list the eip
@@ -39,14 +49,14 @@ public interface IEipService {
      * @param limit  element of per page
      * @return       result
      */
-    String listEips(int currentPage,int limit,boolean returnFloatingip);
+    ResponseEntity listEips(int currentPage,int limit, String status);
 
     /**
      * get detail of the eip
      * @param eipId  the id of the eip instance
      * @return the json result
      */
-    JSONObject getEipDetail(String eipId);
+    ResponseEntity getEipDetail(String eipId);
 
 
     /**
@@ -55,7 +65,7 @@ public interface IEipService {
      * @param param param
      * @return      result
      */
-    String updateEipBandWidth(String id, EipUpdateParamWrapper param);
+    ResponseEntity updateEipBandWidth(String id, EipUpdateParamWrapper param);
 
 
     /**
@@ -63,26 +73,42 @@ public interface IEipService {
      * @param id      id
      * @param serverId  server id
      * @param type   //1：ecs // 2：cps // 3：slb
+     * @param portId   port id
      * @return        result
      */
-    String eipbindPort(String id,String type, String serverId);
+    ResponseEntity eipbindPort(String id,String type, String serverId, String portId);
 
     /**
      * un bind port
      * @param id    id
      * @return      result
      */
-    String unBindPort(String id);
+    ResponseEntity unBindPort(String id);
 
 
     /**
      * add eip into eip pool for test
      */
-    void addEipPool(String ip);
+    void addEipPool(String ip, String eip);
 
     /**
      * list all server of current users
      */
-    String listServer();
+    ResponseEntity listServer(String userRegion);
+
+    /**
+     * get eip by floating ip
+     */
+    ResponseEntity getEipByInstanceId(String instanceId);
+
+    /**
+     * get eip number of ther user
+     */
+    ResponseEntity getEipNumber();
+
+    ResponseEntity getEipByIpAddress(String eip);
+
+    ResponseEntity getEipCount();
+
 
 }
