@@ -469,8 +469,9 @@ public class EipDaoService {
                     eipEntity.getFirewallId());
             eipEntity.setSnatId(snatRuleId);
             log.info("renew eip entity add snat, id:{}.  ",snatRuleId);
+            eipEntity.setStatus(HsConstants.ACTIVE);
         }
-        eipEntity.setStatus(HsConstants.ACTIVE);
+
         eipRepository.save(eipEntity);
         return ActionResponse.actionSuccess();
     }
