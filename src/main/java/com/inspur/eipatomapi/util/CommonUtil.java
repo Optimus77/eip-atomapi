@@ -94,7 +94,7 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.info("Get project from token:{}", project);
-            log.info("Get openstack ip:{}, region:{}",userConfig.get("openstackIp"), userRegion);
+            log.info("Get openstack ip:{}, region:{}",userConfig.get("openstackIp"), userRegion);            
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
