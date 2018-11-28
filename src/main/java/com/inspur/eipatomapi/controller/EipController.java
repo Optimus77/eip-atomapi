@@ -259,4 +259,19 @@ public class EipController {
         return eipService.deleteEipList(param.getEipids());
     }
 
+    @GetMapping(value = "/health-status")
+    @CrossOrigin(origins = "*", maxAge = 3000)
+    @ApiOperation(value = "health check")
+    @ICPControllerLog
+    public ResponseEntity EipHealthCheck() {
+        //HealthCheck
+        String code;
+        String msg;
+        code = ReturnStatus.SC_OK;
+        msg ="The eip is running";
+        log.info(msg);
+
+        return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg,null), HttpStatus.OK);
+    }
+
 }
