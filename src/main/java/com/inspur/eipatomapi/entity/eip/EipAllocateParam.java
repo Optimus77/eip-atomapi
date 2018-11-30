@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.inspur.eipatomapi.util.TypeConstraint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
-import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 
 @Data
