@@ -30,7 +30,7 @@ public class CommonUtil {
 
 
     public static boolean isDebug = true;
-    public static boolean qosDebug = true;
+    public static boolean qosDebug = false;
 
     public static String getDate() {
         Date currentTime = new Date();

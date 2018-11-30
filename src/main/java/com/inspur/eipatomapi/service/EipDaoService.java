@@ -397,7 +397,7 @@ public class EipDaoService {
         }
 
         Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-        if(delQosResult || CommonUtil.qosDebug) {
+        if(delQosResult) {
             eipEntity.setPipId(null);
         } else {
             msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
