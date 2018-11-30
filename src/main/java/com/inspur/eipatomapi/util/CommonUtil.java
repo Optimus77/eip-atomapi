@@ -30,7 +30,7 @@ public class CommonUtil {
 
 
     public static boolean isDebug = true;
-    public static boolean qosDebug = true;
+    public static boolean qosDebug = false;
 
     public static String getDate() {
         Date currentTime = new Date();
@@ -78,7 +78,7 @@ public class CommonUtil {
 
         String token = getKeycloackToken();
         if(null == token){
-            log.error("can't get token, use default project admin 140785795de64945b02363661eb9e769");
+            log.error("can't get token.");
             return getOsClientV3();
         }
 
@@ -93,8 +93,7 @@ public class CommonUtil {
         log.info("decode::"+jsonObject);
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
-            log.info("Get project from token:{}", project);
-            log.info("Get openstack ip:{}, region:{}",userConfig.get("openstackIp"), userRegion);            
+            log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
@@ -147,7 +146,7 @@ public class CommonUtil {
             org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
             String sub = (String) jsonObject.get("sub");
             if(sub!=null){
-                log.info("getUserId:{}", sub);
+                log.debug("getUserId:{}", sub);
                 return sub;
             }else{
                 throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
