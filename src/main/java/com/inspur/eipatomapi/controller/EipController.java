@@ -1,8 +1,6 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
-import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
-import com.inspur.eipatomapi.entity.bss.EipSoftDownOrder;
 import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
 import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.eip.EipDelParam;
@@ -140,14 +138,6 @@ public class EipController {
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
 
-    @ICPControllerLog
-    @PostMapping(value = "/ips")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity addEipPool( @RequestParam String ip,  @RequestParam String eip) {
-        eipService.addEipPool(ip, eip);
-        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-    }
-
 
     @ICPControllerLog
     @GetMapping(value = "/servers")
@@ -227,15 +217,14 @@ public class EipController {
     }
 
     /**
-     *
-     * @return
+     * get number of user
+     * @return response
      */
     @ICPControllerLog
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getEipCount() {
-        log.info("Get eip getEipCount.");
         return  eipService.getEipCount();
     }
 
@@ -257,6 +246,21 @@ public class EipController {
 
         log.info("Delete the Eips:{}.", param.getEipids().toString());
         return eipService.deleteEipList(param.getEipids());
+    }
+
+    @GetMapping(value = "/health-status")
+    @CrossOrigin(origins = "*", maxAge = 3000)
+    @ApiOperation(value = "health check")
+    @ICPControllerLog
+    public ResponseEntity EipHealthCheck() {
+        //HealthCheck
+        String code;
+        String msg;
+        code = ReturnStatus.SC_OK;
+        msg ="The eip is running";
+        log.info(msg);
+
+        return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg,null), HttpStatus.OK);
     }
 
 }
