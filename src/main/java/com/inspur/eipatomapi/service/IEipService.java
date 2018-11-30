@@ -1,6 +1,5 @@
 package com.inspur.eipatomapi.service;
 
-import com.inspur.eipatomapi.entity.bss.EipReciveOrder;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
 
@@ -8,15 +7,6 @@ import java.util.List;
 
 
 public interface IEipService {
-
-    /**
-     * create a eip
-     * @param eipConfig          config
-     * @return                   json info of eip
-     */
-
-    ResponseEntity createEip(EipReciveOrder eipConfig);
-
 
 
     /**
@@ -29,19 +19,6 @@ public interface IEipService {
      */
 
     ResponseEntity deleteEipList(List<String> eipIds);
-    /**
-     * 1.delete  eip
-     * 2.Determine if Snate and Qos is deleted
-     * 3.delete eip
-     *
-     * @param eipId  eip id
-     * @param eipOrder  eip order
-     * @return       result: true/false
-     */
-
-    ResponseEntity deleteEip(String eipId, EipReciveOrder eipOrder);
-
-
 
     /**
      *  list the eip
@@ -87,11 +64,6 @@ public interface IEipService {
 
 
     /**
-     * add eip into eip pool for test
-     */
-    void addEipPool(String ip, String eip);
-
-    /**
      * list all server of current users
      */
     ResponseEntity listServer(String userRegion);
@@ -100,11 +72,6 @@ public interface IEipService {
      * get eip by floating ip
      */
     ResponseEntity getEipByInstanceId(String instanceId);
-
-    /**
-     * get eip number of ther user
-     */
-    ResponseEntity getEipNumber();
 
     ResponseEntity getEipByIpAddress(String eip);
 

@@ -38,7 +38,7 @@ public class KeyClockAuthFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)throws IOException, ServletException {
-        log.info("*******************************************");
+        log.info("**************************************************************************");
         HttpServletRequest req= (HttpServletRequest)servletRequest;
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         if(req.getRequestURI().startsWith(req.getContextPath()+ConstantClassField.VERSION_REST)){
@@ -53,7 +53,7 @@ public class KeyClockAuthFilter implements Filter {
                 response.getWriter().write(result.toJSONString());
             }else{
                 String token = req.getHeader("Authorization");
-                log.info("get authorization {}",token);
+                log.debug("get authorization {}",token);
                 CommonUtil.setKeyClockInfo(Base64Util.decodeUserInfo(token));
                 filterChain.doFilter(servletRequest, servletResponse);
             }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.inspur.eipatomapi.util.TypeConstraint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
+import org.springframework.lang.Nullable;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
@@ -17,7 +19,7 @@ public class EipAllocateParam implements Serializable {
     @TypeConstraint(allowedValues = {"monthly","hourlySettlement", "other"}, message = "Only monthly,hourlySettlement is allowed. ")
     private String billType = "hourlySettlement";
 
-    @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
+    //@Pattern(regexp="[0-9-]{1,2}", message="param duration time error.")
     private String duration;
 
     private String durationUnit = "M";
