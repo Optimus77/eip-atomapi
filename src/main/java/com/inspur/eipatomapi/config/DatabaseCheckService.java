@@ -21,11 +21,7 @@ public class DatabaseCheckService implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         log.error("***************************databse check***********************");
-        //service.checkDatabse();
 
-        //Map<String, Object> map=eipDaoService.getDuplicateEip();
-        //long num =(long)map.get("num");
-        //log.info("result:{}", num);
     }
 
 }

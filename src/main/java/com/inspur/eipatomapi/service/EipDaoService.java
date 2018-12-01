@@ -16,6 +16,7 @@ import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,13 +59,6 @@ public class EipDaoService {
     @Transactional
     public  Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws Exception{
 
-        EipPool eipPoolCheck  = eipPoolRepository.findByIp(eip.getIp());
-        if(eipPoolCheck != null){
-            log.error("==================================================================================");
-            log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{}.", eip.getIp());
-            log.error("===================================================================================");
-            return null;
-        }
 
         if (!eip.getState().equals("0")) {
             log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
@@ -78,6 +72,15 @@ public class EipDaoService {
             eipPoolRepository.saveAndFlush(eip);
             return null;
         }
+
+        EipPool eipPoolCheck  = eipPoolRepository.findByIp(eip.getIp());
+        if(eipPoolCheck != null){
+            log.error("==================================================================================");
+            log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{}.", eip.getIp());
+            log.error("===================================================================================");
+            return null;
+        }
+
         Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
         if(null != eipEntity){
             log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{} eipId:{}.",
@@ -531,7 +534,7 @@ public class EipDaoService {
 
     }
 
-    @Transactional
+    @Transactional(isolation= Isolation.SERIALIZABLE)
     public synchronized EipPool getOneEipFromPool(){
         EipPool eipAddress =  eipPoolRepository.getEipByRandom();
         if(null != eipAddress) {
