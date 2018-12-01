@@ -58,8 +58,8 @@ public class EipDaoService {
     @Transactional
     public  Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws Exception{
 
-        Optional<EipPool> eipPoolOptional  = eipPoolRepository.findById(eip.getId());
-        if(eipPoolOptional.isPresent()){
+        EipPool eipPoolCheck  = eipPoolRepository.findByIp(eip.getIp());
+        if(eipPoolCheck != null){
             log.error("==================================================================================");
             log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{}.", eip.getIp());
             log.error("===================================================================================");
@@ -139,32 +139,30 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-        boolean delFipResult = true;
+
         if(null != eipEntity.getFloatingIpId()) {
-            delFipResult = neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId());
-        }
-        if(delFipResult) {
-            eipRepository.deleteById(eipEntity.getEipId());
-            EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
-            if(null != eipPool){
-                log.error("******************************************************************************");
-                log.error("Fatal error, eip has already exist in eip pool. can not add to eip pool.{}",
-                        eipEntity.getEipAddress());
-                log.error("******************************************************************************");
-            }else {
-                EipPool eipPoolMo = new EipPool();
-                eipPoolMo.setFireWallId(eipEntity.getFirewallId());
-                eipPoolMo.setIp(eipEntity.getEipAddress());
-                eipPoolMo.setState("0");
-                eipPoolRepository.saveAndFlush(eipPoolMo);
+            if(!neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId())){
+                msg = "Failed to delete floating ip, floatingIpId:"+eipEntity.getFloatingIpId();
+                log.error(msg);
+                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-            log.info("Success delete eip:{}",eipEntity.getEipAddress());
-            return ActionResponse.actionSuccess();
-        } else {
-            msg = "Failed to delete floating ip, floatingIpId:"+eipEntity.getFloatingIpId();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
+        eipRepository.deleteById(eipEntity.getEipId());
+        EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
+        if(null != eipPool){
+            log.error("******************************************************************************");
+            log.error("Fatal error, eip has already exist in eip pool. can not add to eip pool.{}",
+                    eipEntity.getEipAddress());
+            log.error("******************************************************************************");
+        }else {
+            EipPool eipPoolMo = new EipPool();
+            eipPoolMo.setFireWallId(eipEntity.getFirewallId());
+            eipPoolMo.setIp(eipEntity.getEipAddress());
+            eipPoolMo.setState("0");
+            eipPoolRepository.saveAndFlush(eipPoolMo);
+        }
+        log.info("Success delete eip:{}",eipEntity.getEipAddress());
+        return ActionResponse.actionSuccess();
     }
 
     @Transactional
