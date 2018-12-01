@@ -58,6 +58,14 @@ public class EipDaoService {
     @Transactional
     public  Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws Exception{
 
+        Optional<EipPool> eipPoolOptional  = eipPoolRepository.findById(eip.getId());
+        if(eipPoolOptional.isPresent()){
+            log.error("==================================================================================");
+            log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{}.", eip.getIp());
+            log.error("===================================================================================");
+            return null;
+        }
+
         if (!eip.getState().equals("0")) {
             log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
             eipPoolRepository.saveAndFlush(eip);
