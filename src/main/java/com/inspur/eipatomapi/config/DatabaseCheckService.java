@@ -23,9 +23,9 @@ public class DatabaseCheckService implements ApplicationRunner {
         log.error("***************************databse check***********************");
         //service.checkDatabse();
 
-        Map<String, Object> map=eipDaoService.getDuplicateEip();
-        long num =(long)map.get("num");
-        log.info("result:{}", num);
+        //Map<String, Object> map=eipDaoService.getDuplicateEip();
+        //long num =(long)map.get("num");
+        //log.info("result:{}", num);
     }
 
 }
