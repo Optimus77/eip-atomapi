@@ -552,4 +552,33 @@ public class EipDaoService {
         }
         return extNetId;
     }
+
+
+    public Map<String, Object> getDuplicateEip(){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select eip_address, count(*) as num from eip group by eip_address having num>1";
+
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+
+        log.info("{}", map);
+
+        return map;
+
+    }
+
+    public Map<String, Object> getDuplicateEipFromPool(){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select ip, count(*) as num from eip_pool group by ip having num>1";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+
+        log.info("{}, result:{}",sql, map);
+
+        return map;
+
+    }
+
 }
