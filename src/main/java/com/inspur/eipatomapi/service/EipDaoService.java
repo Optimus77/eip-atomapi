@@ -56,23 +56,18 @@ public class EipDaoService {
      * @return result
      */
     @Transactional
-    public  Eip allocateEip(EipAllocateParam eipConfig, String portId) throws Exception{
+    public  Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws Exception{
 
-        EipPool eip = getOneEipFromPool();
-        if(null == eip) {
-            log.error("Failed to allocate eip in eip pool.");
-            return null;
-        }
         if (!eip.getState().equals("0")) {
             log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
-            eipPoolRepository.save(eip);
+            eipPoolRepository.saveAndFlush(eip);
             return null;
         }
 
         String networkId =  getExtNetId(eipConfig.getRegion());
         if(null == networkId) {
             log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
-            eipPoolRepository.save(eip);
+            eipPoolRepository.saveAndFlush(eip);
             return null;
         }
         Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
@@ -86,7 +81,7 @@ public class EipDaoService {
         if (null == floatingIP) {
             log.error("Fatal Error! Can not get floating ip in network:{}, region:{}, portId:{}.",
                     networkId, eipConfig.getRegion(), portId);
-            eipPoolRepository.save(eip);
+            eipPoolRepository.saveAndFlush(eip);
             return null;
         }
         Eip eipMo = new Eip();
@@ -109,7 +104,7 @@ public class EipDaoService {
         //log.debug("get tenantid from token:{}", CommonUtil.getProjectId(eipConfig.getRegion()));
         eipMo.setProjectId(userId);
 
-        eipMo = eipRepository.save(eipMo);
+        eipRepository.saveAndFlush(eipMo);
         log.info("User:{} success allocate eip:{}",userId, eipMo.toString());
         return eipMo;
     }
@@ -153,7 +148,7 @@ public class EipDaoService {
                 eipPoolMo.setFireWallId(eipEntity.getFirewallId());
                 eipPoolMo.setIp(eipEntity.getEipAddress());
                 eipPoolMo.setState("0");
-                eipPoolRepository.save(eipPoolMo);
+                eipPoolRepository.saveAndFlush(eipPoolMo);
             }
             log.info("Success delete eip:{}",eipEntity.getEipAddress());
             return ActionResponse.actionSuccess();
@@ -187,7 +182,7 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
-        eipRepository.save(eipEntity);
+        eipRepository.saveAndFlush(eipEntity);
         return ActionResponse.actionSuccess();
     }
     /**
@@ -253,7 +248,7 @@ public class EipDaoService {
             }
             eip.setFloatingIpId(floatingIP.getId());
             eip.setFloatingIp(floatingIP.getFloatingIpAddress());
-            eipRepository.save(eip);
+            eipRepository.saveAndFlush(eip);
         }
         ActionResponse actionResponse;
         try{
@@ -314,7 +309,7 @@ public class EipDaoService {
                 eip.setPipId(pipId);
                 eip.setPortId(portId);
                 eip.setStatus(HsConstants.ACTIVE);
-                eipRepository.save(eip);
+                eipRepository.saveAndFlush(eip);
                 data.put("reason",HsConstants.SUCCESS);
                 data.put("httpCode", HttpStatus.SC_OK);
                 data.put("interCode", ReturnStatus.SC_OK);
@@ -374,6 +369,7 @@ public class EipDaoService {
                 eipEntity.setInstanceId(null);
                 eipEntity.setInstanceType(null);
                 eipEntity.setPrivateIpAddress(null);
+                eipEntity.setPortId(null);
             }else {
                 msg = "Failed to disassociate port with fip:"+eipEntity.toString();
                 log.error(msg);
@@ -405,7 +401,7 @@ public class EipDaoService {
         }
 
         eipEntity.setStatus(HsConstants.DOWN);
-        eipRepository.save(eipEntity);
+        eipRepository.saveAndFlush(eipEntity);
         if(null != msg) {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }else {
@@ -445,7 +441,7 @@ public class EipDaoService {
         if (updateStatus ||CommonUtil.qosDebug) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
-            eipRepository.save(eipEntity);
+            eipRepository.saveAndFlush(eipEntity);
             data.put("reason","");
             data.put("httpCode", HttpStatus.SC_OK);
             data.put("interCode", ReturnStatus.SC_OK);
@@ -478,7 +474,7 @@ public class EipDaoService {
             eipEntity.setStatus(HsConstants.ACTIVE);
         }
 
-        eipRepository.save(eipEntity);
+        eipRepository.saveAndFlush(eipEntity);
         return ActionResponse.actionSuccess();
     }
 
@@ -529,11 +525,12 @@ public class EipDaoService {
 
     }
 
-
-    private synchronized EipPool getOneEipFromPool(){
+    @Transactional
+    public synchronized EipPool getOneEipFromPool(){
         EipPool eipAddress =  eipPoolRepository.getEipByRandom();
         if(null != eipAddress) {
             eipPoolRepository.deleteById(eipAddress.getId());
+            eipPoolRepository.flush();
         }
         return eipAddress;
     }
