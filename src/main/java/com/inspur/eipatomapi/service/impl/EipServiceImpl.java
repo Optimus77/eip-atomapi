@@ -50,7 +50,15 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            Eip eipMo = eipDaoService.allocateEip(eipConfig, null);
+            EipPool eip = eipDaoService.getOneEipFromPool();
+            if(null == eip) {
+                msg = "Failed, no eip in eip pool.";
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH, msg),
+                        HttpStatus.FAILED_DEPENDENCY);
+            }
+
+            Eip eipMo = eipDaoService.allocateEip(eipConfig, eip,null);
             if (null != eipMo) {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
