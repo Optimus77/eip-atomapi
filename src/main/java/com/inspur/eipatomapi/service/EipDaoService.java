@@ -14,9 +14,9 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,25 +57,30 @@ public class EipDaoService {
      * @return result
      */
     @Transactional
-    public  Eip allocateEip(EipAllocateParam eipConfig, String portId) throws Exception{
+    public  Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws Exception{
 
-        EipPool eip = getOneEipFromPool();
-        if(null == eip) {
-            log.error("Failed to allocate eip in eip pool.");
-            return null;
-        }
+
         if (!eip.getState().equals("0")) {
             log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
-            eipPoolRepository.save(eip);
+            eipPoolRepository.saveAndFlush(eip);
             return null;
         }
 
         String networkId =  getExtNetId(eipConfig.getRegion());
         if(null == networkId) {
             log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
-            eipPoolRepository.save(eip);
+            eipPoolRepository.saveAndFlush(eip);
             return null;
         }
+
+        EipPool eipPoolCheck  = eipPoolRepository.findByIp(eip.getIp());
+        if(eipPoolCheck != null){
+            log.error("==================================================================================");
+            log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{}.", eip.getIp());
+            log.error("===================================================================================");
+            return null;
+        }
+
         Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
         if(null != eipEntity){
             log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{} eipId:{}.",
@@ -87,7 +92,7 @@ public class EipDaoService {
         if (null == floatingIP) {
             log.error("Fatal Error! Can not get floating ip in network:{}, region:{}, portId:{}.",
                     networkId, eipConfig.getRegion(), portId);
-            eipPoolRepository.save(eip);
+            eipPoolRepository.saveAndFlush(eip);
             return null;
         }
         Eip eipMo = new Eip();
@@ -110,7 +115,7 @@ public class EipDaoService {
         //log.debug("get tenantid from token:{}", CommonUtil.getProjectId(eipConfig.getRegion()));
         eipMo.setProjectId(userId);
 
-        eipMo = eipRepository.save(eipMo);
+        eipRepository.saveAndFlush(eipMo);
         log.info("User:{} success allocate eip:{}",userId, eipMo.toString());
         return eipMo;
     }
@@ -133,29 +138,34 @@ public class EipDaoService {
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
                 || (null != eipEntity.getSnatId())) {
-            msg = "Failed to delete eip,status error"+eipEntity.toString();
+            msg = "Failed to delete eip,please unbind eip first."+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-        boolean delFipResult = true;
+
         if(null != eipEntity.getFloatingIpId()) {
-            delFipResult = neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId());
+            if(!neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId())){
+                msg = "Failed to delete floating ip, floatingIpId:"+eipEntity.getFloatingIpId();
+                log.error(msg);
+                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            }
         }
-        if(delFipResult) {
+        eipRepository.deleteById(eipEntity.getEipId());
+        EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
+        if(null != eipPool){
+            log.error("******************************************************************************");
+            log.error("Fatal error, eip has already exist in eip pool. can not add to eip pool.{}",
+                    eipEntity.getEipAddress());
+            log.error("******************************************************************************");
+        }else {
             EipPool eipPoolMo = new EipPool();
             eipPoolMo.setFireWallId(eipEntity.getFirewallId());
             eipPoolMo.setIp(eipEntity.getEipAddress());
             eipPoolMo.setState("0");
-
-            eipRepository.deleteById(eipEntity.getEipId());
-            eipPoolRepository.save(eipPoolMo);
-            log.info("Success delete eip:{}",eipPoolMo.getIp());
-            return ActionResponse.actionSuccess();
-        } else {
-            msg = "Failed to delete floating ip, floatingIpId:"+eipEntity.getFloatingIpId();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            eipPoolRepository.saveAndFlush(eipPoolMo);
         }
+        log.info("Success delete eip:{}",eipEntity.getEipAddress());
+        return ActionResponse.actionSuccess();
     }
 
     @Transactional
@@ -181,7 +191,7 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
-        eipRepository.save(eipEntity);
+        eipRepository.saveAndFlush(eipEntity);
         return ActionResponse.actionSuccess();
     }
     /**
@@ -247,7 +257,7 @@ public class EipDaoService {
             }
             eip.setFloatingIpId(floatingIP.getId());
             eip.setFloatingIp(floatingIP.getFloatingIpAddress());
-            eipRepository.save(eip);
+            eipRepository.saveAndFlush(eip);
         }
         ActionResponse actionResponse;
         try{
@@ -308,7 +318,7 @@ public class EipDaoService {
                 eip.setPipId(pipId);
                 eip.setPortId(portId);
                 eip.setStatus(HsConstants.ACTIVE);
-                eipRepository.save(eip);
+                eipRepository.saveAndFlush(eip);
                 data.put("reason",HsConstants.SUCCESS);
                 data.put("httpCode", HttpStatus.SC_OK);
                 data.put("interCode", ReturnStatus.SC_OK);
@@ -368,6 +378,7 @@ public class EipDaoService {
                 eipEntity.setInstanceId(null);
                 eipEntity.setInstanceType(null);
                 eipEntity.setPrivateIpAddress(null);
+                eipEntity.setPortId(null);
             }else {
                 msg = "Failed to disassociate port with fip:"+eipEntity.toString();
                 log.error(msg);
@@ -391,7 +402,7 @@ public class EipDaoService {
         }
 
         Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-        if(delQosResult || CommonUtil.qosDebug) {
+        if(delQosResult) {
             eipEntity.setPipId(null);
         } else {
             msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
@@ -399,7 +410,7 @@ public class EipDaoService {
         }
 
         eipEntity.setStatus(HsConstants.DOWN);
-        eipRepository.save(eipEntity);
+        eipRepository.saveAndFlush(eipEntity);
         if(null != msg) {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }else {
@@ -439,7 +450,7 @@ public class EipDaoService {
         if (updateStatus ||CommonUtil.qosDebug) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
-            eipRepository.save(eipEntity);
+            eipRepository.saveAndFlush(eipEntity);
             data.put("reason","");
             data.put("httpCode", HttpStatus.SC_OK);
             data.put("interCode", ReturnStatus.SC_OK);
@@ -472,7 +483,7 @@ public class EipDaoService {
             eipEntity.setStatus(HsConstants.ACTIVE);
         }
 
-        eipRepository.save(eipEntity);
+        eipRepository.saveAndFlush(eipEntity);
         return ActionResponse.actionSuccess();
     }
 
@@ -504,12 +515,10 @@ public class EipDaoService {
 
         //TODO  get table name and colum name by entityUtil
         String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
-        log.info(sql);
-        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        log.info("{}",map);
-        long num =(long)map.get("num");
-        log.info("get count use jdbc {}",num);
 
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.info("{}, result:{}",sql, num);
 //        //demo do't use this type, default value must be set value;
 //        Eip eip  = new Eip();
 //        eip.setCreateTime(null);
@@ -523,39 +532,14 @@ public class EipDaoService {
 
         return num;
 
-
     }
 
-    public void addEipPool(String ip, String eip) {
-
-        String id = "firewall_id1";
-        Firewall firewall = new Firewall();
-        firewall.setIp(ip);
-        firewall.setPort("443");
-        firewall.setUser("hillstone");
-        firewall.setPasswd("hillstone");
-        firewall.setParam1("eth0/0/0");
-        firewall.setParam2("eth0/0/1");
-        firewall.setParam3("eth0/0/2");
-        firewallRepository.save(firewall);
-        List<Firewall> firewalls = firewallRepository.findAll();
-        for(Firewall fw : firewalls){
-            id = fw.getId();
-        }
-
-        for (int i = 11; i < 77; i++) {
-            EipPool eipPoolMo = new EipPool();
-            eipPoolMo.setFireWallId(id);
-            eipPoolMo.setIp(eip+i);
-            eipPoolMo.setState("0");
-            eipPoolRepository.save(eipPoolMo);
-        }
-    }
-
-    private synchronized EipPool getOneEipFromPool(){
+    @Transactional(isolation= Isolation.SERIALIZABLE)
+    public synchronized EipPool getOneEipFromPool(){
         EipPool eipAddress =  eipPoolRepository.getEipByRandom();
         if(null != eipAddress) {
             eipPoolRepository.deleteById(eipAddress.getId());
+            eipPoolRepository.flush();
         }
         return eipAddress;
     }
@@ -571,4 +555,33 @@ public class EipDaoService {
         }
         return extNetId;
     }
+
+
+    public Map<String, Object> getDuplicateEip(){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select eip_address, count(*) as num from eip group by eip_address having num>1";
+
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+
+        log.info("{}", map);
+
+        return map;
+
+    }
+
+    public Map<String, Object> getDuplicateEipFromPool(){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select ip, count(*) as num from eip_pool group by ip having num>1";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+
+        log.info("{}, result:{}",sql, map);
+
+        return map;
+
+    }
+
 }
