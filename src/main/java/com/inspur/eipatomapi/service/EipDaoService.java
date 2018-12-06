@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -131,7 +132,7 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+        if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -178,7 +179,7 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+        if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -192,6 +193,7 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
+        eipEntity.setUpdateTime(new Date());
         eipRepository.saveAndFlush(eipEntity);
         return ActionResponse.actionSuccess();
     }
@@ -206,7 +208,6 @@ public class EipDaoService {
     @Transactional
     public JSONObject associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId)
             throws Exception{
-
 
         JSONObject data=new JSONObject();
         Eip eip = eipRepository.findByEipId(eipid);
@@ -330,6 +331,7 @@ public class EipDaoService {
 //                eip.setPipId(pipId);
                 eip.setPortId(portId);
                 eip.setStatus(HsConstants.ACTIVE);
+                eip.setUpdateTime(new Date());
                 eipRepository.saveAndFlush(eip);
                 data.put("reason",HsConstants.SUCCESS);
                 data.put("httpCode", HttpStatus.SC_OK);
@@ -423,6 +425,7 @@ public class EipDaoService {
 //        }
 
         eipEntity.setStatus(HsConstants.DOWN);
+        eipEntity.setUpdateTime(new Date());
         eipRepository.saveAndFlush(eipEntity);
         if(null != msg) {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -443,7 +446,7 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.SC_NOT_FOUND);
             return data;
         }
-        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+        if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
             log.error("User have no write to operate eip:{}", eipid);
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
             data.put("httpCode", HttpStatus.SC_FORBIDDEN);
@@ -463,6 +466,7 @@ public class EipDaoService {
         if (updateStatus ||CommonUtil.qosDebug) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
+            eipEntity.setUpdateTime(new Date());
             eipRepository.saveAndFlush(eipEntity);
             data.put("reason","");
             data.put("httpCode", HttpStatus.SC_OK);
