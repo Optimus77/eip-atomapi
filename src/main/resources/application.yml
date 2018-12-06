@@ -20,9 +20,6 @@ http:
   socketTimeout: 10000
   statleConnectionCheckEnabled: true
 
-mq:
-  returnMq:    http://common-atom.console.svc.cluster.local:8080/common/productreturn
-  returnNotify: http://common-atom.console.svc.cluster.local:8080/common/productnotify
 openstackIp: 10.110.25.117
 
 # Mysql
@@ -65,7 +62,7 @@ keycloak:
   realm: picp
   public-client: false
   credentials:
-    secret: a2d9a847-0030-42e1-af1c-910ee471cb34
+    secret: 3da8fb1c-97d7-4627-8c4c-b002942e820f
   resource: iaas-server
   ssl-required: none
   bearer-only: true
