@@ -38,11 +38,6 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("sharedbandwidth_id")
     private String sharedBandWidthId;
 
-    //Todo: add or not ????
-    @JsonProperty("floatingip")
-    private String floatingIp;
-    //    private String floating_ipId;
-
     @JsonProperty("private_ip_address")
     private String privateIpAddress;
 
@@ -53,7 +48,7 @@ public class EipReturnDetail implements Serializable {
     private String status;
 
     @JsonProperty("create_at")
-    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape= JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
 }

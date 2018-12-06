@@ -31,6 +31,6 @@ public class EipReturnBase implements Serializable {
     private String status;
 
     @JsonProperty("create_at")
-    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape= JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 }

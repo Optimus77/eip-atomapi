@@ -170,6 +170,23 @@ public class CommonUtil {
             }
         }
     }
+    public static boolean isAuthoried(String projectId) {
+        try {
+            if (projectId.equals(getUserId())) {
+                return true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        String token = getKeycloackToken();
+        if(null == token){
+            log.error("User has no token.");
+        }else {
+            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+            log.error("User has no right to operation.{}", jsonObject.toString());
+        }
+        return true;
+    }
 
 
 }
