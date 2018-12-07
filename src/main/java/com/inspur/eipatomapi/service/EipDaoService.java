@@ -89,21 +89,21 @@ public class EipDaoService {
             return null;
         }
 
-        NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
-        if (null == floatingIP) {
-            log.error("Fatal Error! Can not get floating ip in network:{}, region:{}, portId:{}.",
-                    networkId, eipConfig.getRegion(), portId);
-            eipPoolRepository.saveAndFlush(eip);
-            return null;
-        }
+//        NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(), networkId, portId);
+//        if (null == floatingIP) {
+//            log.error("Fatal Error! Can not get floating ip in network:{}, region:{}, portId:{}.",
+//                    networkId, eipConfig.getRegion(), portId);
+//            eipPoolRepository.saveAndFlush(eip);
+//            return null;
+//        }
         Eip eipMo = new Eip();
         eipMo.setEipAddress(eip.getIp());
         eipMo.setStatus(HsConstants.DOWN);
         eipMo.setFirewallId(eip.getFireWallId());
 
-        eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
-        eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
-        eipMo.setFloatingIpId(floatingIP.getId());
+//        eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
+//        eipMo.setPrivateIpAddress(floatingIP.getFixedIpAddress());
+//        eipMo.setFloatingIpId(floatingIP.getId());
         eipMo.setIpType(eipConfig.getIptype());
         eipMo.setBillType(eipConfig.getBillType());
         eipMo.setChargeMode(eipConfig.getChargemode());
