@@ -267,6 +267,7 @@ public class EipDaoService {
         }else {
 
             eipRepository.saveAndFlush(eip);
+            log.info("The servers has floatingIp");
         }
 
         ActionResponse actionResponse;
