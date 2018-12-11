@@ -16,7 +16,7 @@ public class SlbService {
 
     public final static Logger log = LoggerFactory.getLogger(SlbService.class);
 
-    @Value("${eipAtom}")
+    @Value("${slbUrl}")
     private String slbUrl;
 
     public boolean isFipInUse(String  vmId) {
