@@ -544,16 +544,7 @@ public class EipDaoService {
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
         long num =(long)map.get("num");
         log.info("{}, result:{}",sql, num);
-//        //demo do't use this type, default value must be set value;
-//        Eip eip  = new Eip();
-//        eip.setCreateTime(null);
-//        eip.setStatus(null);
-//        eip.setIpVersion("IPv4");
-//        eip.setBillType("");
-//        eip.setProjectId(projectId);
-//        Example<Eip> example = Example.of(eip);
-//        long count=eipRepository.count(example);
-//        log.info("get count use jdbc {}",count);
+
 
         return num;
 
@@ -670,9 +661,8 @@ public class EipDaoService {
             snatRuleId = firewallService.addSnat(ipAddr, eipIp, eip.getFirewallId());
             log.info("snatRuleId:  " + snatRuleId);
             if (snatRuleId == null) {
-                if (dnatRuleId != null) {
-                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                }
+                firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+
                 data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
@@ -681,46 +671,29 @@ public class EipDaoService {
 
             pipId = firewallService.addQos(ipAddr, eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
             if(pipId==null ){
-                if (dnatRuleId != null) {
-                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                }
-                if (snatRuleId != null) {
-                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
-                }
+                firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+                firewallService.delSnat(snatRuleId, eip.getFirewallId());
+
                 data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
                 return data;
             }
-            if (dnatRuleId != null && snatRuleId != null ) {
-                eip.setDnatId(dnatRuleId);
-                eip.setSnatId(snatRuleId);
-                eip.setPipId(pipId);
-                eip.setStatus("ACTIVE");
-                eip.setInstanceType("3");
-                eip.setInstanceId(slbId);
-                eip.setPrivateIpAddress(ipAddr);
-                eipRepository.save(eip);
-                data.put("reason", "success");
-                data.put("httpCode", HttpStatus.SC_OK);
-                data.put("interCode", ReturnStatus.SC_OK);
-                data.put("data", eip);
-                return data;
-            } else {
-                if (dnatRuleId != null) {
-                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                }
-                if (snatRuleId != null) {
-                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
-                }
-                if (pipId != null) {
-                    firewallService.delQos(pipId, eip.getFirewallId());
-                }
-                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
-                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
-                return data;
-            }
+
+            eip.setDnatId(dnatRuleId);
+            eip.setSnatId(snatRuleId);
+            eip.setPipId(pipId);
+            eip.setStatus("ACTIVE");
+            eip.setInstanceType("3");
+            eip.setInstanceId(slbId);
+            eip.setPrivateIpAddress(ipAddr);
+            eipRepository.saveAndFlush(eip);
+            data.put("reason", "success");
+            data.put("httpCode", HttpStatus.SC_OK);
+            data.put("interCode", ReturnStatus.SC_OK);
+            data.put("data", eip);
+            return data;
+
         } catch (Exception e) {
             log.error("band server firewall exception", e);
             data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
@@ -789,7 +762,7 @@ public class EipDaoService {
 
 
         eipEntity.setStatus("DOWN");
-        eipRepository.save(eipEntity);
+        eipRepository.saveAndFlush(eipEntity);
         if(null != msg) {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }else {
