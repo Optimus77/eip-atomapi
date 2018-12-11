@@ -39,7 +39,7 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
-        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId, networkId, region);
+        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){
             return netFloatingIP;
         }
@@ -75,7 +75,7 @@ public  class NeutronService {
                                                                    Eip eip, String serverId) throws  Exception{
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
-        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId, networkId, region);
+        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){
             return netFloatingIP;
         }
@@ -128,7 +128,7 @@ public  class NeutronService {
                                                                      String portId, String region) throws Exception  {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(eip.getRegion());
-        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId, networkId, region);
+        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){
             return ActionResponse.actionSuccess();
         }
@@ -247,27 +247,19 @@ public  class NeutronService {
         }
 
 
-    private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId, String extNetid, String region) {
+    private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId) {
 
         Map<String, String> filteringParams = new HashMap<>(4);
         filteringParams.put("port_id", portId);
         List<? extends NetFloatingIP> list = osClientV3.networking().floatingip().list(filteringParams);
         if (list.isEmpty()) {
             Port port = osClientV3.networking().port().get(portId);
-            if (port != null) {
-                try {
-                    return osClientV3.networking().floatingip().create(Builders.netFloatingIP()
-                            .floatingNetworkId(extNetid)
-                            .portId(portId)
-                            .build());
-                } catch (Exception e) {
-                    log.error("Openstack create floating ip error!", e);
-                }
-            } else {
+            if (port == null) {
                 String msg = String.format("Can not find this port, port_id : %s", portId);
                 log.info(msg);
             }
+            return null;
         }
-        return null;
+        return list.get(1);
     }
 }

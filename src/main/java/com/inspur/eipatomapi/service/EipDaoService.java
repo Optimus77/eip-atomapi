@@ -268,8 +268,8 @@ public class EipDaoService {
                 eip.setInstanceType(instanceType);
             }catch (Exception e) {
                 log.error("==========openstack associaInstanceWithFloatingIp error========");
-                log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :{},eip :{}",
-                        serverId, eip.toString());
+                log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :{},portid:{},eip :{}",
+                        serverId, portId, eip.toString());
 
                 log.error("Exception in associateInstanceWithEip", e);
                 data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
