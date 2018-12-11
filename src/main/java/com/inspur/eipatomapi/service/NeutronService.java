@@ -4,6 +4,7 @@ import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.KeycloakTokenException;
 import org.apache.http.HttpStatus;
+import org.openstack4j.api.Builders;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.options.PortListOptions;
@@ -17,6 +18,7 @@ import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

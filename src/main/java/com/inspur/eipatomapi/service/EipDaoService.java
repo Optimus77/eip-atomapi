@@ -314,21 +314,21 @@ public class EipDaoService {
                     return data;
                 }
 
-//                pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
-//                if(pipId==null && !CommonUtil.qosDebug){
-//                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
-//                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-//                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
-//                    data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
-//                    data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-//                    data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
-//                    return data;
-//                }
+                pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
+                if(pipId==null && !CommonUtil.qosDebug){
+                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
+                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
+                    data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
+                    data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                    data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
+                    return data;
+                }
                 eip.setInstanceId(serverId);
                 eip.setInstanceType(instanceType);
                 eip.setDnatId(dnatRuleId);
                 eip.setSnatId(snatRuleId);
-//                eip.setPipId(pipId);
+                eip.setPipId(pipId);
                 eip.setPortId(portId);
                 eip.setStatus(HsConstants.ACTIVE);
                 eip.setUpdateTime(new Date());
@@ -380,12 +380,12 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-//        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) || (null == eipEntity.getSnatId())
-//                || (null == eipEntity.getDnatId()) || null == eipEntity.getFloatingIp()){
-//            msg = "Error status when disassociate eip:"+eipEntity.toString();
-//            log.error(msg);
-//            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
-//        }
+        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) || (null == eipEntity.getSnatId())
+                || (null == eipEntity.getDnatId()) ){
+            msg = "Error status when disassociate eip:"+eipEntity.toString();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
+        }
 
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
             ActionResponse actionResponse = neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
@@ -424,13 +424,13 @@ public class EipDaoService {
             log.error(msg);
         }
 
-//        Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-//        if(delQosResult) {
-//            eipEntity.setPipId(null);
-//        } else {
-//            msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
-//            log.error(msg);
-//        }
+        Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
+        if(delQosResult) {
+            eipEntity.setPipId(null);
+        } else {
+            msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
+            log.error(msg);
+        }
 
         eipEntity.setStatus(HsConstants.DOWN);
         eipEntity.setUpdateTime(new Date());
@@ -679,23 +679,23 @@ public class EipDaoService {
                 return data;
             }
 
-//            pipId = firewallService.addQos(ipAddr, eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
-//            if(pipId==null ){
-//                if (dnatRuleId != null) {
-//                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-//                }
-//                if (snatRuleId != null) {
-//                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
-//                }
-//                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
-//                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-//                data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
-//                return data;
-//            }
+            pipId = firewallService.addQos(ipAddr, eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
+            if(pipId==null ){
+                if (dnatRuleId != null) {
+                    firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+                }
+                if (snatRuleId != null) {
+                    firewallService.delSnat(snatRuleId, eip.getFirewallId());
+                }
+                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
+                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
+                return data;
+            }
             if (dnatRuleId != null && snatRuleId != null ) {
                 eip.setDnatId(dnatRuleId);
                 eip.setSnatId(snatRuleId);
-//                eip.setPipId(pipId);
+                eip.setPipId(pipId);
                 eip.setStatus("ACTIVE");
                 eip.setInstanceType("3");
                 eip.setInstanceId(slbId);
@@ -713,9 +713,9 @@ public class EipDaoService {
                 if (snatRuleId != null) {
                     firewallService.delSnat(snatRuleId, eip.getFirewallId());
                 }
-//                if (pipId != null) {
-//                    firewallService.delQos(pipId, eip.getFirewallId());
-//                }
+                if (pipId != null) {
+                    firewallService.delQos(pipId, eip.getFirewallId());
+                }
                 data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
@@ -776,13 +776,13 @@ public class EipDaoService {
             log.error(msg);
         }
 
-//        Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-//        if(delQosResult) {
-//            eipEntity.setPipId(null);
-//        } else {
-//            msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
-//            log.error(msg);
-//        }
+        Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
+        if(delQosResult) {
+            eipEntity.setPipId(null);
+        } else {
+            msg = "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
+            log.error(msg);
+        }
         eipEntity.setInstanceId(null);
         eipEntity.setPrivateIpAddress(null);
         eipEntity.setInstanceType(null);
