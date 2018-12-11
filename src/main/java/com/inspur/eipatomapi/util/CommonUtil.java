@@ -3,6 +3,7 @@ package com.inspur.eipatomapi.util;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
+import lombok.Data;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 @Component
 public class CommonUtil {
@@ -32,10 +34,17 @@ public class CommonUtil {
     public static boolean isDebug = true;
     public static boolean qosDebug = false;
 
+
     public static String getDate() {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(currentTime);
+    }
+
+//    Greenwich mean time
+    public static Date getGmtDate() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        return new Date();
     }
 
     @Setter

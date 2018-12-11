@@ -263,4 +263,34 @@ public class EipController {
         return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg,null), HttpStatus.OK);
     }
 
+
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @PostMapping(value = "/eips/bind/slb/{eip_id}/{slb_id}/{ip_addr}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "eipBindWithSlb", notes = "post")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+    })
+    public ResponseEntity eipBindWithSlb(@PathVariable("slb_id") String slbId
+            , @PathVariable("eip_id") String eipId
+            ,@PathVariable("ip_addr") String ipAddr) {
+        log.info("Bind eip.{}, {}, {}", slbId,ipAddr,eipId);
+        return eipService.eipbindSlb(eipId,slbId,ipAddr);
+    }
+
+
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @PostMapping(value = "/eips/unbind/slb/{slb_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "eipBindWithSlb", notes = "post")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+    })
+    public ResponseEntity eipUnbinWithSlb(@PathVariable("slb_id") String slbId) {
+        log.info("unBind eip.{}, {}, {}", slbId);
+        return eipService.unBindSlb(slbId);
+    }
+
+
+
 }
