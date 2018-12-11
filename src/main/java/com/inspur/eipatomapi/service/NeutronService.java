@@ -31,7 +31,7 @@ import java.util.Set;
 public  class NeutronService {
 
     @Autowired
-    SlbService slbService;
+    private  SlbService slbService;
     public final static Logger log = LoggerFactory.getLogger(NeutronService.class);
 
 
@@ -105,6 +105,9 @@ public  class NeutronService {
     public synchronized ActionResponse disassociateInstanceWithFloatingIp(String floatingIp, String serverId,
                                                                           String region) throws Exception {
 
+        if(slbService.isFipInUse(serverId)){
+            return ActionResponse.actionSuccess();
+        }
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Server server = osClientV3.compute().servers().get(serverId);
         if (server == null) {
@@ -114,6 +117,27 @@ public  class NeutronService {
         return osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 
+    public synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
+                                                                          String region) throws Exception {
+
+        if(slbService.isFipInUse(serverId)){
+            return ActionResponse.actionSuccess();
+        }
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
+        Server server = osClientV3.compute().servers().get(serverId);
+        if (server == null) {
+            log.info("Can not found serverid:{}", server);
+        }
+
+        ActionResponse actionResponse = osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
+        boolean result = false;
+        if(actionResponse.isSuccess()) {
+            result = osClientV3.networking().floatingip().delete(fipId).isSuccess();
+        }
+        log.info("disassociate and delete fip:{}, fipid:{}, serverid:{} result:{}",
+                floatingIp, fipId, serverId, result);
+        return actionResponse;
+    }
 
     public List<? extends Server> listServer(String region) throws Exception {
 
@@ -163,29 +187,6 @@ public  class NeutronService {
             }
             return eip.getPrivateIpAddress();
         }
-
-    public String getserverPortIdByIpAddr(String serverId, String serverIp, String region) {
-        String serverPortId = null;
-        OSClientV3 osClientV3 = null;
-        try {
-            osClientV3 = CommonUtil.getOsClientV3Util(region);
-        } catch (KeycloakTokenException e) {
-            e.printStackTrace();
-        }
-        PortListOptions options = PortListOptions.create().deviceId(serverId);
-        List<? extends Port> ports = osClientV3.networking().port().list(options);
-        for (Port port : ports) {
-            Set<? extends IP> fixedIps = port.getFixedIps();
-            long count = fixedIps.stream()
-                    .filter(ip -> serverIp.equals(ip.getIpAddress()))
-                    .count();
-            if (count > 0) {
-                return port.getId();
-            }
-        }
-        return serverPortId;
-    }
-
 
 
     private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId, String extNetid, String region) {

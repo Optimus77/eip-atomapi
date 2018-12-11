@@ -287,8 +287,8 @@ public class EipDaoService {
                 dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
                 log.info("dnatRuleId:  "+dnatRuleId);
                 if(dnatRuleId==null){
-                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
-                    neutronService.deleteFloatingIp(eip.getRegion(), eip.getFloatingIpId(), eip.getInstanceId());
+                    neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(), serverId,
+                            eip.getRegion());
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE);
@@ -298,9 +298,10 @@ public class EipDaoService {
                 snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
                 log.info("snatRuleId:  "+snatRuleId);
                 if(snatRuleId==null){
-                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
                     firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                    neutronService.deleteFloatingIp(eip.getRegion(), eip.getFloatingIpId(), eip.getInstanceId());
+                    neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
+                            eip.getInstanceId(), eip.getRegion());
+
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
@@ -309,10 +310,10 @@ public class EipDaoService {
 
                 pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
                 if(pipId==null && !CommonUtil.qosDebug){
-                    neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
                     firewallService.delDnat(dnatRuleId, eip.getFirewallId());
                     firewallService.delSnat(snatRuleId, eip.getFirewallId());
-                    neutronService.deleteFloatingIp(eip.getRegion(), eip.getFloatingIpId(), eip.getInstanceId());
+                    neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
+                            eip.getInstanceId(), eip.getRegion());
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
@@ -334,8 +335,8 @@ public class EipDaoService {
                 return data;
             }catch (Exception e){
                 log.error("band server firewall exception",e);
-                neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
-                neutronService.deleteFloatingIp(eip.getRegion(), eip.getFloatingIpId(), eip.getInstanceId());
+                neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
+                        eip.getInstanceId(), eip.getRegion());
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
@@ -382,19 +383,16 @@ public class EipDaoService {
         }
 
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
-            ActionResponse actionResponse = neutronService.disassociateInstanceWithFloatingIp(eipEntity.getFloatingIp(),
+            ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
+                    eipEntity.getFloatingIpId(),
                     eipEntity.getInstanceId(), eipEntity.getRegion());
             if (actionResponse.isSuccess()) {
                 eipEntity.setInstanceId(null);
                 eipEntity.setInstanceType(null);
                 eipEntity.setPrivateIpAddress(null);
                 eipEntity.setPortId(null);
-                if(neutronService.deleteFloatingIp(eipEntity.getRegion(),
-                                                   eipEntity.getEipId(),
-                                                   eipEntity.getInstanceId())){
-                    eipEntity.setFloatingIp(null);
-                    eipEntity.setFloatingIpId(null);
-                }
+                eipEntity.setFloatingIp(null);
+                eipEntity.setFloatingIpId(null);
             }else {
                 msg = "Failed to disassociate port with fip:"+eipEntity.toString();
                 log.error(msg);
