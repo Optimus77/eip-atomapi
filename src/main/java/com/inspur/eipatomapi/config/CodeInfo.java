@@ -40,6 +40,7 @@ public  class CodeInfo {
     public static final String EIP_RENEWAL_SUCCEEDED="EIP_RENEWAL_SUCCEEDED";
     public static final String EIP_FORBIDEN_WITH_ID="EIP_FORBIDEN_WITH_ID";
     public static final String KEYCLOAK_NO_PROJECT="CLOAK_NO_PROJECT";
+    public static final String SLB_BIND_NOT_FOND="SLB_BIND_NOT_FOND";
 
 
     static class CnCode{
@@ -69,6 +70,8 @@ public  class CodeInfo {
         public static final String EIP_UPDATE_SUCCEEDED="弹性公网IP更新成功";
         public static final String EIP_RENEWAL_SUCCEEDED="弹性公网IP续费成功";
         public static final String KEYCLOAK_NO_PROJECT="没有项目信息";
+
+        public static final String SLB_BIND_NOT_FOND ="Bad request: 根据此id无法找到对应的SLB信息";
 
     }
 

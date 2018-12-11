@@ -422,6 +422,25 @@ public class EipServiceImpl implements IEipService {
                     }
                 case "2":
                 case "3":
+//                    log.info("bind a slb:{} with eipId:{}",slbId,,Type,slbIp);
+//                    // 3：slb
+//                    JSONObject result = eipDaoService.associateInstanceWithEip(id, slbId, type, slbIp);
+//                    if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+//                        code = result.getString("interCode");
+//                        int httpResponseCode=result.getInteger("httpCode");
+//                        msg = result.getString("reason");
+//                        log.error(msg);
+//                        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+//
+//                    }else{
+//                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
+//                        Eip eipEntity=(Eip)result.get("data");
+//                        BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+//                        eipReturnDetail.setResourceset(Resourceset.builder()
+//                                .resourceid(eipEntity.getInstanceId())
+//                                .resourcetype(eipEntity.getInstanceType()).build());
+//                        return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+//                    }
                 default:
                     code = ReturnStatus.SC_PARAM_ERROR;
                     msg = "no support type param "+type;
@@ -553,6 +572,82 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+    /**
+     * eip bind with port
+     * @param eipId     eip id
+     * @param slbId     eipid
+     * @param ipAddr    slbip
+     * @return        result
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity eipbindSlb(String eipId, String slbId, String ipAddr) {
+        String code;
+        String msg;
+        // bind slb
+        JSONObject result = null;
+        try {
+            result = eipDaoService.associateSlbWithEip(eipId, slbId, ipAddr);
+            if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                code = result.getString("interCode");
+                int httpResponseCode=result.getInteger("httpCode");
+                msg = result.getString("reason");
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+            }else {
+                code = ReturnStatus.SC_OK;
+                msg = "The Eip binding Slb succeeded";
+                log.info(msg);
+                log.info(code);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+            }
+        }catch (Exception e){
+            log.error("eipbindSlb exception", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    /**
+     * eip bind with port
+     * @param slbId     eipid
+     * @return        result
+     */
+    @Override
+    @ICPServiceLog
+    public ResponseEntity unBindSlb(String slbId) {
+        String code;
+        String msg;
+        // slb
+        JSONObject result = null;
+        try {
+            ActionResponse actionResponse = eipDaoService.disassociateSlbWithEip(slbId);
+            if (actionResponse.isSuccess()){
+                code = ReturnStatus.SC_OK;
+                msg=("The Eip unbinds the Slb successfully");
+                log.info(code);
+                log.info(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+            }else {
+                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                msg = actionResponse.getFault();
+                log.error(code);
+                log.error(msg);
+            }
+        }catch (Exception e){
+            log.error("eipbindSlb exception", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
 
 
 }
