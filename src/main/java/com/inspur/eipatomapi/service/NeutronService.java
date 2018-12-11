@@ -3,6 +3,8 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
 import org.apache.http.HttpStatus;
+import org.openstack4j.api.Builders;
+import org.openstack4j.model.network.Port;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
@@ -13,6 +15,7 @@ import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -24,6 +27,8 @@ import java.util.Set;
 @Service
 public  class NeutronService {
 
+    @Autowired
+    SlbService slbService;
     public final static Logger log = LoggerFactory.getLogger(NeutronService.class);
 
 
@@ -32,12 +37,17 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
+        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId, networkId, region);
+        if(null != netFloatingIP){
+            return netFloatingIP;
+        }
+
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
         if (null != portId) {
             builder.portId(portId);
         }
-        NetFloatingIP netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
+        netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
         if (netFloatingIP != null) {
             log.info("Allocated Floating ip: {}",netFloatingIP.getId());
         } else {
@@ -51,9 +61,12 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
-    public synchronized Boolean deleteFloatingIp(String region, String eipId) throws Exception{
+    public synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws Exception{
+        if(slbService.isFipInUse(instanceId)){
+            return true;
+        }
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
-        return osClientV3.networking().floatingip().delete(eipId).isSuccess();
+        return osClientV3.networking().floatingip().delete(fipId).isSuccess();
     }
 
     public synchronized ActionResponse associaInstanceWithFloatingIp(Eip eip, String serverId)
@@ -115,5 +128,30 @@ public  class NeutronService {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
         return osClientV3.networking().floatingip().associateToPort(floatingIpId, portId);
+    }
+
+
+    private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId, String extNetid, String region) {
+
+        Map<String, String> filteringParams = new HashMap<>(4);
+        filteringParams.put("port_id", portId);
+        List<? extends NetFloatingIP> list = osClientV3.networking().floatingip().list(filteringParams);
+        if (list.isEmpty()) {
+            Port port = osClientV3.networking().port().get(portId);
+            if (port != null) {
+                try {
+                    return osClientV3.networking().floatingip().create(Builders.netFloatingIP()
+                            .floatingNetworkId(extNetid)
+                            .portId(portId)
+                            .build());
+                } catch (Exception e) {
+                    log.error("Openstack create floating ip error!", e);
+                }
+            } else {
+                String msg = String.format("Can not find this port, port_id : %s", portId);
+                log.info(msg);
+            }
+        }
+        return null;
     }
 }
