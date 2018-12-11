@@ -71,10 +71,68 @@ public  class NeutronService {
         return osClientV3.networking().floatingip().delete(fipId).isSuccess();
     }
 
-    public synchronized ActionResponse associaInstanceWithFloatingIp(Eip eip, String serverId)
-            throws Exception  {
+    public  synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
+                                                                   Eip eip, String serverId) throws  Exception{
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
+
+        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId, networkId, region);
+        if(null != netFloatingIP){
+            return netFloatingIP;
+        }
+
+        NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
+        builder.floatingNetworkId(networkId);
+        if (null != portId) {
+            builder.portId(portId);
+        }
+        netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
+        if (netFloatingIP != null) {
+            log.info("Allocated Floating ip: {}",netFloatingIP.getId());
+        } else {
+            String message = String.format(
+                    "Cannot create floating ip under network: %s in region: %s",
+                    networkId, region);
+            log.error(message);
+            throw new ResponseException(message, 500);
+        }
+
+
+        Server server = osClientV3.compute().servers().get(serverId);
+        if(null == server) {
+            throw new ResponseException("Can not find server.", 500);
+        }
+        ActionResponse result = osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloatingIp());
+
+        if (result.isSuccess()) {
+            Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
+            log.info(novaAddresses.toString());
+            Set<String> keySet = novaAddresses.keySet();
+            for (String netname : keySet) {
+                List<? extends Address> address = novaAddresses.get(netname);
+                log.info(address.toString());
+                for (Address addr : address) {
+                    log.debug(server.getId() + server.getName() + "   " + addr.getType());
+                    if (addr.getType().equals("fixed")) {
+                        eip.setPrivateIpAddress(addr.getAddr());
+                    }
+                }
+            }
+        } else {
+            log.error("openstack api return faild when bind instance to eip.");
+        }
+
+        return netFloatingIP;
+    }
+
+    public synchronized ActionResponse associaInstanceWithFloatingIp(Eip eip, String serverId, String networkId,
+                                                                     String portId, String region) throws Exception  {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(eip.getRegion());
+        NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId, networkId, region);
+        if(null != netFloatingIP){
+            return ActionResponse.actionSuccess();
+        }
+
         Server server = osClientV3.compute().servers().get(serverId);
         if(null == server) {
             return ActionResponse.actionFailed("Can not find server by id"+ serverId, HttpStatus.SC_NOT_FOUND);
