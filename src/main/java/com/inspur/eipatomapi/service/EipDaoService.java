@@ -241,11 +241,8 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
             return data;
         }
-        //Determines whether the servers has floatingip
-        String serverIp = neutronService.getserverIpByServerId(eip,serverId);
-        String serverPortId = neutronService.getserverPortIdByIpAddr(serverId, serverIp,eip.getRegion());
-        NetFloatingIP floatingIp = neutronService.getFloatingIpAddrByPortId(serverPortId,eip.getRegion());
-        if( floatingIp == null && eip.getFloatingIpId() == null && eip.getFloatingIp() == null ) {
+
+        if(eip.getFloatingIpId() == null && eip.getFloatingIp() == null ) {
             String networkId =  getExtNetId(eip.getRegion());
             if(null == networkId) {
                 log.error("Failed to get external net in region:{}. ", eip.getRegion());
@@ -265,11 +262,6 @@ public class EipDaoService {
             }
             eip.setFloatingIpId(floatingIP.getId());
             eip.setFloatingIp(floatingIP.getFloatingIpAddress());
-            eipRepository.saveAndFlush(eip);
-        }else {
-
-            eipRepository.saveAndFlush(eip);
-            log.info("The servers has floatingIp");
         }
 
         ActionResponse actionResponse;
@@ -296,6 +288,7 @@ public class EipDaoService {
                 log.info("dnatRuleId:  "+dnatRuleId);
                 if(dnatRuleId==null){
                     neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
+                    neutronService.deleteFloatingIp(eip.getRegion(), eip.getFloatingIpId(), eip.getInstanceId());
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE);
@@ -307,7 +300,7 @@ public class EipDaoService {
                 if(snatRuleId==null){
                     neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
                     firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-
+                    neutronService.deleteFloatingIp(eip.getRegion(), eip.getFloatingIpId(), eip.getInstanceId());
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
@@ -319,6 +312,7 @@ public class EipDaoService {
                     neutronService.disassociateInstanceWithFloatingIp(eip.getFloatingIp(),serverId, eip.getRegion());
                     firewallService.delDnat(dnatRuleId, eip.getFirewallId());
                     firewallService.delSnat(snatRuleId, eip.getFirewallId());
+                    neutronService.deleteFloatingIp(eip.getRegion(), eip.getFloatingIpId(), eip.getInstanceId());
                     data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
                     data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
