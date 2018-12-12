@@ -399,7 +399,7 @@ public class EipServiceImpl implements IEipService {
         try {
             switch(type){
                 case "1":
-                    log.info("bind a server:{} with eipId:{}",serverId,id);
+                    log.info("bind a server:{} port:{} with eipId:{}",serverId, portId, id);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
                     if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
