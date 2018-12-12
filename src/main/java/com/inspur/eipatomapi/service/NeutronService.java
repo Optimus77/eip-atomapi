@@ -260,6 +260,7 @@ public  class NeutronService {
             }
             return null;
         }
+        log.info("Get fip for port:{}, fip:{}", portId, list.get(0).getFloatingIpAddress());
         return list.get(0);
     }
 }
