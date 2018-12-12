@@ -1,7 +1,5 @@
 package com.inspur.eipatomapi.entity.eip;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
-import com.inspur.eipatomapi.util.CommonUtil;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -71,7 +69,7 @@ public class Eip implements Serializable {
     private String region;
 
     @Column(name="create_time" ,nullable = false)
-    private Date createTime;
+    private Date createTime  = new Date(System.currentTimeMillis());
 
     private Date updateTime;
 
