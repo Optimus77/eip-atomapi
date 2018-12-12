@@ -101,7 +101,7 @@ public  class NeutronService {
         if(null == server) {
             throw new ResponseException("Can not find server.", 500);
         }
-        ActionResponse result = osClientV3.compute().floatingIps().addFloatingIP(server, eip.getFloatingIp());
+        ActionResponse result = osClientV3.compute().floatingIps().addFloatingIP(server, netFloatingIP.getId());
 
         if (result.isSuccess()) {
             Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
