@@ -82,7 +82,7 @@ public class EipDaoService {
             return null;
         }
 
-        Eip eipEntity = eipRepository.findByEipAddress(eip.getIp());
+        Eip eipEntity = eipRepository.findByEipAddressAndIsDelete(eip.getIp(),0);
         if(null != eipEntity){
             log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{} eipId:{}.",
                     eipEntity.getEipAddress(), eipEntity.getEipId());
@@ -115,6 +115,7 @@ public class EipDaoService {
         log.debug("get tenantid:{} from clientv3", userId);
         //log.debug("get tenantid from token:{}", CommonUtil.getProjectId(eipConfig.getRegion()));
         eipMo.setProjectId(userId);
+        eipMo.setIsDelete(0);
 
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipMo);
@@ -154,7 +155,8 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
-        eipRepository.deleteById(eipEntity.getEipId());
+        eipEntity.setIsDelete(1);
+        eipRepository.saveAndFlush(eipEntity);
         EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
         if(null != eipPool){
             log.error("******************************************************************************");
@@ -496,15 +498,15 @@ public class EipDaoService {
 
 
     public List<Eip> findByProjectId(String projectId){
-        return eipRepository.findByProjectId(projectId);
+        return eipRepository.findByProjectIdAndIsDelete(projectId,0);
     }
 
     public  Eip findByEipAddress(String eipAddr){
-        return eipRepository.findByEipAddress(eipAddr);
+        return eipRepository.findByEipAddressAndIsDelete(eipAddr,0);
     }
 
     public Eip findByInstanceId(String instanceId) {
-        return eipRepository.findByInstanceId(instanceId);
+        return eipRepository.findByInstanceIdAndIsDelete(instanceId,0);
     }
 
     public Eip getEipById(String id){
@@ -521,7 +523,7 @@ public class EipDaoService {
     public long getInstanceNum(String projectId){
 
         //TODO  get table name and colum name by entityUtil
-        String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
+        String sql ="select count(1) as num from eip where project_id='"+projectId+"'"+ "and is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
         long num =(long)map.get("num");
@@ -695,7 +697,7 @@ public class EipDaoService {
     public ActionResponse disassociateSlbWithEip(String slbId) throws Exception  {
 
         String msg = null;
-        Eip eipEntity = eipRepository.findByInstanceId(slbId);
+        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(slbId, 0);
 
         if(null == eipEntity){
             log.error("In disassociate process,failed to find the eip by id:{} ",slbId);

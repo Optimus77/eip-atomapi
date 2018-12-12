@@ -204,7 +204,7 @@ public class EipServiceImpl implements IEipService {
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
-                Page<Eip> page=eipRepository.findByProjectId(projcectid,pageable);
+                Page<Eip> page=eipRepository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
                 for(Eip eip:page.getContent()){
                     if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                         continue;
@@ -526,8 +526,8 @@ public class EipServiceImpl implements IEipService {
                 String serverId = server.getId();
                 if(!server.getName().trim().startsWith("CPS")) {
                     Eip eipEntity = eipDaoService.findByInstanceId(serverId);
-                    List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
                     if(null == eipEntity){
+                        List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
                         JSONObject data=new JSONObject();
                         data.put("id",server.getId());
                         data.put("name",server.getName());
