@@ -12,8 +12,6 @@ import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.openstack4j.model.common.ActionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.openstack4j.model.compute.Address;
-import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -528,10 +526,14 @@ public class EipServiceImpl implements IEipService {
                 String serverId = server.getId();
                 if(!server.getName().trim().startsWith("CPS")) {
                     Eip eipEntity = eipDaoService.findByInstanceId(serverId);
+                    List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
                     if(null == eipEntity){
                         JSONObject data=new JSONObject();
                         data.put("id",server.getId());
                         data.put("name",server.getName());
+                        for(int i =0; i < portIds.size(); i++) {
+                            data.put("port"+i, portIds.get(i));
+                        }
                         dataArray.add(data);
                     }
                 }

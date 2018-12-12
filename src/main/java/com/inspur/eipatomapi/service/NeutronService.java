@@ -21,10 +21,7 @@ import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 @Service
@@ -262,5 +259,18 @@ public  class NeutronService {
         }
         log.info("Get fip for port:{}, fip:{}", portId, list.get(0).getFloatingIpAddress());
         return list.get(0);
+    }
+
+    public List<String> getPortIdByServerId( String serverId, String region) throws Exception{
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
+        List<? extends Port> list = osClientV3.networking().port().list(PortListOptions.create().deviceId(serverId));
+        List<String> ports = new ArrayList<>();
+        if (!list.isEmpty()) {
+            for (Port port : list) {
+                log.info("Get portId for server:{}, portIs:{}", serverId, list.get(0).getId());
+                ports.add(port.getId());
+            }
+        }
+        return ports;
     }
 }
