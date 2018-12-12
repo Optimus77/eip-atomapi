@@ -98,9 +98,9 @@ public  class NeutronService {
         if(null == server) {
             throw new ResponseException("Can not find server.", 500);
         }
-        ActionResponse result = osClientV3.compute().floatingIps().addFloatingIP(server, netFloatingIP.getId());
-
-        if (result.isSuccess()) {
+//        ActionResponse result = osClientV3.compute().floatingIps().addFloatingIP(server, netFloatingIP.getId());
+//
+//        if (result.isSuccess()) {
             Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
             log.info(novaAddresses.toString());
             Set<String> keySet = novaAddresses.keySet();
@@ -114,9 +114,9 @@ public  class NeutronService {
                     }
                 }
             }
-        } else {
-            log.error("openstack api return faild when bind instance to eip.");
-        }
+//        } else {
+//            log.error("openstack api return faild when bind instance to eip.");
+//        }
 
         return netFloatingIP;
     }
