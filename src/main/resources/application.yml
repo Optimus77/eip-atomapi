@@ -74,3 +74,5 @@ keycloak:
 # Logback
 logging:
   config: classpath:logback.xml
+
+slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/
