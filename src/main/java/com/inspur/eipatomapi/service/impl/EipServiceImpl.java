@@ -9,9 +9,8 @@ import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
+import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.model.common.ActionResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.openstack4j.model.compute.Server;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-
+@Slf4j
 @Service
 public class EipServiceImpl implements IEipService {
 
@@ -34,8 +33,6 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private EipDaoService eipDaoService;
-
-    public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
     /**
      * create a eip
@@ -577,7 +574,7 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         // bind slb
-        JSONObject result = null;
+        JSONObject result;
         try {
             result = eipDaoService.associateSlbWithEip(eipId, slbId, ipAddr);
             if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){

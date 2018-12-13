@@ -4,11 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.fw.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.HsConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-
+@Slf4j
 @Service
-public class FirewallService {
-
-    public final static Logger log = LoggerFactory.getLogger(FirewallService.class);
+class FirewallService {
 
     @Autowired
     private FirewallRepository firewallRepository;
@@ -39,7 +35,7 @@ public class FirewallService {
         return fireWallEntity;
     }
 
-    public String addDnat(String innerip, String extip, String equipid) {
+    String addDnat(String innerip, String extip, String equipid) {
         String ruleid = null;
 
         //添加弹性IP
@@ -79,7 +75,7 @@ public class FirewallService {
         return ruleid;
     }
 
-    public String addSnat(String innerip, String extip, String equipid) {
+    String addSnat(String innerip, String extip, String equipid) {
         String ruleid = null;
 
         FwSnatVo vo = new FwSnatVo();
@@ -123,7 +119,7 @@ public class FirewallService {
 
 
 
-    public String addQos(String innerip, String eipid, String bandwidth, String equipid) {
+    String addQos(String innerip, String eipid, String bandwidth, String equipid) {
         String pipid = null;
 
         Firewall fwBean = getFireWallById(equipid);
@@ -159,7 +155,7 @@ public class FirewallService {
      * @param bindwidth   bind width
      * @return            result
      */
-    public boolean updateQosBandWidth(String firewallId,String pipId, String pipNmae,String bindwidth){
+    boolean updateQosBandWidth(String firewallId,String pipId, String pipNmae,String bindwidth){
 
         Firewall fwBean = getFireWallById(firewallId);
         if(fwBean != null) {
@@ -184,7 +180,7 @@ public class FirewallService {
      * @param devId  devid
      * @return  ret
      */
-    public boolean delQos(String pipid, String devId) {
+    boolean delQos(String pipid, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
             Firewall fwBean = getFireWallById(devId);
             if(null != fwBean) {
@@ -198,7 +194,7 @@ public class FirewallService {
         return true;
     }
 
-    public boolean delDnat(String ruleid, String devId) {
+    boolean delDnat(String ruleid, String devId) {
         boolean bSuccess = true;
         if ("offline".equals(ruleid)) {
             return bSuccess;
@@ -229,7 +225,7 @@ public class FirewallService {
         }
         return bSuccess;
     }
-    public boolean delSnat(String ruleid, String devId) {
+    boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = true;
         if ("offline".equals(ruleid)) {
             return bSuccess;

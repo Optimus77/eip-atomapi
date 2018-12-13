@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -10,16 +11,12 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
 
+@Slf4j
 public class HttpUtil {
-
-    private final static Logger log = LoggerFactory.getLogger(HttpUtil.class);
-
 
     private static HttpClient getCloseableHttpClient() throws Exception {
         try {

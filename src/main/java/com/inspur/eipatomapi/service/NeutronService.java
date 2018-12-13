@@ -3,13 +3,12 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.KeycloakTokenException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.api.Builders;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.options.PortListOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.common.ActionResponse;
@@ -23,14 +22,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-
+@Slf4j
 @Service
 public  class NeutronService {
 
     @Autowired
     private  SlbService slbService;
-    public final static Logger log = LoggerFactory.getLogger(NeutronService.class);
-
 
     public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws Exception {
 
@@ -60,7 +57,7 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
-    public synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws Exception{
+    synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws Exception{
         if(slbService.isFipInUse(instanceId)){
             return true;
         }
@@ -68,7 +65,7 @@ public  class NeutronService {
         return osClientV3.networking().floatingip().delete(fipId).isSuccess();
     }
 
-    public  synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
+    synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
                                                                    Eip eip, String serverId) throws  Exception{
 
         if(null == portId || portId.isEmpty()){
@@ -160,7 +157,7 @@ public  class NeutronService {
         return osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 
-    public synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
+    synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
                                                                           String region) throws Exception {
 
         if(slbService.isFipInUse(serverId)){

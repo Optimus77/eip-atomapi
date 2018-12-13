@@ -3,13 +3,13 @@ package com.inspur.eipatomapi.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.eip.*;
-import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.EipPoolRepository;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.ExtNetRepository;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.*;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -18,14 +18,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class EipDaoService {
     @Autowired
@@ -50,7 +47,6 @@ public class EipDaoService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public final static Logger log = LoggerFactory.getLogger(EipDaoService.class);
     /**
      * allocate eip
      *
@@ -273,8 +269,8 @@ public class EipDaoService {
         }
 
         String pipId;
-        String dnatRuleId = null;
-        String snatRuleId = null;
+        String dnatRuleId;
+        String snatRuleId;
 
         try{
             dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
@@ -610,8 +606,8 @@ public class EipDaoService {
         }
 
         String pipId;
-        String dnatRuleId = null;
-        String snatRuleId = null;
+        String dnatRuleId ;
+        String snatRuleId ;
         try {
             log.info("======start dnat oprate ");
             dnatRuleId = firewallService.addDnat(ipAddr, eipIp, eip.getFirewallId());

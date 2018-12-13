@@ -8,9 +8,8 @@ import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.Base64Util;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -18,20 +17,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * @author: jiasirui
- * @date: 2018/9/23 22:26
- * @description:
- */
+
 @WebFilter
+@Slf4j
 public class KeyClockAuthFilter implements Filter {
 
-
-    private final static Logger log = LoggerFactory.getLogger(KeyClockAuthFilter.class);
-
-
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig)  {
         log.info("******************KeyClockAuthFilter init");
 
     }

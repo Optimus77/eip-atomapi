@@ -1,18 +1,11 @@
 package com.inspur.eipatomapi.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/13 09:52
- * @description:
- */
-public  class CodeInfo {
 
-    public final static Logger log = LoggerFactory.getLogger(CodeInfo.class);
+@Slf4j
+public  class CodeInfo {
 
     private static final String LANGUAGE_CN ="cn";
     private static final String LANGUAGE_EN="en";
