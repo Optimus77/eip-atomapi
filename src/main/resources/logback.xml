@@ -7,7 +7,7 @@
     <property name="LOG_HOME" value="./log"></property>
 
     <!-- 上下文 -->
-    <property name="CONTEXT" value="bss"></property>
+    <property name="CONTEXT" value="eip-atom"></property>
 
     <!-- 控制台输出配置 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
