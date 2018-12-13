@@ -66,10 +66,9 @@
 
 
     <!-- Hibernate查询展示参数 -->
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
-
-    <logger name="org.apache.commons.logging.impl.Jdk14Logger.org.apache.commons.httpclient" level="TRACE"/>
-    <logger name="org.apache.commons.logging.impl.Jdk14Logger.org.httpclient.wire.content" level="TRACE"/>
-    <logger name="org.apache.commons.logging.impl.Jdk14Logger.org.httpclient.wire.header" level="TRACE"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="INFO"/>
+    <logger name="org.apache.commons.logging.impl.Jdk14Logger.org.apache.commons.httpclient" level="INFO"/>
+    <logger name="org.apache.commons.logging.impl.Jdk14Logger.org.httpclient.wire.content" level="INFO"/>
+    <logger name="org.apache.commons.logging.impl.Jdk14Logger.org.httpclient.wire.header" level="INFO"/>
 
 </configuration>
