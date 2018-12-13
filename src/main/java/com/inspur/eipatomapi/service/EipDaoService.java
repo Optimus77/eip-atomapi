@@ -109,7 +109,7 @@ public class EipDaoService {
 
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipMo);
-        log.info("User:{} success allocate eip:{}",userId, eipMo.toString());
+        log.info("User:{} success allocate eip:{}",userId, eipMo.getEipId());
         return eipMo;
     }
 
