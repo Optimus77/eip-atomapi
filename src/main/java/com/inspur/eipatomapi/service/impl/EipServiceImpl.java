@@ -504,8 +504,10 @@ public class EipServiceImpl implements IEipService {
             List<Server> serverList= (List<Server>) neutronService.listServer(region);
             JSONArray dataArray=new JSONArray();
             for(Server server:serverList){
+                log.info("Server list :{}", server.toString());
                 String serverId = server.getId();
-                if(!server.getName().trim().startsWith("CPS")) {
+                if(!server.getName().trim().startsWith("CPS") &&
+                        (!server.getVmState().equalsIgnoreCase("deleted"))) {
                     Eip eipEntity = eipDaoService.findByInstanceId(serverId);
                     if(null == eipEntity){
                         List<String> portIds = neutronService.getPortIdByServerId(serverId, region);

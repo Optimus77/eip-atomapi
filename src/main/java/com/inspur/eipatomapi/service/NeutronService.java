@@ -183,7 +183,7 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Map<String, String> filteringParams = new HashMap<>();
-        filteringParams.put("tenant_id", CommonUtil.getProjectId(region));
+        filteringParams.put("tenant_id", CommonUtil.getProjectId(region, osClientV3));
         return osClientV3.compute().servers().list(filteringParams);
     }
 
