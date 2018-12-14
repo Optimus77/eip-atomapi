@@ -5,22 +5,19 @@ import com.google.gson.GsonBuilder;
 import com.inspur.eipatomapi.entity.fw.*;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.HsHttpClient;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class NatService  {
-
-    public final static Logger log = LoggerFactory.getLogger(NatService.class);
 
     public List<FwSnatVo> getSnat(FwQuery query, FwBaseObject manage) {
         List<FwSnatVo> snats = new ArrayList<>();
@@ -39,7 +36,7 @@ public class NatService  {
         }
     }
 
-    public FwResponseBody addPSnat(FwSnatVo snat) {
+    FwResponseBody addPSnat(FwSnatVo snat) {
         FwResponseBody body = new FwResponseBody();
         FwSnatVo resultVo = new FwSnatVo();
         Gson gson = new Gson();
@@ -66,7 +63,7 @@ public class NatService  {
 
         return body;
     }
-    public FwResponseBody delPSnat(FwSnatVo snat) {
+    FwResponseBody delPSnat(FwSnatVo snat) {
         FwResponseBody body = new FwResponseBody();
         Gson gson = new Gson();
 
@@ -88,7 +85,7 @@ public class NatService  {
         return body;
     }
 
-    public FwResponseBody addPDnat(FwDnatVo dnat) {
+    FwResponseBody addPDnat(FwDnatVo dnat) {
         Gson gson = new Gson();
         FwResponseBody body = new FwResponseBody();
 
@@ -119,7 +116,7 @@ public class NatService  {
         }
     }
 
-    public FwResponseBody delPDnat(FwDnatVo dnat) {
+    FwResponseBody delPDnat(FwDnatVo dnat) {
         Gson gson = new Gson();
         FwResponseBody body = new FwResponseBody();
 

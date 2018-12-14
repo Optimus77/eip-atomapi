@@ -2,31 +2,29 @@ package com.inspur.eipatomapi.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.protocol.HTTP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
-public class SlbService {
-
-    public final static Logger log = LoggerFactory.getLogger(SlbService.class);
+class SlbService {
 
     @Value("${slbUrl}")
     private String slbUrl;
 
-    public boolean isFipInUse(String  vmId) {
+    boolean isFipInUse(String  vmId) {
 
         String url = slbUrl + vmId;
 
         try {
             log.info("Get fip status from slb url:{}, id:{}", url, vmId);
 
-            Map<String,String> header=new HashMap<String,String>();
+            Map<String,String> header=new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 

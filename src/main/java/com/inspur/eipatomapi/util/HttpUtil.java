@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -10,18 +11,14 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
 
+@Slf4j
 public class HttpUtil {
 
-    private final static Logger log = LoggerFactory.getLogger(HttpUtil.class);
-
-
-    protected static HttpClient getCloseableHttpClient() throws Exception {
+    private static HttpClient getCloseableHttpClient() throws Exception {
         try {
             return  HttpClients.createDefault();
         } catch (Exception e) {
@@ -44,14 +41,12 @@ public class HttpUtil {
                 httpGet.setHeader(entry.getKey(), entry.getValue());
             }
         }
-
         try {
             HttpResponse httpResponse = getCloseableHttpClient().execute(httpGet);
             String resultString = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
-            log.info("Slb return :{}", resultString);
             return resultString;
         } catch (Exception e) {
-            log.error("http get from slb error:"+e.getMessage());
+            log.error("http get error:"+e.getMessage());
         }
         throw new EipException("Get request use http error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }

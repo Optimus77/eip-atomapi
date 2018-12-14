@@ -18,11 +18,11 @@ public interface EipRepository extends JpaRepository<Eip,String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Eip findByEipId(String id);
 
-    Eip findByInstanceId (String instanceId);
+    Eip findByInstanceIdAndIsDelete (String instanceId,int isDelete);
 
-    List<Eip> findByProjectId(String projectId);
+    List<Eip> findByProjectIdAndIsDelete(String projectId,int isDelete);
 
-    Eip findByEipAddress(String ipAddress);
+    Eip findByEipAddressAndIsDelete(String ipAddress,int isDelete);
 
-    Page<Eip> findByProjectId(String projectId, Pageable pageable);
+    Page<Eip> findByProjectIdAndIsDelete(String projectId, int isDelete,Pageable pageable);
 }

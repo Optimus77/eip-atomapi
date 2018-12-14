@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.inspur.eipatomapi.entity.fw.Cookie;
 import com.inspur.eipatomapi.entity.fw.FwLogin;
 import com.inspur.eipatomapi.entity.fw.FwLoginResponseBody;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -20,13 +21,10 @@ import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,9 +41,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class HsHttpClient {
-
-    private final static Logger logger = LoggerFactory.getLogger(HsHttpClient.class);
 
 	private static Map<String, String> cookieMap = new HashMap<>();
 
@@ -90,7 +87,7 @@ public class HsHttpClient {
 				return jo.toString();
 			} catch (Exception e) {
                 // TODO Auto-generated catch block
-                logger.error("Exception.",e);
+                log.error("Exception.",e);
                 return "";
             }
 		} else {
@@ -108,9 +105,9 @@ public class HsHttpClient {
 	}
 
 	private static boolean isLogin(String ip, String port) {
-		logger.info("Login state:" + ip + "" + port);
+		log.info("Login state:" + ip + "" + port);
 		if (!isHaveCookie(ip)) {
-			logger.info("No cookie！");
+			log.info("No cookie！");
 			return false;
 		}
 		StringBuffer url = new StringBuffer();
@@ -125,7 +122,7 @@ public class HsHttpClient {
 
 		httpGet.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpGet.setHeader("Cookie", getCookie(ip));
-		logger.debug("request line:" + httpGet.getRequestLine());
+		log.debug("request line:" + httpGet.getRequestLine());
 		FwLoginResponseBody body = new FwLoginResponseBody();
 		try {
 			Gson gson = new Gson();
@@ -133,18 +130,18 @@ public class HsHttpClient {
 			boolean success;
 			if(strlogin.contains("\"success\":true") || strlogin.contains("\"success\" : true")){
 				success = true;
-				logger.info("Login success！");
+				log.info("Login success！");
 			}else{
 				success = false;
-				logger.info("Not login!");
+				log.info("Not login!");
 			}
 			body.setSuccess(success);
 			return body.isSuccess();
 		} catch (ClientProtocolException e1) {
-			logger.error("Failed to login.", e1);
+			log.error("Failed to login.", e1);
 			return false;
 		} catch (IOException ex) {
-			logger.error("Io exception when login.",ex);
+			log.error("Io exception when login.",ex);
 			return false;
 		} finally {
 			try {
@@ -152,7 +149,7 @@ public class HsHttpClient {
 					client.close();
 				}
 			} catch (IOException e) {
-				logger.error("Exception when login.",e);
+				log.error("Exception when login.",e);
 			}
 		}
 	}
@@ -182,11 +179,11 @@ public class HsHttpClient {
 
 			Cookie cookie = new Cookie(token, platform, hw_platform, host_name, company, oemid, vsysid, vsysname, role,
                     license, httpProtocol, soft_version, username, overseaLicense, HS_frame_lang);
-			logger.info(cookie.toString());
+			log.info(cookie.toString());
 			return HsConstants.FROM_ROOT_SYS + cookie.toString();
 
 		} else {
-			logger.error("no found result:" + jo);
+			log.error("no found result:" + jo);
 		}
 
 		return "";
@@ -232,7 +229,7 @@ public class HsHttpClient {
 	
 	private static boolean httpLogin(String url, String ip, String json) throws Exception {
 		CloseableHttpClient httpclient = getHttpsClient();
-		logger.debug("httpLogin：start login,URL:"+url + " IP:"+ip );
+		log.debug("httpLogin：start login,URL:{} ip:{}",url ,ip );
 		
 		HttpPost httpPost = new HttpPost(url);
 		httpPost.addHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
@@ -249,7 +246,7 @@ public class HsHttpClient {
 			HttpEntity entity = response.getEntity();
 			// do something useful with the response body
 			// and ensure it is fully consumed
-			logger.debug("HttpEntity:" + entity.toString());
+			log.debug("HttpEntity:{}", entity.toString());
 
 			// If the response does not enclose an entity, there is no need
 			// to bother about connection release
@@ -265,12 +262,12 @@ public class HsHttpClient {
 
 				if (loginResult != null && loginResult != "") {
 					// loginCookieParser
-					logger.debug("httpLogin： COOKIE  IP:"+ip +" loginResult:" + loginResult );
+					log.debug("httpLogin： COOKIE  IP:{} logingResult:{}",ip, loginResult );
 					putCookie(ip, loginResult);
-					logger.debug("httpLogin：login success!");
+					log.debug("httpLogin：login success!");
 					return true;
 				} else {
-					logger.debug("httpLogin：Failed to login");
+					log.debug("httpLogin：Failed to login");
 					return false;
 				}
 			}
@@ -278,7 +275,7 @@ public class HsHttpClient {
 		} catch (IOException ex) {
 			// In case of an IOException the connection will be released
 			// back to the connection manager automatically
-			logger.error("Exception when login.",ex);
+			log.error("Exception when login.",ex);
 		} finally {
 			// Closing the input stream will trigger connection release
 			if (null != instream) {
@@ -288,14 +285,14 @@ public class HsHttpClient {
 				response.close();
 			}
 		}
-		logger.debug("httpLogin：failed to login");
+		log.debug("httpLogin：failed to login");
 		return false;
 
 	}
 
 	@SuppressWarnings("finally")
 	private static boolean login(String ip, String port, String login, int tryTimes) throws Exception {
-		logger.info("Login firewall:" + ip + "" + port);
+		log.info("Login firewall:{}:{}" , ip ,port);
 		
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);
@@ -307,13 +304,13 @@ public class HsHttpClient {
 		boolean flag = true;
 		try {
 			tryTimes++;
-			logger.info("Already login: url:"+ url.toString()+ "ip:"+ ip );
+			log.info("Already login: url:{}, ip:{}", url.toString(), ip );
 			flag = httpLogin(url.toString(), ip, login);
 			if (flag) {
-				logger.info("login success!");
+				log.info("login success!");
 				return true;
 			}
-			logger.info("Failde to login!");
+			log.info("Failde to login!");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -363,20 +360,20 @@ public class HsHttpClient {
 
 		httpGet.setHeader("Cookie", getCookie(ip));
 
-		logger.debug("request line:get-" + httpGet.getRequestLine());
+		log.debug("request line:get-{}" , httpGet.getRequestLine());
 		try {
 			HttpResponse httpResponse = client.execute(httpGet);
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
 			System.out.println(e);
-			logger.debug("Io Exception when get.",e);
+			log.debug("Io Exception when get.",e);
 			return "";
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.debug("IO Exception when get.",e);
+				log.debug("IO Exception when get.",e);
 			}
 		}
 	}
@@ -409,7 +406,7 @@ public class HsHttpClient {
 		httpPost.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpPost.setHeader("Cookie", getCookie(ip));
 
-		logger.debug("request line:post-" + httpPost.getRequestLine());
+		log.debug("request line:post-{}" , httpPost.getRequestLine());
 		try {
 			// payload
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
@@ -420,13 +417,13 @@ public class HsHttpClient {
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
-			logger.error("IO Exception when post.",e);
+			log.error("IO Exception when post.",e);
 			return "";
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error("IO Exception when post.",e);
+				log.error("IO Exception when post.",e);
 			}
 		}
 	}
@@ -459,7 +456,7 @@ public class HsHttpClient {
 		httpPut.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpPut.setHeader("Cookie", getCookie(ip));
 
-		logger.debug("request line:put-" + httpPut.getRequestLine());
+		log.debug("request line:put-{}" , httpPut.getRequestLine());
 		try {
 
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
@@ -476,7 +473,7 @@ public class HsHttpClient {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error("IO Exception when put.",e);
+				log.error("IO Exception when put.",e);
 			}
 		}
 	}
@@ -508,7 +505,7 @@ public class HsHttpClient {
 		httpPut.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpPut.setHeader("Cookie", getCookie(ip));
 
-		logger.debug("request line:put-" + httpPut.getRequestLine());
+		log.debug("request line:put-{}" , httpPut.getRequestLine());
 		try {
 			// payload
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
@@ -520,13 +517,13 @@ public class HsHttpClient {
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
-			logger.error("IO Exception when put.",e);
+			log.error("IO Exception when put.",e);
 			return e.toString();
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error("IO Exception when put.",e);
+				log.error("IO Exception when put.",e);
 			}
 		}
 	}
@@ -558,7 +555,7 @@ public class HsHttpClient {
 		httpDelete.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpDelete.setHeader("Cookie", getCookie(ip));
 
-		logger.debug("request line:delete-" + httpDelete.getRequestLine());
+		log.debug("request line:delete-{}" , httpDelete.getRequestLine());
 		try {
 			// payload
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
@@ -606,7 +603,7 @@ public class HsHttpClient {
 		httpPut.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpPut.setHeader("Cookie", getCookie(ip));
 
-		logger.debug("request line:put-" + httpPut.getRequestLine());
+		log.debug("request line:put-{}" , httpPut.getRequestLine());
 		try {
 			// payload
 			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
@@ -618,13 +615,13 @@ public class HsHttpClient {
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
-			logger.error("IO Exception when put.",e);
+			log.error("IO Exception when put.",e);
 			return e.toString();
 		} finally {
 			try {
 				client.close();
 			} catch (IOException e) {
-				logger.error("IO Exception when put.",e);
+				log.error("IO Exception when put.",e);
 			}
 		}
 	}

@@ -9,11 +9,8 @@ import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
+import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.model.common.ActionResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.openstack4j.model.compute.Address;
-import org.openstack4j.model.compute.Addresses;
 import org.openstack4j.model.compute.Server;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-
+@Slf4j
 @Service
 public class EipServiceImpl implements IEipService {
 
@@ -36,8 +33,6 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private EipDaoService eipDaoService;
-
-    public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
     /**
      * create a eip
@@ -206,7 +201,7 @@ public class EipServiceImpl implements IEipService {
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
-                Page<Eip> page=eipRepository.findByProjectId(projcectid,pageable);
+                Page<Eip> page=eipRepository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
                 for(Eip eip:page.getContent()){
                     if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                         continue;
@@ -401,7 +396,7 @@ public class EipServiceImpl implements IEipService {
         try {
             switch(type){
                 case "1":
-                    log.info("bind a server:{} with eipId:{}",serverId,id);
+                    log.info("bind a server:{} port:{} with eipId:{}",serverId, portId, id);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
                     if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
@@ -529,9 +524,13 @@ public class EipServiceImpl implements IEipService {
                 if(!server.getName().trim().startsWith("CPS")) {
                     Eip eipEntity = eipDaoService.findByInstanceId(serverId);
                     if(null == eipEntity){
+                        List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
                         JSONObject data=new JSONObject();
                         data.put("id",server.getId());
                         data.put("name",server.getName());
+                        for(int i =0; i < portIds.size(); i++) {
+                            data.put("port"+i, portIds.get(i));
+                        }
                         dataArray.add(data);
                     }
                 }
@@ -575,7 +574,7 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         // bind slb
-        JSONObject result = null;
+        JSONObject result;
         try {
             result = eipDaoService.associateSlbWithEip(eipId, slbId, ipAddr);
             if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){

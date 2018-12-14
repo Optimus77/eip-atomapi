@@ -3,13 +3,12 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.KeycloakTokenException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.api.Builders;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.options.PortListOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.common.ActionResponse;
@@ -21,19 +20,14 @@ import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-
+@Slf4j
 @Service
 public  class NeutronService {
 
     @Autowired
     private  SlbService slbService;
-    public final static Logger log = LoggerFactory.getLogger(NeutronService.class);
-
 
     public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws Exception {
 
@@ -63,7 +57,7 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
-    public synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws Exception{
+    synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws Exception{
         if(slbService.isFipInUse(instanceId)){
             return true;
         }
@@ -71,9 +65,20 @@ public  class NeutronService {
         return osClientV3.networking().floatingip().delete(fipId).isSuccess();
     }
 
-    public  synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
+    synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
                                                                    Eip eip, String serverId) throws  Exception{
+
+        if(null == portId || portId.isEmpty()){
+            log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getEipId());
+            return null;
+        }
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
+
+        Port port = osClientV3.networking().port().get(portId);
+        if(null == port) {
+            log.error("Can not get port by id:{} in associate with server:{}, eipId:{}",portId, serverId, eip.getEipId());
+            return null;
+        }
 
         NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){
@@ -82,9 +87,8 @@ public  class NeutronService {
 
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
-        if (null != portId) {
-            builder.portId(portId);
-        }
+        builder.portId(portId);
+
         netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
         if (netFloatingIP != null) {
             log.info("Allocated Floating ip: {}",netFloatingIP.getId());
@@ -95,32 +99,10 @@ public  class NeutronService {
             log.error(message);
             throw new ResponseException(message, 500);
         }
-
-
-        Server server = osClientV3.compute().servers().get(serverId);
-        if(null == server) {
-            throw new ResponseException("Can not find server.", 500);
+        Set<? extends IP> fixedIps = port.getFixedIps();
+        for (IP fixedIp : fixedIps) {
+            eip.setPrivateIpAddress(fixedIp.getIpAddress());
         }
-        ActionResponse result = osClientV3.compute().floatingIps().addFloatingIP(server, netFloatingIP.getId());
-
-        if (result.isSuccess()) {
-            Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
-            log.info(novaAddresses.toString());
-            Set<String> keySet = novaAddresses.keySet();
-            for (String netname : keySet) {
-                List<? extends Address> address = novaAddresses.get(netname);
-                log.info(address.toString());
-                for (Address addr : address) {
-                    log.debug(server.getId() + server.getName() + "   " + addr.getType());
-                    if (addr.getType().equals("fixed")) {
-                        eip.setPrivateIpAddress(addr.getAddr());
-                    }
-                }
-            }
-        } else {
-            log.error("openstack api return faild when bind instance to eip.");
-        }
-
         return netFloatingIP;
     }
 
@@ -175,7 +157,7 @@ public  class NeutronService {
         return osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 
-    public synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
+    synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
                                                                           String region) throws Exception {
 
         if(slbService.isFipInUse(serverId)){
@@ -262,5 +244,18 @@ public  class NeutronService {
         }
         log.info("Get fip for port:{}, fip:{}", portId, list.get(0).getFloatingIpAddress());
         return list.get(0);
+    }
+
+    public List<String> getPortIdByServerId( String serverId, String region) throws Exception{
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
+        List<? extends Port> list = osClientV3.networking().port().list(PortListOptions.create().deviceId(serverId));
+        List<String> ports = new ArrayList<>();
+        if (!list.isEmpty()) {
+            for (Port port : list) {
+                log.info("Get portId for server:{}, portIs:{}", serverId, list.get(0).getId());
+                ports.add(port.getId());
+            }
+        }
+        return ports;
     }
 }

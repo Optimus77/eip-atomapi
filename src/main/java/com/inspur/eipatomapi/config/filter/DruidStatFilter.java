@@ -5,11 +5,7 @@ import com.alibaba.druid.support.http.WebStatFilter;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
-/**
- * @author: jiasirui
- * @date: 2018/9/25 15:31
- * @description:
- */
+
 @WebFilter(filterName="druidWebStatFilter",
         urlPatterns="/*",
         initParams={

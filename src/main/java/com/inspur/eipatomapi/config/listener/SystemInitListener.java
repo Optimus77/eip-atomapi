@@ -1,21 +1,14 @@
 package com.inspur.eipatomapi.config.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-/**
- * @author: jiasirui
- * @date: 2018/9/25 11:08
- * @description:
- */
+@Slf4j
 @WebListener
 public class SystemInitListener implements ServletContextListener {
-
-    private  static Log log = LogFactory.getLog(SystemInitListener.class);
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {

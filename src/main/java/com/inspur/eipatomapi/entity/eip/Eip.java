@@ -73,4 +73,6 @@ public class Eip implements Serializable {
 
     private Date updateTime;
 
+    private int isDelete=0;
+
 }

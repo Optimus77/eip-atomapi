@@ -3,10 +3,8 @@ package com.inspur.eipatomapi.util;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
-import lombok.Data;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
@@ -25,13 +23,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
+@Slf4j
 @Component
 public class CommonUtil {
 
-    public final static Logger log = LoggerFactory.getLogger(CommonUtil.class);
-
-
-    public static boolean isDebug = true;
+    private static boolean isDebug = true;
     public static boolean qosDebug = false;
 
 
@@ -66,7 +62,7 @@ public class CommonUtil {
     private static String region1="cn-north-3a";
 
 
-    public static Map<String,String> userConfig = new HashMap<>(16);
+    private static Map<String,String> userConfig = new HashMap<>(16);
 
     @PostConstruct
     public void init(){
@@ -121,10 +117,19 @@ public class CommonUtil {
      * @return  string string
      */
     public static String getKeycloackToken(){
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String keyCloackToken  = (String) request.getHeader("Authorization");
-        //Bearer
-        return keyCloackToken;
+        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if(null != requestAttributes) {
+            HttpServletRequest request = requestAttributes.getRequest();
+            String keyCloackToken = request.getHeader("authorization");
+
+            if (keyCloackToken == null) {
+                log.error("Failed to get token,request:{}",request);
+            } else {
+                log.debug("Get token:{}",keyCloackToken);
+            }
+            return keyCloackToken;
+        }
+        return null;
     }
 
     public static String getProjectId(String userRegion) throws KeycloakTokenException {
