@@ -252,7 +252,8 @@ public class EipDaoService {
                     data.put("interCode", ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE);
                     return data;
                 }
-
+                eip.setFloatingIp(floatingIP.getFloatingIpAddress());
+                eip.setFloatingIpId(floatingIP.getId());
             }catch (Exception e) {
                 log.error("==========openstack associaInstanceWithFloatingIp error========");
                 log.error("==========openstack associaInstanceWithFloatingIp error=====serverId :{},portid:{},eip :{}",
@@ -303,10 +304,7 @@ public class EipDaoService {
                 data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
                 return data;
             }
-            if(null != floatingIP) {
-                eip.setFloatingIpId(floatingIP.getId());
-                eip.setFloatingIp(floatingIP.getFloatingIpAddress());
-            }
+
             eip.setInstanceId(serverId);
             eip.setInstanceType(instanceType);
             eip.setDnatId(dnatRuleId);
