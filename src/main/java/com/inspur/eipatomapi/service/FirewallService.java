@@ -67,7 +67,7 @@ class FirewallService {
 
                 FwPortMapResult result = (FwPortMapResult) body.getObject();
                 ruleid = result.getRule_id();
-                log.info( "--add dnat successfully.innerIp:{}, dnatId:{]", innerip, ruleid);
+                log.info( "--add dnat successfully.innerIp:{}, dnatId:{}", innerip, ruleid);
             } else {
                 log.info(innerip + "--Failed to add dnat:" + body.getException());
             }
@@ -109,7 +109,7 @@ class FirewallService {
                 // 创建成功
                 FwSnatVo result = (FwSnatVo) body.getObject();
                 ruleid = result.getSnatid();
-                log.info( "--Snat add successfully.innerIp:{}, snatId:{]", innerip, ruleid);
+                log.info( "--Snat add successfully.innerIp:{}, snatId:{}", innerip, ruleid);
             } else {
                 log.info(innerip + "--Failed to add snat:" + body.getException());
             }
