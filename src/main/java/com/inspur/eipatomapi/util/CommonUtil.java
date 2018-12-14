@@ -132,7 +132,7 @@ public class CommonUtil {
         return null;
     }
 
-    public static String getProjectId(String userRegion) throws KeycloakTokenException {
+    public static String getProjectId(String userRegion,  OSClientV3 os) throws KeycloakTokenException {
 
         String token = getKeycloackToken();
         if(null == token){
@@ -140,7 +140,7 @@ public class CommonUtil {
             return projectId;
         }else{
             try{
-                OSClientV3 os= getOsClientV3Util(userRegion);
+//                OSClientV3 os= getOsClientV3Util(userRegion);
                 String projectid_client=os.getToken().getProject().getId();
                 log.info("getProjectId:{}", projectid_client);
                 return projectid_client;
