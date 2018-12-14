@@ -417,25 +417,8 @@ public class EipServiceImpl implements IEipService {
                     }
                 case "2":
                 case "3":
-//                    log.info("bind a slb:{} with eipId:{}",slbId,,Type,slbIp);
-//                    // 3：slb
-//                    JSONObject result = eipDaoService.associateInstanceWithEip(id, slbId, type, slbIp);
-//                    if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
-//                        code = result.getString("interCode");
-//                        int httpResponseCode=result.getInteger("httpCode");
-//                        msg = result.getString("reason");
-//                        log.error(msg);
-//                        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
-//
-//                    }else{
-//                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
-//                        Eip eipEntity=(Eip)result.get("data");
-//                        BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-//                        eipReturnDetail.setResourceset(Resourceset.builder()
-//                                .resourceid(eipEntity.getInstanceId())
-//                                .resourcetype(eipEntity.getInstanceType()).build());
-//                        return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-//                    }
+                    return eipbindSlb( id,  serverId,  "1.2.3.4");
+
                 default:
                     code = ReturnStatus.SC_PARAM_ERROR;
                     msg = "no support type param "+type;
@@ -486,6 +469,7 @@ public class EipServiceImpl implements IEipService {
                             break;
                         case "2":
                         case "3":
+                            return unBindSlb(eipEntity.getInstanceId());
                         default:
                             //default ecs
                             code = ReturnStatus.SC_PARAM_ERROR;
