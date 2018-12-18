@@ -76,3 +76,7 @@ logging:
   config: classpath:log4j.properties
 
 slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/
+
+jasypt:
+  encryptor:
+    password: EbfYkitulv73I2p0mXI50JMXoaxZTKJ7

@@ -63,13 +63,6 @@ public class EipDaoService {
             return null;
         }
 
-        String networkId =  getExtNetId(eipConfig.getRegion());
-        if(null == networkId) {
-            log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
-            eipPoolRepository.saveAndFlush(eip);
-            return null;
-        }
-
         EipPool eipPoolCheck  = eipPoolRepository.findByIp(eip.getIp());
         if(eipPoolCheck != null){
             log.error("==================================================================================");
@@ -78,7 +71,7 @@ public class EipDaoService {
             return null;
         }
 
-        Eip eipEntity = eipRepository.findByEipAddressAndIsDelete(eip.getIp(),0);
+        Eip eipEntity = eipRepository.findByEipAddressAndIsDelete(eip.getIp(), 0);
         if(null != eipEntity){
             log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{} eipId:{}.",
                     eipEntity.getEipAddress(), eipEntity.getEipId());
@@ -486,8 +479,8 @@ public class EipDaoService {
         return eipRepository.findByProjectIdAndIsDelete(projectId,0);
     }
 
-    public  Eip findByEipAddress(String eipAddr){
-        return eipRepository.findByEipAddressAndIsDelete(eipAddr,0);
+    public  Eip findByEipAddress(String eipAddr) throws Exception{
+        return eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipAddr, CommonUtil.getUserId(), 0);
     }
 
     public Eip findByInstanceId(String instanceId) {

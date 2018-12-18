@@ -7,11 +7,15 @@ import com.inspur.eipatomapi.entity.eip.EipDelParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.HsConstants;
+import com.inspur.eipatomapi.util.JaspytUtils;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -290,5 +294,28 @@ public class EipController {
     }
 
 
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @PostMapping(value = "/loggers/{level}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity setDebugLevel(@PathVariable("level") String debugLevel,
+                                        @RequestParam(value="package") String packageName) {
+        log.info("Set debug level to:{}", debugLevel);
+        //trace --> debug --> info --> warn --> error -->fatal
+        try{
+
+            Level level = Level.toLevel(debugLevel);
+            Logger logger = LogManager.getLogger(packageName);
+            logger.setLevel(level);
+        }catch (Exception e){
+            log.error("Set log level error", e);
+        }
+
+        log.info("Get passwd from config:{}  {}",
+                JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7",
+                        "TSu5pS+BQFM5TbKzAgzUzQ=="),
+                JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7",
+                        "98KylQ3eba/2AKXG8m+83g=="));
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+    }
 
 }
