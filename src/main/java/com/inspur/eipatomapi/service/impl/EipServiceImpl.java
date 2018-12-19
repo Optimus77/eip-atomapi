@@ -7,6 +7,7 @@ import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
+import com.inspur.eipatomapi.service.PortService;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,8 @@ public class EipServiceImpl implements IEipService {
     @Autowired
     private EipDaoService eipDaoService;
 
+    @Autowired
+    private PortService portService;
     /**
      * create a eip
      * @param eipConfig          config
@@ -504,27 +507,20 @@ public class EipServiceImpl implements IEipService {
         log.info("listServer start execute");
 
         try {
-            List<Server> serverList= (List<Server>) neutronService.listServer(region);
+            List<Server> serverList= portService.listServerByTags("ECS", region);
             JSONArray dataArray=new JSONArray();
             for(Server server:serverList){
                 log.info("Server list , name:{}, state:{}",server.getName(), server.getVmState());
                 String serverId = server.getId();
-                if(!server.getName().trim().startsWith("CPS") &&
-                        (server.getVmState().equalsIgnoreCase("active"))) {
-                    Eip eipEntity = eipDaoService.findByInstanceId(serverId);
-                    if(null == eipEntity){
-                        List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
-                        JSONObject data=new JSONObject();
-                        data.put("id",server.getId());
-                        data.put("name",server.getName());
-                        for(int i =0; i < portIds.size(); i++) {
-                            data.put("port"+i, portIds.get(i));
-                        }
-                        dataArray.add(data);
-                    }
+                List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
+                JSONObject data=new JSONObject();
+                data.put("id",server.getId());
+                data.put("name",server.getName());
+                for(int i =0; i < portIds.size(); i++) {
+                    data.put("port"+i, portIds.get(i));
                 }
+                dataArray.add(data);
             }
-
             return new ResponseEntity<>(ReturnMsgUtil.success(dataArray), HttpStatus.OK);
         }catch (Exception e){
             log.error("Exception in listServer", e);
