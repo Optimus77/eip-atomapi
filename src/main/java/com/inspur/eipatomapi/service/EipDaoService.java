@@ -268,7 +268,7 @@ public class EipDaoService {
             pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
             if(pipId==null && !CommonUtil.qosDebug){
                 neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
-                        eip.getInstanceId(), eip.getRegion());
+                        serverId, eip.getRegion());
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
@@ -290,7 +290,7 @@ public class EipDaoService {
                 firewallService.delDnat(dnatRuleId, eip.getFirewallId());
                 firewallService.delQos(pipId, eip.getFirewallId());
                 neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
-                        eip.getInstanceId(), eip.getRegion());
+                        serverId, eip.getRegion());
 
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);

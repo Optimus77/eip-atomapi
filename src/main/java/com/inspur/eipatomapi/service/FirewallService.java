@@ -26,6 +26,8 @@ class FirewallService {
     @Value("${jasypt.password}")
     private String secretKey;
 
+    private String passwd = null;
+    private String user = null;
     private String vr = "trust-vr";
 
     private Firewall getFireWallById(String id){
@@ -38,8 +40,14 @@ class FirewallService {
             log.warn("Failed to find the firewall by id:{}", id);
         }
         if(null != fireWallEntity) {
-            //fireWallEntity.setUser("hillstone");
-            //fireWallEntity.setPasswd("hillstone");
+            if(null == user || null == passwd){
+                user = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser());
+                passwd = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd());
+                log.info("==get user:{}, pass:{}",JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser()),
+                        JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
+            }
+            fireWallEntity.setUser(user);
+            fireWallEntity.setPasswd(passwd);
             log.info("get user:{}, pass:{}",JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser())
                     , JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
         }else{
