@@ -48,8 +48,6 @@ class FirewallService {
             }
             fireWallEntity.setUser(user);
             fireWallEntity.setPasswd(passwd);
-            log.info("get user:{}, pass:{}",JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser())
-                    , JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
         }else{
             log.error("Failed to find the firewall.");
         }
