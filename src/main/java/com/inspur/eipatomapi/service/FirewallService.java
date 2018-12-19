@@ -38,9 +38,10 @@ class FirewallService {
             log.warn("Failed to find the firewall by id:{}", id);
         }
         if(null != fireWallEntity) {
-            fireWallEntity.setUser(JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser()));
-            fireWallEntity.setPasswd(JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
-            log.info("get user:{}, pass:{}", fireWallEntity.getUser(), fireWallEntity.getPasswd());
+            //fireWallEntity.setUser("hillstone");
+            //fireWallEntity.setPasswd("hillstone");
+            log.info("get user:{}, pass:{}",JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser())
+                    , JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
         }else{
             log.error("Failed to find the firewall.");
         }

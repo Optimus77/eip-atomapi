@@ -315,7 +315,7 @@ public class EipDaoService {
         }catch (Exception e){
             log.error("band server firewall exception",e);
             neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
-                    eip.getInstanceId(), eip.getRegion());
+                    serverId, eip.getRegion());
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
             data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
