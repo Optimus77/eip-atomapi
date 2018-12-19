@@ -1,13 +1,13 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
+import com.inspur.eipatomapi.entity.LogLevel;
 import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
 import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.eip.EipDelParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.HsConstants;
-import com.inspur.eipatomapi.util.JaspytUtils;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
@@ -296,25 +296,27 @@ public class EipController {
 
     @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @PostMapping(value = "/loggers/{level}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity setDebugLevel(@PathVariable("level") String debugLevel,
-                                        @RequestParam(value="package") String packageName) {
-        log.info("Set debug level to:{}", debugLevel);
+    @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity setDebugLevel(@PathVariable("package") String packageName, @RequestBody LogLevel param) {
+        log.info("Set debug level to:{}", param);
         //trace --> debug --> info --> warn --> error -->fatal
         try{
-
-            Level level = Level.toLevel(debugLevel);
+            String configLevel = param.getLevel();
+            if(null == configLevel){
+                configLevel = "INFO";
+            }
+            Level level = Level.toLevel(configLevel);
             Logger logger = LogManager.getLogger(packageName);
             logger.setLevel(level);
         }catch (Exception e){
             log.error("Set log level error", e);
         }
-
-        log.info("Get passwd from config:{}  {}",
-                JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7",
-                        "TSu5pS+BQFM5TbKzAgzUzQ=="),
-                JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7",
-                        "98KylQ3eba/2AKXG8m+83g=="));
+//
+//        log.info("Get passwd from config:{}  {}",
+//                JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7",
+//                        "TSu5pS+BQFM5TbKzAgzUzQ=="),
+//                JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7",
+//                        "98KylQ3eba/2AKXG8m+83g=="));
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
