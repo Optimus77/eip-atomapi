@@ -14,12 +14,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class DatabaseCheckService implements ApplicationRunner {
 
-    @Autowired
-    EipDaoService eipDaoService;
-
     @Override
-    public void run(ApplicationArguments args) throws Exception {
-        log.info("***************************databse check***********************");
+    public void run(ApplicationArguments args)  {
+        log.info("***************************init finish***********************");
 
     }
 

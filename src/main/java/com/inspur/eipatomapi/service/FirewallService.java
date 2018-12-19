@@ -4,10 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.fw.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.util.HsConstants;
+import com.inspur.eipatomapi.util.JaspytUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -21,6 +23,11 @@ class FirewallService {
     @Autowired
     private FirewallRepository firewallRepository;
 
+    @Value("${jasypt.password}")
+    private String secretKey;
+
+    private String passwd = null;
+    private String user = null;
     private String vr = "trust-vr";
 
     private Firewall getFireWallById(String id){
@@ -31,6 +38,21 @@ class FirewallService {
             fireWallEntity =  firewall.get();
         } else {
             log.warn("Failed to find the firewall by id:{}", id);
+        }
+        if(null != fireWallEntity) {
+            if(null == user || null == passwd){
+//                user = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser());
+//                passwd = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd());
+                user = "hillstone";
+                passwd = "hillstone";
+
+                log.info("==get user:{}, pass:{}",JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser()),
+                        JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
+            }
+            fireWallEntity.setUser(user);
+            fireWallEntity.setPasswd(passwd);
+        }else{
+            log.error("Failed to find the firewall.");
         }
         return fireWallEntity;
     }

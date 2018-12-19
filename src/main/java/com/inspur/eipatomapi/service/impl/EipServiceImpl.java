@@ -10,6 +10,9 @@ import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.compute.Server;
 import org.springframework.beans.BeanUtils;
@@ -621,5 +624,21 @@ public class EipServiceImpl implements IEipService {
 
 
 
+    public ResponseEntity setLogLevel(String debugLevel, String  packageName){
+        log.info("Set debug level to:{}", debugLevel);
+
+        if(null == debugLevel){
+            new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, "Need debug level."),
+                    HttpStatus.OK);
+        }
+        try{
+            Level level = Level.toLevel(debugLevel);
+            Logger logger = LogManager.getLogger(packageName);
+            logger.setLevel(level);
+        }catch (Exception e){
+            log.error("Set log level error", e);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+    }
 
 }

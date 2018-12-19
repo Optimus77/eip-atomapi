@@ -22,7 +22,9 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     List<Eip> findByProjectIdAndIsDelete(String projectId,int isDelete);
 
-    Eip findByEipAddressAndIsDelete(String ipAddress,int isDelete);
+    Eip findByEipAddressAndProjectIdAndIsDelete(String ipAddress, String userId, int isDelete);
+
+    Eip findByEipAddressAndIsDelete(String ipAddress, int isDelete);
 
     Page<Eip> findByProjectIdAndIsDelete(String projectId, int isDelete,Pageable pageable);
 }

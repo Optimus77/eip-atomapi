@@ -63,13 +63,6 @@ public class EipDaoService {
             return null;
         }
 
-        String networkId =  getExtNetId(eipConfig.getRegion());
-        if(null == networkId) {
-            log.error("Failed to get external net in region:{}. ", eipConfig.getRegion());
-            eipPoolRepository.saveAndFlush(eip);
-            return null;
-        }
-
         EipPool eipPoolCheck  = eipPoolRepository.findByIp(eip.getIp());
         if(eipPoolCheck != null){
             log.error("==================================================================================");
@@ -78,7 +71,7 @@ public class EipDaoService {
             return null;
         }
 
-        Eip eipEntity = eipRepository.findByEipAddressAndIsDelete(eip.getIp(),0);
+        Eip eipEntity = eipRepository.findByEipAddressAndIsDelete(eip.getIp(), 0);
         if(null != eipEntity){
             log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{} eipId:{}.",
                     eipEntity.getEipAddress(), eipEntity.getEipId());
@@ -275,7 +268,7 @@ public class EipDaoService {
             pipId = firewallService.addQos(eip.getFloatingIp(), eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
             if(pipId==null && !CommonUtil.qosDebug){
                 neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
-                        eip.getInstanceId(), eip.getRegion());
+                        serverId, eip.getRegion());
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
@@ -297,7 +290,7 @@ public class EipDaoService {
                 firewallService.delDnat(dnatRuleId, eip.getFirewallId());
                 firewallService.delQos(pipId, eip.getFirewallId());
                 neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
-                        eip.getInstanceId(), eip.getRegion());
+                        serverId, eip.getRegion());
 
                 data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
                 data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -322,7 +315,7 @@ public class EipDaoService {
         }catch (Exception e){
             log.error("band server firewall exception",e);
             neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(), eip.getFloatingIpId(),
-                    eip.getInstanceId(), eip.getRegion());
+                    serverId, eip.getRegion());
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
             data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
@@ -486,8 +479,8 @@ public class EipDaoService {
         return eipRepository.findByProjectIdAndIsDelete(projectId,0);
     }
 
-    public  Eip findByEipAddress(String eipAddr){
-        return eipRepository.findByEipAddressAndIsDelete(eipAddr,0);
+    public  Eip findByEipAddress(String eipAddr) throws Exception{
+        return eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipAddr, CommonUtil.getUserId(), 0);
     }
 
     public Eip findByInstanceId(String instanceId) {

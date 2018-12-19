@@ -160,7 +160,7 @@ public  class NeutronService {
     synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
                                                                           String region) throws Exception {
 
-        if(slbService.isFipInUse(serverId)){
+        if(null == serverId || slbService.isFipInUse(serverId)){
             return ActionResponse.actionSuccess();
         }
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
