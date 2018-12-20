@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.inspur.eipatomapi.util.CommonUtil.getOsClientV3Util;
 
 @Slf4j
 @org.springframework.stereotype.Service

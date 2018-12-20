@@ -514,14 +514,16 @@ public class EipServiceImpl implements IEipService {
             for(NovaServerEntity server:serverList){
                 log.info("Server list , name:{}.",server.getName());
                 String serverId = server.getId();
-                List<String> portIds = neutronService.getPortIdByServerId(serverId, osClientV3);
-                JSONObject data=new JSONObject();
-                data.put("id",server.getId());
-                data.put("name",server.getName());
-                for(int i =0; i < portIds.size(); i++) {
-                    data.put("port"+i, portIds.get(i));
+                if(null == eipDaoService.findByInstanceId(serverId)) {
+                    List<String> portIds = neutronService.getPortIdByServerId(serverId, osClientV3);
+                    JSONObject data = new JSONObject();
+                    data.put("id", server.getId());
+                    data.put("name", server.getName());
+                    for (int i = 0; i < portIds.size(); i++) {
+                        data.put("port" + i, portIds.get(i));
+                    }
+                    dataArray.add(data);
                 }
-                dataArray.add(data);
             }
             return new ResponseEntity<>(ReturnMsgUtil.success(dataArray), HttpStatus.OK);
         }catch (Exception e){
