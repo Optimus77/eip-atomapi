@@ -246,8 +246,8 @@ public  class NeutronService {
         return list.get(0);
     }
 
-    public List<String> getPortIdByServerId( String serverId, String region) throws Exception{
-        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
+    public List<String> getPortIdByServerId( String serverId, OSClientV3 osClientV3) throws Exception{
+
         List<? extends Port> list = osClientV3.networking().port().list(PortListOptions.create().deviceId(serverId));
         List<String> ports = new ArrayList<>();
         if (!list.isEmpty()) {

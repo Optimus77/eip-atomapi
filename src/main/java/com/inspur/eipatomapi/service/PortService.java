@@ -28,7 +28,7 @@ public class PortService {
     /**
      * invoke openstack interface
      */
-    public List<NovaServerEntity> listServerByTags(String tag, String region) {
+    public List<NovaServerEntity> listServerByTags(String tag, OSClient.OSClientV3 osClientV3) {
         Map<String, String> paramMap = new HashMap<>(4);
         if (tag != null) {
             paramMap.put("tags", tag);
@@ -36,7 +36,7 @@ public class PortService {
         //The tenant can only himself servers
         paramMap.put("all_tenants", "false");
 
-        Map<String, Object> novaUrlAndHttpEntity = getPublicUrlAndHttpEntity("compute", "nova",region);
+        Map<String, Object> novaUrlAndHttpEntity = getPublicUrlAndHttpEntity("compute", "nova",osClientV3);
         //add micro version header to use tags
         HttpHeaders headers = new HttpHeaders();
         headers.addAll(((HttpEntity) novaUrlAndHttpEntity.get("httpEntity")).getHeaders());
@@ -64,10 +64,9 @@ public class PortService {
      * 获取原生openstack查询servers的url的方法
      */
 
-    private Map<String, Object> getPublicUrlAndHttpEntity(String type, String name,String region)  {
+    private Map<String, Object> getPublicUrlAndHttpEntity(String type, String name,OSClient.OSClientV3 osClientV3)  {
         Map<String, Object> map = new HashMap<>(4);
         try {
-            OSClient.OSClientV3 osClientV3 = getOsClientV3Util(region);
             String token = osClientV3.getToken().getId();
             String url = getPublicUrl(osClientV3, type, name);
             map.put("url", url);

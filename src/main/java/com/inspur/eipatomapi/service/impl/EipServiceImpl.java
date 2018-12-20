@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -507,12 +508,13 @@ public class EipServiceImpl implements IEipService {
         log.info("listServer start execute");
 
         try {
-            List<NovaServerEntity> serverList= portService.listServerByTags("ECS", region);
+            OSClient.OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
+            List<NovaServerEntity> serverList= portService.listServerByTags("ECS", osClientV3);
             JSONArray dataArray=new JSONArray();
             for(NovaServerEntity server:serverList){
                 log.info("Server list , name:{}.",server.getName());
                 String serverId = server.getId();
-                List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
+                List<String> portIds = neutronService.getPortIdByServerId(serverId, osClientV3);
                 JSONObject data=new JSONObject();
                 data.put("id",server.getId());
                 data.put("name",server.getName());
