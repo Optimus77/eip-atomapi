@@ -13,6 +13,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class PortService {
      */
 
     public List<Server> listServerByTags(String tag, String region) throws KeycloakTokenException {
+        List<Server> serverList;
         Map<String, String> paramMap = new HashMap<>(4);
         if (tag != null) {
             paramMap.put("tags", tag);
@@ -43,20 +45,21 @@ public class PortService {
         headers.add("X-Openstack-Nova-Api-Version", "2.46");
         //get url
         String novaPublicUrl = novaUrlAndHttpEntity.get("url") + "/servers/detail";
-
+        String msg;
         try {
-            String msg = String.format("invoke url : %s", novaPublicUrl);
+            msg = String.format("invoke url : %s", novaPublicUrl);
                 String  httpResponse = HttpUtil.get(novaPublicUrl, paramMap);
+            log.info(msg);
             if (httpResponse!=null) {
                 JSONObject jsonObject = JSONObject.parseObject(httpResponse);
-                List<Server> list = jsonObject.getJSONArray("servers").toJavaList(Server.class);
-                return list;
+                serverList = jsonObject.getJSONArray("servers").toJavaList(Server.class);
+                return serverList;
             }
         } catch (Exception e) {
-            String msg = String.format("Invoke url error : %s", novaPublicUrl);
-            return null;
+            msg = String.format("Invoke url error : %s", novaPublicUrl);
         }
-        return null;
+        log.error("Error when get server list :{}", msg);
+        return new ArrayList<Server>();
     }
 
     /**

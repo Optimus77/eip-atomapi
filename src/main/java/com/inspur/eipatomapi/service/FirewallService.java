@@ -46,8 +46,8 @@ class FirewallService {
                 user = "hillstone";
                 passwd = "hillstone";
 
-                log.info("==get user:{}, pass:{}",JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser()),
-                        JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
+                log.info("==get user:{}, pass:{}",JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", fireWallEntity.getUser()),
+                        JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", fireWallEntity.getPasswd()));
             }
             fireWallEntity.setUser(user);
             fireWallEntity.setPasswd(passwd);
