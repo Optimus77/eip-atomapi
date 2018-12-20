@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.service.EipDaoService;
@@ -15,7 +16,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.openstack4j.model.common.ActionResponse;
-import org.openstack4j.model.compute.Server;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -507,10 +507,10 @@ public class EipServiceImpl implements IEipService {
         log.info("listServer start execute");
 
         try {
-            List<Server> serverList= portService.listServerByTags("ECS", region);
+            List<NovaServerEntity> serverList= portService.listServerByTags("ECS", region);
             JSONArray dataArray=new JSONArray();
-            for(Server server:serverList){
-                log.info("Server list , name:{}, state:{}",server.getName(), server.getVmState());
+            for(NovaServerEntity server:serverList){
+                log.info("Server list , name:{}.",server.getName());
                 String serverId = server.getId();
                 List<String> portIds = neutronService.getPortIdByServerId(serverId, region);
                 JSONObject data=new JSONObject();
