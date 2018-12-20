@@ -39,21 +39,21 @@ class FirewallService {
         } else {
             log.warn("Failed to find the firewall by id:{}", id);
         }
-        if(null != fireWallEntity) {
-            if(null == user || null == passwd){
-//                user = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser());
-//                passwd = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd());
-                user = "hillstone";
-                passwd = "hillstone";
-//
-//                log.info("==get user:{}, pass:{}",JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", fireWallEntity.getUser()),
-//                        JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", fireWallEntity.getPasswd()));
-            }
-            fireWallEntity.setUser(user);
-            fireWallEntity.setPasswd(passwd);
-        }else{
-            log.error("Failed to find the firewall.");
-        }
+//        if(null != fireWallEntity) {
+//            if(null == user || null == passwd){
+////                user = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser());
+////                passwd = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd());
+//                user = "hillstone";
+//                passwd = "hillstone";
+////
+////                log.info("==get user:{}, pass:{}",JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", fireWallEntity.getUser()),
+////                        JaspytUtils.decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", fireWallEntity.getPasswd()));
+//            }
+//            fireWallEntity.setUser(user);
+//            fireWallEntity.setPasswd(passwd);
+//        }else{
+//            log.error("Failed to find the firewall.");
+//        }
         return fireWallEntity;
     }
 
