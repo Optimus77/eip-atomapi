@@ -416,6 +416,7 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.SC_NOT_FOUND);
             return data;
         }
+
         if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
             log.error("User have no write to operate eip:{}", eipid);
             data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
@@ -432,7 +433,13 @@ public class EipDaoService {
                 return data;
             }
         }
-        boolean updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()));
+        boolean updateStatus;
+        if(null == eipEntity.getPipId() || eipEntity.getPipId().isEmpty()){
+            updateStatus = true;
+        }else{
+            updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()));
+        }
+
         if (updateStatus ||CommonUtil.qosDebug) {
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
