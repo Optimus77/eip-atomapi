@@ -24,25 +24,27 @@ class FirewallService {
 
 //    @Value("${jasypt.password}")
     private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
-
+    private Firewall fireWallConfig = null;
     private String vr = "trust-vr";
 
     private Firewall getFireWallById(String id){
+        if(null == fireWallConfig) {
 
-        Firewall fireWallEntity = new Firewall();
-        Optional<Firewall> firewall = firewallRepository.findById(id);
-        if(firewall.isPresent()){
-            Firewall getFireWallEntity =  firewall.get();
+            Optional<Firewall> firewall = firewallRepository.findById(id);
+            if (firewall.isPresent()) {
+                fireWallConfig = new Firewall();
+                Firewall getFireWallEntity = firewall.get();
 
-            fireWallEntity.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
-            fireWallEntity.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
-            fireWallEntity.setIp(getFireWallEntity.getIp());
-            fireWallEntity.setPort(getFireWallEntity.getPort());
-        } else {
-            log.warn("Failed to find the firewall by id:{}", id);
+                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
+                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
+                fireWallConfig.setIp(getFireWallEntity.getIp());
+                fireWallConfig.setPort(getFireWallEntity.getPort());
+            } else {
+                log.warn("Failed to find the firewall by id:{}", id);
+            }
         }
 
-        return fireWallEntity;
+        return fireWallConfig;
     }
 
     String addDnat(String innerip, String extip, String equipid) {
