@@ -167,7 +167,10 @@ public class CommonUtil {
             }
         }
     }
+    public static String getRegionName() {
 
+        return debugRegion;
+    }
     public static String getUsername()throws KeycloakTokenException {
 
         String token = getKeycloackToken();

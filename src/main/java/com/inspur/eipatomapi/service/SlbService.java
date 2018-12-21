@@ -27,11 +27,9 @@ class SlbService {
             Map<String,String> header=new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
-
-
-            String response = HttpUtil.get(url, header);
-            JSONObject returnInfo = JSONObject.parseObject(response);
-            log.info("Slb return info:{}", returnInfo);
+            HttpResponse response = HttpUtil.doGet(url, null, header);
+            log.info("Slb return info:{}", response.toString());
+            JSONObject returnInfo = JSONObject.parseObject(response.getResponseBody());
             if((null != returnInfo) && (null != returnInfo.getString("message"))) {
                 if (returnInfo.getString("message").equalsIgnoreCase("true")) {
                     return true;

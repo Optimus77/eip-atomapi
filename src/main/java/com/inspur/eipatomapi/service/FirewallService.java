@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -23,37 +22,26 @@ class FirewallService {
     @Autowired
     private FirewallRepository firewallRepository;
 
-    @Value("${jasypt.password}")
-    private String secretKey;
+//    @Value("${jasypt.password}")
+    private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
 
-    private String passwd = null;
-    private String user = null;
     private String vr = "trust-vr";
 
     private Firewall getFireWallById(String id){
 
-        Firewall fireWallEntity = null;
+        Firewall fireWallEntity = new Firewall();
         Optional<Firewall> firewall = firewallRepository.findById(id);
         if(firewall.isPresent()){
-            fireWallEntity =  firewall.get();
+            Firewall getFireWallEntity =  firewall.get();
+
+            fireWallEntity.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
+            fireWallEntity.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
+            fireWallEntity.setIp(getFireWallEntity.getIp());
+            fireWallEntity.setPort(getFireWallEntity.getPort());
         } else {
             log.warn("Failed to find the firewall by id:{}", id);
         }
-        if(null != fireWallEntity) {
-            if(null == user || null == passwd){
-//                user = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser());
-//                passwd = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd());
-                user = "hillstone";
-                passwd = "hillstone";
 
-                log.info("==get user:{}, pass:{}",JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser()),
-                        JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd()));
-            }
-            fireWallEntity.setUser(user);
-            fireWallEntity.setPasswd(passwd);
-        }else{
-            log.error("Failed to find the firewall.");
-        }
         return fireWallEntity;
     }
 
