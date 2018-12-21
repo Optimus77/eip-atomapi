@@ -39,6 +39,8 @@ class FirewallService {
                 fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
                 fireWallConfig.setIp(getFireWallEntity.getIp());
                 fireWallConfig.setPort(getFireWallEntity.getPort());
+                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
+                        fireWallConfig.getPort(), fireWallConfig.getUser(), fireWallConfig.getPasswd());
             } else {
                 log.warn("Failed to find the firewall by id:{}", id);
             }
