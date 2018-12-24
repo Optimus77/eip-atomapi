@@ -34,7 +34,7 @@ public class SbwController {
     @PostMapping(value = "/sbws")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwAllocateParamWrapper sbwConfig, BindingResult result) {
-        log.info("Allocate a eip:{}.", sbwConfig.getSbwAllocateParam().toString());
+        log.info("Allocate a sbws:{}.", sbwConfig.getSbwAllocateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();

@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.service;
 
+import com.inspur.eipatomapi.entity.eip.EipShardBand;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
 
@@ -92,6 +93,21 @@ public interface IEipService {
     ResponseEntity getEipByIpAddress(String eip);
 
     ResponseEntity getEipCount();
+    /**
+     * add eip to shared bandwidth
+     * @param eipId
+     * @param band
+     * @return
+     */
+    ResponseEntity addEipToShared(String eipId, EipShardBand band);
+
+    /**
+     * remove eip from  shared bandwidth
+     * @param eipId
+     * @param band
+     * @return
+     */
+    ResponseEntity removeFromShared(String eipId, EipShardBand band);
 
 
 }

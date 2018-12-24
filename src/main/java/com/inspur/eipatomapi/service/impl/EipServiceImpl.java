@@ -126,11 +126,11 @@ public class EipServiceImpl implements IEipService {
             for (String eipId : eipIds) {
                 log.info("delete eip {}", eipId);
                 //deleteEip(eipId, null);
-                 actionResponse = eipDaoService.deleteEip(eipId);
-                 if(!actionResponse.isSuccess()){
-                     failedIds.add(eipId);
-                     log.error("delete eip error, eipId:{}", eipId);
-                 }
+                actionResponse = eipDaoService.deleteEip(eipId);
+                if(!actionResponse.isSuccess()){
+                    failedIds.add(eipId);
+                    log.error("delete eip error, eipId:{}", eipId);
+                }
             }
             if(failedIds.isEmpty()){
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -268,8 +268,8 @@ public class EipServiceImpl implements IEipService {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                                .resourceid(eipEntity.getInstanceId())
-                                .resourcetype(eipEntity.getInstanceType()).build());
+                        .resourceid(eipEntity.getInstanceId())
+                        .resourcetype(eipEntity.getInstanceType()).build());
 
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
@@ -449,7 +449,6 @@ public class EipServiceImpl implements IEipService {
     @Override
     @ICPServiceLog
     public ResponseEntity unBindPort(String id){
-
         String code;
         String msg;
         try {
@@ -621,8 +620,35 @@ public class EipServiceImpl implements IEipService {
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    @ICPServiceLog
+    @Override
+    public ResponseEntity addEipToShared(String eipId ,EipShardBand band ){
+        String code;
+        String msg;
+        JSONObject result = null;
+        try {
+            result = eipDaoService.addEipShardBindEip(eipId, band);
+            if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                code = result.getString("interCode");
+                int httpResponseCode=result.getInteger("httpCode");
+                msg = result.getString("reason");
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+            }else {
+                code = ReturnStatus.SC_OK;
+                msg = "The Eip add to shared band succeeded";
+                log.info(msg);
+                log.info(code);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+            }
 
-
+        } catch (Exception e) {
+            log.error("eipbindSlb exception", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     public ResponseEntity setLogLevel(String debugLevel, String  packageName){
         log.info("Set debug level to:{}", debugLevel);
@@ -641,4 +667,29 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
+    @Override
+    public ResponseEntity removeFromShared(String eipId, EipShardBand band) {
+        String code;
+        String msg;
+        try {
+            ActionResponse actionResponse = eipDaoService.removeEipShardBindEip(eipId, band);
+            if (actionResponse.isSuccess()){
+                code = ReturnStatus.SC_OK;
+                msg=("remove from shared successfully");
+                log.info(code);
+                log.info(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+            }else {
+                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                msg = actionResponse.getFault();
+                log.error(code);
+                log.error(msg);
+            }
+        } catch (Exception e) {
+            log.error("remove  exception", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

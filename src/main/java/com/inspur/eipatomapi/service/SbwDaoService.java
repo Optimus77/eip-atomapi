@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.service;
 
+import com.inspur.eipatomapi.entity.sbw.ConsoleCustomization;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
 import com.inspur.eipatomapi.repository.SbwRepository;
@@ -18,31 +19,28 @@ public class SbwDaoService {
     @Autowired
     private SbwRepository sbwRepository;
 
-    public List<Sbw> findByProjectId(String projectId){
-        return sbwRepository.findByProjectIdAndIsDelete(projectId,0);
+    public List<Sbw> findByProjectId(String projectId) {
+        return sbwRepository.findByProjectIdAndIsDelete(projectId, 0);
     }
 
     @Transactional
-    public Sbw allocateSbw(SbwAllocateParam sbwConfig) throws Exception{
+    public Sbw allocateSbw(ConsoleCustomization sbwConfig) throws Exception {
 
         Sbw sbwMo = new Sbw();
         sbwMo.setRegion(sbwConfig.getRegion());
-        sbwMo.setSharedbandwidthname(sbwConfig.getSharedbandwidthname());
+        sbwMo.setSharedbandwidthName(sbwConfig.getSharedBandWidthName());
 
         sbwMo.setBillType(sbwConfig.getBillType());
-        sbwMo.setChargeMode(sbwConfig.getChargemode());
+        sbwMo.setChargeMode(sbwConfig.getChargeMode());
         sbwMo.setDuration(sbwConfig.getDuration());
-        sbwMo.setBandWidth(sbwConfig.getBandwidth());
+        sbwMo.setBandWidth(sbwConfig.getBandWidth());
         sbwMo.setRegion(sbwConfig.getRegion());
         String userId = CommonUtil.getUserId();
-        log.debug("get tenantid:{} from clientv3", userId);
-        //log.debug("get tenantid from token:{}", CommonUtil.getProjectId(eipConfig.getRegion()));
         sbwMo.setProjectId(userId);
         sbwMo.setIsDelete(0);
-
         sbwMo.setCreateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(sbwMo);
-        log.info("User:{} success allocate eip:{}",userId, sbwMo.getSbwId());
+        log.info("User:{} success allocate sbw:{} ,sbw:{}", userId, sbwMo.getSbwId(), sbwMo.toString());
         return sbwMo;
     }
 }

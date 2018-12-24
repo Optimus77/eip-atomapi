@@ -1,11 +1,13 @@
 package com.inspur.eipatomapi.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.sbw.*;
 import com.inspur.eipatomapi.repository.SbwRepository;
 import com.inspur.eipatomapi.service.ISbwService;
+import com.inspur.eipatomapi.service.QosService;
 import com.inspur.eipatomapi.service.SbwDaoService;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.KeycloakTokenException;
@@ -27,12 +29,15 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class SbwServiceImpl implements ISbwService{
+public class SbwServiceImpl implements ISbwService {
     @Autowired
     private SbwRepository sbwRepository;
 
     @Autowired
     private SbwDaoService sbwDaoService;
+
+    @Autowired
+    private QosService qosService;
 
     @ICPServiceLog
     public ResponseEntity atomCreateSbw(SbwAllocateParam sbwConfig) {
@@ -40,22 +45,24 @@ public class SbwServiceImpl implements ISbwService{
         String code;
         String msg;
         try {
-            Sbw sbwMo = sbwDaoService.allocateSbw(sbwConfig);
+            String customization = sbwConfig.getConsoleCustomization();
+            ConsoleCustomization customObject = JSON.parseObject(customization, ConsoleCustomization.class);
+            Sbw sbwMo = sbwDaoService.allocateSbw(customObject);
             if (null != sbwMo) {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);
-                log.info("Atom create a eip success:{}", sbwMo);
+                log.info("Atom create a sbw success:{}", sbwMo);
                 return new ResponseEntity<>(ReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                msg = "Failed to create floating ip in external network:" + sbwConfig.getRegion();
+                msg = "Failed to create sbw :" + sbwConfig.getRegion();
                 log.error(msg);
             }
 
-        }catch (Exception e){
-            log.error("Exception in atomCreateEip", e.getMessage());
+        } catch (Exception e) {
+            log.error("Exception in atomCreateSbw", e.getMessage());
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getMessage() + "";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -63,22 +70,22 @@ public class SbwServiceImpl implements ISbwService{
 
     @Override
     @ICPServiceLog
-    public ResponseEntity listSbws(int pageIndex,int pageSize,String searchValue){
+    public ResponseEntity listSbws(int pageIndex, int pageSize, String searchValue) {
         try {
-            String projcectid= CommonUtil.getUserId();
+            String projcectid = CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
-            if(projcectid==null){
+            if (projcectid == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
-            JSONObject data=new JSONObject();
-            JSONArray sbws=new JSONArray();
-            if(pageIndex!=0){
+            JSONObject data = new JSONObject();
+            JSONArray sbws = new JSONArray();
+            if (pageIndex != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-                Pageable pageable = PageRequest.of(pageIndex-1,pageSize,sort);
+                Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 Page<Sbw> page = sbwRepository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
-                for(Sbw sbw:page.getContent()){
-                    if((null != searchValue)){
+                for (Sbw sbw : page.getContent()) {
+                    if ((null != searchValue)) {
                         continue;
                     }
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
@@ -88,15 +95,15 @@ public class SbwServiceImpl implements ISbwService{
                             .resourcetype(sbw.getInstanceType()).build());
                     sbws.add(sbwReturnDetail);
                 }
-                data.put("sbws",sbws);
-                data.put("totalPages",page.getTotalPages());
-                data.put("totalElements",page.getTotalElements());
-                data.put("currentPage",pageIndex);
-                data.put("currentPagePer",pageSize);
-            }else{
-                List<Sbw> sbwList=sbwDaoService.findByProjectId(projcectid);
-                for(Sbw sbw:sbwList){
-                    if(null != searchValue){
+                data.put("sbws", sbws);
+                data.put("totalPages", page.getTotalPages());
+                data.put("totalElements", page.getTotalElements());
+                data.put("currentPage", pageIndex);
+                data.put("currentPagePer", pageSize);
+            } else {
+                List<Sbw> sbwList = sbwDaoService.findByProjectId(projcectid);
+                for (Sbw sbw : sbwList) {
+                    if (null != searchValue) {
                         continue;
                     }
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
@@ -106,48 +113,48 @@ public class SbwServiceImpl implements ISbwService{
                             .resourcetype(sbw.getInstanceType()).build());
                     sbws.add(sbwReturnDetail);
                 }
-                data.put("sbws",sbws);
-                data.put("totalPages",1);
-                data.put("totalElements",sbws.size());
-                data.put("currentPage",1);
-                data.put("currentPagePer",sbws.size());
+                data.put("sbws", sbws);
+                data.put("totalPages", 1);
+                data.put("totalElements", sbws.size());
+                data.put("currentPage", 1);
+                data.put("currentPagePer", sbws.size());
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
-        }catch(KeycloakTokenException e){
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
-        } catch (Exception e){
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
             log.error("Exception in listSbws", e);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
     @ICPServiceLog
-    public ResponseEntity getSbwDetail(String sbwId){
+    public ResponseEntity getSbwDetail(String sbwId) {
         return null;
     }
 
     @Override
     @ICPServiceLog
-    public ResponseEntity deleteSBw(String sbwId){
+    public ResponseEntity deleteSBw(String sbwId) {
         return null;
     }
 
     @Override
     @ICPServiceLog
-    public ResponseEntity updateSbwBandWidth(String id, SbwUpdateParamWrapper param){
+    public ResponseEntity updateSbwBandWidth(String id, SbwUpdateParamWrapper param) {
         return null;
     }
 
     @Override
     @ICPServiceLog
-    public ResponseEntity getSbwByInstanceId(String instanceId){
+    public ResponseEntity getSbwByInstanceId(String instanceId) {
         return null;
     }
 
     @Override
     @ICPServiceLog
-    public ResponseEntity getSbwCount(){
+    public ResponseEntity getSbwCount() {
         return null;
     }
 }

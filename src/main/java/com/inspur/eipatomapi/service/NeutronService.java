@@ -66,7 +66,7 @@ public  class NeutronService {
     }
 
     synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
-                                                                   Eip eip, String serverId) throws  Exception{
+                                                          Eip eip, String serverId) throws  Exception{
 
         if(null == portId || portId.isEmpty()){
             log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getEipId());
@@ -158,7 +158,7 @@ public  class NeutronService {
     }
 
     synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
-                                                                          String region) throws Exception {
+                                                                String region) throws Exception {
 
         if(null == serverId || slbService.isFipInUse(serverId)){
             return ActionResponse.actionSuccess();
@@ -166,17 +166,18 @@ public  class NeutronService {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Server server = osClientV3.compute().servers().get(serverId);
         if (server == null) {
-            log.info("Can not found serverid:{}", server);
+            log.info("Can not found serverid:{}", serverId);
+        }else {
+            ActionResponse actionResponse = osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
+            log.info("Remove fip from server: serverid:{}, fip:{}, result:{}",
+                    serverId, floatingIp, actionResponse.toString());
         }
 
-        ActionResponse actionResponse = osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
-        boolean result = false;
-        if(actionResponse.isSuccess()) {
-            result = osClientV3.networking().floatingip().delete(fipId).isSuccess();
-        }
-        log.info("disassociate and delete fip:{}, fipid:{}, serverid:{} result:{}",
+        boolean result = osClientV3.networking().floatingip().delete(fipId).isSuccess();
+        log.info("disassociate and delete fip:{}, fipid:{}, serverid:{}, deleteResult:{}",
                 floatingIp, fipId, serverId, result);
-        return actionResponse;
+
+        return  ActionResponse.actionSuccess();
     }
 
     public List<? extends Server> listServer(String region) throws Exception {
@@ -203,7 +204,7 @@ public  class NeutronService {
         List<? extends NetFloatingIP> list = osClientV3.networking().floatingip().list(filteringParams);
         if (list.isEmpty()) {
             return null;
-            } else {
+        } else {
             return list.get(0);
         }
     }
@@ -212,21 +213,21 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(eip.getRegion());
         Server server = osClientV3.compute().servers().get(serverId);
-            Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
-            log.info(novaAddresses.toString());
-            Set<String> keySet = novaAddresses.keySet();
-            for (String netname : keySet) {
-                List<? extends Address> address = novaAddresses.get(netname);
-                log.info(address.toString());
-                for (Address addr : address) {
-                    log.debug(server.getId() + server.getName() + "   " + addr.getType());
-                    if (addr.getType().equals("fixed")) {
-                        eip.setPrivateIpAddress(addr.getAddr());
-                    }
+        Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
+        log.info(novaAddresses.toString());
+        Set<String> keySet = novaAddresses.keySet();
+        for (String netname : keySet) {
+            List<? extends Address> address = novaAddresses.get(netname);
+            log.info(address.toString());
+            for (Address addr : address) {
+                log.debug(server.getId() + server.getName() + "   " + addr.getType());
+                if (addr.getType().equals("fixed")) {
+                    eip.setPrivateIpAddress(addr.getAddr());
                 }
             }
-            return eip.getPrivateIpAddress();
         }
+        return eip.getPrivateIpAddress();
+    }
 
 
     private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId) {
@@ -246,7 +247,7 @@ public  class NeutronService {
         return list.get(0);
     }
 
-    public List<String> getPortIdByServerId( String serverId, OSClientV3 osClientV3) throws Exception{
+    public List<String> getPortIdByServerId( String serverId, OSClientV3 osClientV3) {
 
         List<? extends Port> list = osClientV3.networking().port().list(PortListOptions.create().deviceId(serverId));
         List<String> ports = new ArrayList<>();

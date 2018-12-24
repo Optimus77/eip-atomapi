@@ -17,7 +17,7 @@ public class Sbw implements Serializable {
     @Column(name ="sbw_id",nullable = false, insertable = false, updatable = false)
     private String sbwId;
 
-    private String sharedbandwidthname;
+    private String sharedbandwidthName;
 
     private String instanceId;
 
@@ -33,7 +33,7 @@ public class Sbw implements Serializable {
 
     private String durationUnit = "M";
 
-    private int bandWidth;
+    private Integer bandWidth;
 
     private String region;
 

@@ -34,6 +34,11 @@ public  class CodeInfo {
     public static final String EIP_FORBIDEN_WITH_ID="EIP_FORBIDEN_WITH_ID";
     public static final String KEYCLOAK_NO_PROJECT="CLOAK_NO_PROJECT";
     public static final String SLB_BIND_NOT_FOND="SLB_BIND_NOT_FOND";
+    public static final String EIP_BILLTYPE_NOT_HOURLYSETTLEMENT="EIP_BILLTYPE_NOT_HOURLYSETTLEMENT";
+    public static final String EIP_FLOATINGIP_NULL="EIP_FLOATINGIP_NULL";
+    public static final String EIP_Shared_Band_Width_Id_NOT_NULL="EIP_Shared_Band_Width_Id_NOT_NULL";
+
+
 
 
     static class CnCode{
