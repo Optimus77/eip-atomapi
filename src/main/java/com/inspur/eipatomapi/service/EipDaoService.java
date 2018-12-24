@@ -511,7 +511,7 @@ public class EipDaoService {
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
         long num =(long)map.get("num");
-        log.info("{}, result:{}",sql, num);
+        log.debug("{}, result:{}",sql, num);
 
 
         return num;

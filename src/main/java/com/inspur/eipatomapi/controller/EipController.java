@@ -73,7 +73,6 @@ public class EipController {
 
     }
 
-    @ICPControllerLog
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
@@ -222,7 +221,6 @@ public class EipController {
      * get number of user
      * @return response
      */
-    @ICPControllerLog
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
