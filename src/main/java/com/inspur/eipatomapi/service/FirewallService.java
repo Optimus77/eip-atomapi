@@ -24,21 +24,22 @@ class FirewallService {
 
 //    @Value("${jasypt.password}")
     private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
-    private Firewall fireWallConfig = null;
+    private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
     private Firewall getFireWallById(String id){
-        if(null == fireWallConfig) {
+        if(!firewallConfigMap.containsKey(id)) {
 
             Optional<Firewall> firewall = firewallRepository.findById(id);
             if (firewall.isPresent()) {
-                fireWallConfig = new Firewall();
+                Firewall fireWallConfig = new Firewall();
                 Firewall getFireWallEntity = firewall.get();
 
                 fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
                 fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
                 fireWallConfig.setIp(getFireWallEntity.getIp());
                 fireWallConfig.setPort(getFireWallEntity.getPort());
+                firewallConfigMap.put(id, fireWallConfig);
                 log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
                         fireWallConfig.getPort(), fireWallConfig.getUser(), fireWallConfig.getPasswd());
             } else {
@@ -46,7 +47,7 @@ class FirewallService {
             }
         }
 
-        return fireWallConfig;
+        return firewallConfigMap.get(id);
     }
 
     String addDnat(String innerip, String extip, String equipid) {
