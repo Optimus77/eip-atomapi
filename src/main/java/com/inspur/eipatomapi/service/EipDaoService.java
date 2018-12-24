@@ -359,17 +359,16 @@ public class EipDaoService {
             ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
                     eipEntity.getFloatingIpId(),
                     eipEntity.getInstanceId(), eipEntity.getRegion());
-            if (actionResponse.isSuccess()) {
-                eipEntity.setInstanceId(null);
-                eipEntity.setInstanceType(null);
-                eipEntity.setPrivateIpAddress(null);
-                eipEntity.setPortId(null);
-                eipEntity.setFloatingIp(null);
-                eipEntity.setFloatingIpId(null);
-            }else {
+            if (!actionResponse.isSuccess()) {
                 msg = "Failed to disassociate port with fip:"+eipEntity.toString();
                 log.error(msg);
             }
+            eipEntity.setInstanceId(null);
+            eipEntity.setInstanceType(null);
+            eipEntity.setPrivateIpAddress(null);
+            eipEntity.setPortId(null);
+            eipEntity.setFloatingIp(null);
+            eipEntity.setFloatingIpId(null);
         }
 
         //Operation of a firewall
@@ -507,7 +506,7 @@ public class EipDaoService {
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
         long num =(long)map.get("num");
-        log.info("{}, result:{}",sql, num);
+        log.debug("{}, result:{}",sql, num);
 
 
         return num;

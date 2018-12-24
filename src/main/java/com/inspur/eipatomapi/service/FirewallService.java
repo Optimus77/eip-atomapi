@@ -23,38 +23,35 @@ class FirewallService {
     @Autowired
     private FirewallRepository firewallRepository;
 
-    @Value("${jasypt.password}")
-    private String secretKey;
-
-    private String passwd = null;
-    private String user = null;
     @Autowired
     private QosService qosService;
 
+    //    @Value("${jasypt.password}")
+    private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
+    private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
     private Firewall getFireWallById(String id){
+        if(!firewallConfigMap.containsKey(id)) {
 
-        Firewall fireWallEntity = null;
-        Optional<Firewall> firewall = firewallRepository.findById(id);
-        if(firewall.isPresent()){
-            fireWallEntity =  firewall.get();
-        } else {
-            log.warn("Failed to find the firewall by id:{}", id);
-        }
-        if(null != fireWallEntity) {
-            if(null == user || null == passwd){
-//                user = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getUser());
-                user = "hillstone";
-//                passwd = JaspytUtils.decyptPwd(secretKey, fireWallEntity.getPasswd());
-                passwd = "hillstone";
+            Optional<Firewall> firewall = firewallRepository.findById(id);
+            if (firewall.isPresent()) {
+                Firewall fireWallConfig = new Firewall();
+                Firewall getFireWallEntity = firewall.get();
+
+                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
+                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
+                fireWallConfig.setIp(getFireWallEntity.getIp());
+                fireWallConfig.setPort(getFireWallEntity.getPort());
+                firewallConfigMap.put(id, fireWallConfig);
+                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
+                        fireWallConfig.getPort(), fireWallConfig.getUser(), fireWallConfig.getPasswd());
+            } else {
+                log.warn("Failed to find the firewall by id:{}", id);
             }
-            fireWallEntity.setUser(user);
-            fireWallEntity.setPasswd(passwd);
-        }else{
-            log.error("Failed to find the firewall.");
         }
-        return fireWallEntity;
+
+        return firewallConfigMap.get(id);
     }
 
     String addDnat(String innerip, String extip, String equipid) {
@@ -165,7 +162,7 @@ class FirewallService {
                 }
                 log.info("Qos add successfully.pipid:{}", pipid);
             } else {
-                log.warn("Failde to add Qos.");
+                log.warn("Failde to add qos.");
             }
         }
         return pipid;
@@ -197,7 +194,7 @@ class FirewallService {
 
 
     /**
-     *  del Qos
+     *  del qos
      * @param pipid pipid
      * @param devId  devid
      * @return  ret
@@ -209,7 +206,7 @@ class FirewallService {
                 QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 qs.delQosPipe(pipid);
             } else {
-                log.info("Failed to del Qos:"+"dev【"+devId+"】,pipid【"+pipid+"】");
+                log.info("Failed to del qos:"+"dev【"+devId+"】,pipid【"+pipid+"】");
             }
         }
 
