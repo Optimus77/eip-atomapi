@@ -17,4 +17,6 @@ public interface ISbwService {
     ResponseEntity getSbwByInstanceId(String instanceId);
 
     ResponseEntity getSbwCount();
+
+    ResponseEntity getSbwByProjectId(String projectId);
 }

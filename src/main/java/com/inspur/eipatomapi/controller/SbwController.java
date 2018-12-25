@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Slf4j
@@ -74,4 +75,20 @@ public class SbwController {
         }
         return  sbwService.listSbws(Integer.parseInt(pageIndex),Integer.parseInt(pageSize),searchValue);
     }
+
+
+    @ICPControllerLog
+    @GetMapping(value = "/sbws/search")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="getSbwByProjectId",notes="get")
+    public ResponseEntity getSbwByProjectId(@RequestParam(required = false) String projectId) {
+        if(null == projectId){
+            return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
+        }
+        if(null != projectId){
+            return sbwService.getSbwByProjectId(projectId);
+        }
+        return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
+    }
+
 }

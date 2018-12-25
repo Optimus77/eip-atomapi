@@ -73,7 +73,7 @@ public class SbwServiceImpl implements ISbwService {
     public ResponseEntity listSbws(int pageIndex, int pageSize, String searchValue) {
         try {
             String projcectid = CommonUtil.getUserId();
-            log.debug("listEips  of user, userId:{}", projcectid);
+            log.debug("listSbws  of user, userId:{}", projcectid);
             if (projcectid == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
@@ -156,5 +156,37 @@ public class SbwServiceImpl implements ISbwService {
     @ICPServiceLog
     public ResponseEntity getSbwCount() {
         return null;
+    }
+
+    @Override
+    @ICPServiceLog
+    public ResponseEntity getSbwByProjectId(String projectId){
+        try {
+            if( projectId == null ){
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data=new JSONObject();
+            JSONArray sbws=new JSONArray();
+            List<Sbw> sbwList=sbwDaoService.findByProjectId(projectId);
+            for(Sbw sbw:sbwList){
+
+                SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
+                BeanUtils.copyProperties(sbw, sbwReturnDetail);
+                sbwReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceid(sbw.getInstanceId())
+                        .resourcetype(sbw.getInstanceType()).build());
+                sbws.add(sbwReturnDetail);
+            }
+            data.put("sbws",sbws);
+            data.put("totalPages",1);
+            data.put("totalElements",sbws.size());
+            data.put("currentPage",1);
+            data.put("currentPagePer",sbws.size());
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        }catch (Exception e){
+            log.error("Exception in listSbws", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
