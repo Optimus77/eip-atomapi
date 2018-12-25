@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.lang.NonNull;
 
+import java.io.Serializable;
+
 @Data
-public class SbwUpdateParam {
+public class SbwUpdateParam implements Serializable {
     @JsonProperty("bandwidth")
     private int bandWidth;
 

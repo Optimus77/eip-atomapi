@@ -45,9 +45,9 @@ public class SbwServiceImpl implements ISbwService {
         String code;
         String msg;
         try {
-            String customization = sbwConfig.getConsoleCustomization();
-            ConsoleCustomization customObject = JSON.parseObject(customization, ConsoleCustomization.class);
-            Sbw sbwMo = sbwDaoService.allocateSbw(customObject);
+            ConsoleCustomization customization = sbwConfig.getConsoleCustomization();
+//            ConsoleCustomization customObject = JSON.parseObject(customization, ConsoleCustomization.class);
+            Sbw sbwMo = sbwDaoService.allocateSbw(customization);
             if (null != sbwMo) {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);

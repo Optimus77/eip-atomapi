@@ -28,12 +28,12 @@ public class SbwDaoService {
 
         Sbw sbwMo = new Sbw();
         sbwMo.setRegion(sbwConfig.getRegion());
-        sbwMo.setSharedbandwidthName(sbwConfig.getSharedBandWidthName());
-
+        sbwMo.setSharedbandwidthName(sbwConfig.getSharedbandwidthname());
+        sbwMo.setBandWidth(sbwConfig.getBandwidth());
         sbwMo.setBillType(sbwConfig.getBillType());
-        sbwMo.setChargeMode(sbwConfig.getChargeMode());
+        sbwMo.setChargeMode(sbwConfig.getChargemode());
         sbwMo.setDuration(sbwConfig.getDuration());
-        sbwMo.setBandWidth(sbwConfig.getBandWidth());
+        sbwMo.setBandWidth(1);
         sbwMo.setRegion(sbwConfig.getRegion());
         String userId = CommonUtil.getUserId();
         sbwMo.setProjectId(userId);
