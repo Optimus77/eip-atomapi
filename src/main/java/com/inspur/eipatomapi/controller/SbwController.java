@@ -109,4 +109,15 @@ public class SbwController {
     public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId){
         return sbwService.getSbwDetail(sbwId);
     }
+
+    /**
+     * get sbw number of user
+     * @return response
+     */
+    @GetMapping(value = "/sbwnumbers")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="get number",notes="get number")
+    public ResponseEntity getSbwCount() {
+        return  sbwService.getSbwCount();
+    }
 }

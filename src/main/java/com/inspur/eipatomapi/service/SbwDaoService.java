@@ -9,10 +9,12 @@ import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -20,6 +22,9 @@ import java.util.Optional;
 public class SbwDaoService {
     @Autowired
     private SbwRepository sbwRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public List<Sbw> findByProjectId(String projectId){
         return sbwRepository.findByProjectId(projectId);
@@ -55,5 +60,19 @@ public class SbwDaoService {
         }
 
         return sbwEntity;
+    }
+
+    public long getSbwNum(String projectId){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return num;
+
     }
 }

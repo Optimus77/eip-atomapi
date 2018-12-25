@@ -174,7 +174,14 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     @ICPServiceLog
     public ResponseEntity getSbwCount() {
-        return null;
+        try {
+            String projectid =CommonUtil.getUserId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",sbwDaoService.getSbwNum(projectid)), HttpStatus.OK);
+        }catch (KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
