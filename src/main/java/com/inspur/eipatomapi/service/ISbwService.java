@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 
 public interface ISbwService {
 
-    ResponseEntity deleteSBw(String sbwId);
+    ResponseEntity deleteSbw(String sbwId);
 
     ResponseEntity listSbws(int pageIndex,int pageSize,String searchValue);
 

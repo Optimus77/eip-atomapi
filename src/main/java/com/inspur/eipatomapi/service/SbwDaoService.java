@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -43,5 +44,16 @@ public class SbwDaoService {
         sbwRepository.saveAndFlush(sbwMo);
         log.info("User:{} success allocate sbw:{} ,sbw:{}", userId, sbwMo.getSbwId(), sbwMo.toString());
         return sbwMo;
+    }
+
+    public Sbw getSbwById(String id){
+
+        Sbw sbwEntity = null;
+        Optional<Sbw> sbw = sbwRepository.findById(id);
+        if (sbw.isPresent()) {
+            sbwEntity = sbw.get();
+        }
+
+        return sbwEntity;
     }
 }

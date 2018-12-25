@@ -131,12 +131,31 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     @ICPServiceLog
     public ResponseEntity getSbwDetail(String sbwId) {
-        return null;
+        try {
+            Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
+            if (null != sbwEntity) {
+                SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
+                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                sbwReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceid(sbwEntity.getInstanceId())
+                        .resourcetype(sbwEntity.getInstanceType()).build());
+
+                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "Can not find eip by id:" + sbwId+"."),
+                        HttpStatus.NOT_FOUND);
+
+            }
+        } catch (Exception e) {
+            log.error("Exception in getEipDetail", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
     @ICPServiceLog
-    public ResponseEntity deleteSBw(String sbwId) {
+    public ResponseEntity deleteSbw(String sbwId) {
         return null;
     }
 

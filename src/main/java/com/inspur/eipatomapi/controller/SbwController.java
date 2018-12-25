@@ -7,6 +7,8 @@ import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,4 +93,20 @@ public class SbwController {
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
 
+
+    /**
+     * get sbw instance detail
+     * @param sbwId  the id of sbw
+     * @return  retrun
+     */
+    @ICPControllerLog
+    @GetMapping(value = "/sbws/{sbw_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "get detail of  sbw instance", notes = "get")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
+    })
+    public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId){
+        return sbwService.getSbwDetail(sbwId);
+    }
 }
