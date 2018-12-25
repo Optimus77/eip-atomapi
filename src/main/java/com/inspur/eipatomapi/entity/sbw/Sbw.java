@@ -22,11 +22,9 @@ public class Sbw implements Serializable {
     private String instanceId;
 
     private String instanceType;
-
-    private String vpcId;
-
+    //计费方式
     private String billType = "monthly";
-
+    //付费模式
     private String chargeMode = "BandWidth";
 
     private String duration;
@@ -37,10 +35,13 @@ public class Sbw implements Serializable {
 
     private String region;
 
-    private int ipcount;
+    private int ipCount;
 
     @Column(name="create_time" ,nullable = false)
     private Date createTime  = new Date(System.currentTimeMillis());
+
+    @Column(name="update_time" ,nullable = false)
+    private Date updateTime  = new Date(System.currentTimeMillis());
 
     private String projectId;
 
