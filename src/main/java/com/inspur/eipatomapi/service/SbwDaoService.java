@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.service;
 
+import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.sbw.ConsoleCustomization;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
@@ -19,8 +20,8 @@ public class SbwDaoService {
     @Autowired
     private SbwRepository sbwRepository;
 
-    public List<Sbw> findByProjectId(String projectId) {
-        return sbwRepository.findByProjectIdAndIsDelete(projectId, 0);
+    public List<Sbw> findByProjectId(String projectId){
+        return sbwRepository.findByProjectId(projectId);
     }
 
     @Transactional
