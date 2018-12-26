@@ -150,7 +150,7 @@ public class EipController {
 
 
 
-    @ICPControllerLog
+
     @PutMapping(value = "/eips/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")
@@ -180,7 +180,8 @@ public class EipController {
                 if(param.getEipUpdateParam().getServerId()!=null&&param.getEipUpdateParam().getType()!=null){
                     return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
                             param.getEipUpdateParam().getServerId(),
-                            param.getEipUpdateParam().getPortId());
+                            param.getEipUpdateParam().getPortId(),
+                            param.getEipUpdateParam().getSlbIp());
                 }else{
                     msg="need param serverid and type";
                 }
