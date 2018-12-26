@@ -15,9 +15,9 @@ error:
 http:
   maxTotal: 100
   defaultMaxPerRoute: 20
-  connectTimeout: 1000
-  connectionRequestTimeout: 500
-  socketTimeout: 10000
+  connectTimeout: 10000
+  connectionRequestTimeout: 5000
+  socketTimeout: 100000
   statleConnectionCheckEnabled: true
 
 openstackIp: 10.110.25.117
