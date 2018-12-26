@@ -253,7 +253,7 @@ public  class NeutronService {
         List<String> ports = new ArrayList<>();
         if (!list.isEmpty()) {
             for (Port port : list) {
-                log.info("Get portId for server:{}, portIs:{}", serverId, list.get(0).getId());
+                log.debug("Get portId for server:{}, portIs:{}", serverId, list.get(0).getId());
                 ports.add(port.getId());
             }
         }

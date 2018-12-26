@@ -311,6 +311,8 @@ public class EipDaoService {
             data.put("httpCode", HttpStatus.SC_OK);
             data.put("interCode", ReturnStatus.SC_OK);
             data.put("data",eip);
+            log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}", eip.getEipAddress(),
+                    eip.getInstanceId(), eip.getPortId());
             return data;
         }catch (Exception e){
             log.error("band server firewall exception",e);
@@ -345,8 +347,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) || (null == eipEntity.getSnatId())
-                || (null == eipEntity.getDnatId()) ){
+        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) ){
             msg = "Error status when disassociate eip:"+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
@@ -610,7 +611,7 @@ public class EipDaoService {
         String dnatRuleId ;
         String snatRuleId ;
         try {
-            log.info("======start dnat oprate ");
+            log.debug("======start dnat oprate ");
             dnatRuleId = firewallService.addDnat(ipAddr, eipIp, eip.getFirewallId());
             log.info("dnatRuleId:  " + dnatRuleId);
             if (dnatRuleId == null) {
@@ -619,7 +620,7 @@ public class EipDaoService {
                 data.put("interCode", ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE);
                 return data;
             }
-            log.info("======start snat oprate ");
+            log.debug("======start snat oprate ");
             snatRuleId = firewallService.addSnat(ipAddr, eipIp, eip.getFirewallId());
             log.info("snatRuleId:  " + snatRuleId);
             if (snatRuleId == null) {

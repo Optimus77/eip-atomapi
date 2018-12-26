@@ -105,7 +105,7 @@ public class HsHttpClient {
 	}
 
 	private static boolean isLogin(String ip, String port) {
-		log.info("Login state:" + ip + "" + port);
+		log.debug("Login state:" + ip + "" + port);
 		if (!isHaveCookie(ip)) {
 			log.info("No cookie！");
 			return false;
