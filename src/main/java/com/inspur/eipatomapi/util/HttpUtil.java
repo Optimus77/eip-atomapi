@@ -369,9 +369,9 @@ public class HttpUtil {
         //从连接池中获得连接的超时时间
         private static final int CONNECTION_REQUEST_TIMEOUT = 60000;
         //连接超时
-        private static final int CONNECTION_TIMEOUT = 60000;
+        private static final int CONNECTION_TIMEOUT = 80000;
         //获取数据的超时时间
-        private static final int SOCKET_TIMEOUT = 60000;
+        private static final int SOCKET_TIMEOUT = 120000;
 
         PoolingHttpClientConnectionManager cm;
         CloseableHttpClient httpClient;

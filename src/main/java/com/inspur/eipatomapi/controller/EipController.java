@@ -73,14 +73,13 @@ public class EipController {
 
     }
 
-    @ICPControllerLog
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
     public ResponseEntity listEip(@RequestParam(required = false) String currentPage ,
                                   @RequestParam(required = false )String limit,
                                   @RequestParam(required = false )String status) {
-        log.info("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
+        log.debug("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
         if(currentPage==null||limit==null){
             currentPage="0";
             limit="0";
@@ -151,7 +150,7 @@ public class EipController {
 
 
 
-    @ICPControllerLog
+
     @PutMapping(value = "/eips/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")
@@ -181,7 +180,8 @@ public class EipController {
                 if(param.getEipUpdateParam().getServerId()!=null&&param.getEipUpdateParam().getType()!=null){
                     return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
                             param.getEipUpdateParam().getServerId(),
-                            param.getEipUpdateParam().getPortId());
+                            param.getEipUpdateParam().getPortId(),
+                            param.getEipUpdateParam().getSlbIp());
                 }else{
                     msg="need param serverid and type";
                 }
@@ -222,7 +222,6 @@ public class EipController {
      * get number of user
      * @return response
      */
-    @ICPControllerLog
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")

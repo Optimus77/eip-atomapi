@@ -105,7 +105,7 @@ public class HsHttpClient {
 	}
 
 	private static boolean isLogin(String ip, String port) {
-		log.info("Login state:" + ip + "" + port);
+		log.debug("Login state:" + ip + "" + port);
 		if (!isHaveCookie(ip)) {
 			log.info("No cookie！");
 			return false;
@@ -304,7 +304,7 @@ public class HsHttpClient {
 		boolean flag = true;
 		try {
 			tryTimes++;
-			log.info("Already login: url:{}, ip:{}", url.toString(), ip );
+			log.debug("Already login: url:{}, ip:{}", url.toString(), ip );
 			flag = httpLogin(url.toString(), ip, login);
 			if (flag) {
 				log.info("login success!");

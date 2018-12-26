@@ -397,13 +397,13 @@ public class EipServiceImpl implements IEipService {
      */
     @Override
     @ICPServiceLog
-    public ResponseEntity eipbindPort(String id, String type,String serverId, String portId){
+    public ResponseEntity eipbindPort(String id, String type,String serverId, String portId,String slbIp){
         String code;
         String msg;
         try {
             switch(type){
                 case "1":
-                    log.info("bind a server:{} port:{} with eipId:{}",serverId, portId, id);
+                    log.debug("bind a server:{} port:{} with eipId:{}",serverId, portId, id);
                     // 1：ecs
                     JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
                     if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
@@ -424,7 +424,7 @@ public class EipServiceImpl implements IEipService {
                     }
                 case "2":
                 case "3":
-                    return eipbindSlb( id,  serverId,  "1.2.3.4");
+                    return eipbindSlb( id,  serverId,  slbIp);
 
                 default:
                     code = ReturnStatus.SC_PARAM_ERROR;
@@ -512,7 +512,7 @@ public class EipServiceImpl implements IEipService {
             List<NovaServerEntity> serverList= portService.listServerByTags("ECS", osClientV3);
             JSONArray dataArray=new JSONArray();
             for(NovaServerEntity server:serverList){
-                log.info("Server list , name:{}.",server.getName());
+                log.debug("Server list , name:{}.",server.getName());
                 String serverId = server.getId();
                 if(null == eipDaoService.findByInstanceId(serverId)) {
                     List<String> portIds = neutronService.getPortIdByServerId(serverId, osClientV3);

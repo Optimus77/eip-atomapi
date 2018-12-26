@@ -69,7 +69,7 @@ public interface IEipService {
      * @param portId   port id
      * @return        result
      */
-    ResponseEntity eipbindPort(String id,String type, String serverId, String portId);
+    ResponseEntity eipbindPort(String id,String type, String serverId, String portId, String slbIp);
 
     /**
      * un bind port

@@ -166,17 +166,18 @@ public  class NeutronService {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Server server = osClientV3.compute().servers().get(serverId);
         if (server == null) {
-            log.info("Can not found serverid:{}", server);
+            log.info("Can not found serverid:{}", serverId);
+        }else {
+            ActionResponse actionResponse = osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
+            log.info("Remove fip from server: serverid:{}, fip:{}, result:{}",
+                    serverId, floatingIp, actionResponse.toString());
         }
 
-        ActionResponse actionResponse = osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
-        boolean result = false;
-        if(actionResponse.isSuccess()) {
-            result = osClientV3.networking().floatingip().delete(fipId).isSuccess();
-        }
-        log.info("disassociate and delete fip:{}, fipid:{}, serverid:{} result:{}",
+        boolean result = osClientV3.networking().floatingip().delete(fipId).isSuccess();
+        log.info("disassociate and delete fip:{}, fipid:{}, serverid:{}, deleteResult:{}",
                 floatingIp, fipId, serverId, result);
-        return actionResponse;
+
+        return  ActionResponse.actionSuccess();
     }
 
     public List<? extends Server> listServer(String region) throws Exception {
@@ -246,13 +247,13 @@ public  class NeutronService {
         return list.get(0);
     }
 
-    public List<String> getPortIdByServerId( String serverId, OSClientV3 osClientV3) throws Exception{
+    public List<String> getPortIdByServerId( String serverId, OSClientV3 osClientV3) {
 
         List<? extends Port> list = osClientV3.networking().port().list(PortListOptions.create().deviceId(serverId));
         List<String> ports = new ArrayList<>();
         if (!list.isEmpty()) {
             for (Port port : list) {
-                log.info("Get portId for server:{}, portIs:{}", serverId, list.get(0).getId());
+                log.debug("Get portId for server:{}, portIs:{}", serverId, list.get(0).getId());
                 ports.add(port.getId());
             }
         }
