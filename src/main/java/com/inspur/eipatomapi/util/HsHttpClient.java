@@ -304,7 +304,7 @@ public class HsHttpClient {
 		boolean flag = true;
 		try {
 			tryTimes++;
-			log.info("Already login: url:{}, ip:{}", url.toString(), ip );
+			log.debug("Already login: url:{}, ip:{}", url.toString(), ip );
 			flag = httpLogin(url.toString(), ip, login);
 			if (flag) {
 				log.info("login success!");

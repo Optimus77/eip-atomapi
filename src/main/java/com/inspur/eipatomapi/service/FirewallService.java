@@ -149,7 +149,6 @@ class FirewallService {
             map.put("bandWidth", bandwidth);
             HashMap<String, String> res = qs.createQosPipe(map);
             JSONObject resJson= (JSONObject) JSONObject.toJSON(res);
-            log.info("{}",resJson);
             if(resJson.getBoolean(HsConstants.SUCCESS)) {
                 pipid = res.get("id");
                 if (StringUtils.isBlank(pipid)) {

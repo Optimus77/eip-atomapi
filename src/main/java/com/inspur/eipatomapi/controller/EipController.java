@@ -79,7 +79,7 @@ public class EipController {
     public ResponseEntity listEip(@RequestParam(required = false) String currentPage ,
                                   @RequestParam(required = false )String limit,
                                   @RequestParam(required = false )String status) {
-        log.info("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
+        log.debug("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
         if(currentPage==null||limit==null){
             currentPage="0";
             limit="0";
