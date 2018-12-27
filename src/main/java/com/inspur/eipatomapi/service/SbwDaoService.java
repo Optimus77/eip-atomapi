@@ -70,21 +70,6 @@ public class SbwDaoService {
 
         return sbwEntity;
     }
-
-    public long getSbwNum(String projectId){
-
-        //TODO  get table name and colum name by entityUtil
-        String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
-
-        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        long num =(long)map.get("num");
-        log.debug("{}, result:{}",sql, num);
-
-
-        return num;
-
-    }
-
     /**
      * delete
      * @param sbwId
@@ -137,5 +122,19 @@ public class SbwDaoService {
             }
         }
         return ActionResponse.actionSuccess();
+    }
+
+    public long getSbwNum(String projectId){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return num;
+
     }
 }
