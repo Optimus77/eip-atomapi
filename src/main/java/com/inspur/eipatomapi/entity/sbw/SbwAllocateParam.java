@@ -24,7 +24,7 @@ public class SbwAllocateParam implements Serializable {
     private String durationUnit = "M";
 
     @TypeConstraint(allowedValues = {"Bandwidth","SharedBandwidth"}, message = "Only Bandwidth,SharedBandwidth is allowed. ")
-    private String chargemode = "Bandwidth";
+    private String chargemode = "SharedBandwidth";
 
     @Range(min=5,max=2000,message = "value must be 5-2000.")
     private int bandwidth;

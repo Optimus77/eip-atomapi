@@ -53,9 +53,9 @@ public class SbwController {
     @GetMapping(value = "/sbws")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listsbw",notes="list")
-    public ResponseEntity listSbw(@RequestParam(required = false) String pageIndex ,
-                                  @RequestParam(required = false )String pageSize,
-                                  @RequestParam(required = false )String searchValue) {
+    public ResponseEntity listSbw(@RequestParam(required = false ,name = "currentPageIndex" ,defaultValue = "1") String pageIndex ,
+                                  @RequestParam(required = false ,name = "currentPageSize" )String pageSize,
+                                  @RequestParam(required = false ,name = "searchValue")String searchValue) {
         log.info("SbwController listSbw, currentPage:{}, limit:{}", pageIndex, pageSize);
         if(pageIndex==null||pageSize==null){
             pageIndex="0";
@@ -90,5 +90,17 @@ public class SbwController {
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
+
+    @DeleteMapping(value = "/sbws/{sbw_id}")
+    @ICPControllerLog
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomDeleteSbw(@Size(min=36, max=36, message = "Must be uuid.")
+                                        @PathVariable("sbw_id") String sbwId) {
+        //Check the parameters
+        log.info("Atom delete the sbw:{} ",sbwId);
+        return sbwService.atomDeleteSbw(sbwId);
+
+    }
+
 
 }

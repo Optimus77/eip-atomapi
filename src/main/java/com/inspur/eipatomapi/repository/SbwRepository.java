@@ -20,7 +20,7 @@ public interface SbwRepository extends JpaRepository<Sbw,String> {
 
     Sbw findByInstanceIdAndIsDelete (String instanceId,int isDelete);
 
-    List<Sbw> findByProjectId(String projectId);
+    List<Sbw> findByProjectIdAndIsDelete(String projectId,int isDelete);
 
     Page<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 }

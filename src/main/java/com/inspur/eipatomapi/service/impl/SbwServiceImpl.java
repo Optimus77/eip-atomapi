@@ -15,6 +15,7 @@ import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
+import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,9 +46,7 @@ public class SbwServiceImpl implements ISbwService {
         String code;
         String msg;
         try {
-            ConsoleCustomization customization = sbwConfig.getConsoleCustomization();
-//            ConsoleCustomization customObject = JSON.parseObject(customization, ConsoleCustomization.class);
-            Sbw sbwMo = sbwDaoService.allocateSbw(customization);
+            Sbw sbwMo = sbwDaoService.allocateSbw(sbwConfig);
             if (null != sbwMo) {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);
@@ -84,6 +83,7 @@ public class SbwServiceImpl implements ISbwService {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 Page<Sbw> page = sbwRepository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
+                log.info("page projectId:",page);
                 for (Sbw sbw : page.getContent()) {
                     if ((null != searchValue)) {
                         continue;
@@ -102,6 +102,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put("currentPagePer", pageSize);
             } else {
                 List<Sbw> sbwList = sbwDaoService.findByProjectId(projcectid);
+                log.info("sbwList size:{}",sbwList.size());
                 for (Sbw sbw : sbwList) {
                     if (null != searchValue) {
                         continue;
@@ -119,6 +120,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put("currentPage", 1);
                 data.put("currentPagePer", sbws.size());
             }
+            log.info("data :{}",data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
@@ -130,13 +132,31 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity getSbwDetail(String sbwId) {
-        return null;
+    public ResponseEntity atomDeleteSbw(String sbwId) {
+        String msg;
+        String code;
+
+        try {
+            ActionResponse actionResponse =  sbwDaoService.deleteEip(sbwId);
+            if (actionResponse.isSuccess()){
+                log.info("Atom delete eip successfully, eipId:{}", sbwId);
+                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+            }else {
+                msg = actionResponse.getFault();
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                log.info("Atom delete eip failed,{}", msg);
+            }
+        }catch (Exception e){
+            log.error("Exception in atomDeleteEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     @ICPServiceLog
-    public ResponseEntity deleteSBw(String sbwId) {
+    public ResponseEntity getSbwDetail(String sbwId) {
         return null;
     }
 
@@ -158,6 +178,11 @@ public class SbwServiceImpl implements ISbwService {
         return null;
     }
 
+    /**
+     * get by current user
+     * @param projectId
+     * @return
+     */
     @Override
     @ICPServiceLog
     public ResponseEntity getSbwByProjectId(String projectId){

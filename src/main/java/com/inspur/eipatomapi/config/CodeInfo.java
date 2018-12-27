@@ -71,6 +71,9 @@ public  class CodeInfo {
 
         public static final String SLB_BIND_NOT_FOND ="Bad request: 根据此id无法找到对应的SLB信息";
 
+        //sbw
+        public static final String ELASTIC_IP_IN_SBW_CANNOT_BE_REMOVED = "共享带宽中存在弹性IP，无法删除";
+
     }
 
     public static String getCodeMessage(String key){
