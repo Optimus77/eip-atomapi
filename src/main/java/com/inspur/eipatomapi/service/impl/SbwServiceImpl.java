@@ -137,27 +137,43 @@ public class SbwServiceImpl implements ISbwService {
         String code;
 
         try {
-            ActionResponse actionResponse =  sbwDaoService.deleteEip(sbwId);
-            if (actionResponse.isSuccess()){
+            ActionResponse actionResponse = sbwDaoService.deleteEip(sbwId);
+            if (actionResponse.isSuccess()) {
                 log.info("Atom delete eip successfully, eipId:{}", sbwId);
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            }else {
+            } else {
                 msg = actionResponse.getFault();
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 log.info("Atom delete eip failed,{}", msg);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Exception in atomDeleteEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getMessage() + "";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+        public ResponseEntity getSbwDetail(String sbwId) {
+        try {
+            Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
+            if (null != sbwEntity) {
+                SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
+                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                sbwReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceid(sbwEntity.getInstanceId())
+                        .resourcetype(sbwEntity.getInstanceType()).build());
 
-    @Override
-    @ICPServiceLog
-    public ResponseEntity getSbwDetail(String sbwId) {
-        return null;
+                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "Can not find eip by id:" + sbwId+"."),
+                        HttpStatus.NOT_FOUND);
+
+            }
+        } catch (Exception e) {
+            log.error("Exception in getEipDetail", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
@@ -175,7 +191,14 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     @ICPServiceLog
     public ResponseEntity getSbwCount() {
-        return null;
+        try {
+            String projectid =CommonUtil.getUserId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",sbwDaoService.getSbwNum(projectid)), HttpStatus.OK);
+        }catch (KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**

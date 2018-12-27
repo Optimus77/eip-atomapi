@@ -13,16 +13,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
 public class SbwDaoService {
     @Autowired
     private SbwRepository sbwRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private EipRepository eipRepository;
@@ -52,6 +58,31 @@ public class SbwDaoService {
         Sbw sbw = sbwRepository.saveAndFlush(sbwMo);
         log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
         return sbwMo;
+    }
+
+    public Sbw getSbwById(String id){
+
+        Sbw sbwEntity = null;
+        Optional<Sbw> sbw = sbwRepository.findById(id);
+        if (sbw.isPresent()) {
+            sbwEntity = sbw.get();
+        }
+
+        return sbwEntity;
+    }
+
+    public long getSbwNum(String projectId){
+
+        //TODO  get table name and colum name by entityUtil
+        String sql ="select count(1) as num from eip where project_id='"+projectId+"'";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return num;
+
     }
 
     /**
