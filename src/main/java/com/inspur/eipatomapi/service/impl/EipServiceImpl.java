@@ -194,7 +194,6 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity listEips(int currentPage,int limit, String status){
 
         try {
@@ -535,7 +534,6 @@ public class EipServiceImpl implements IEipService {
 
 
     @Override
-    @ICPServiceLog
     public ResponseEntity getEipCount() {
         try {
             String projectid =CommonUtil.getUserId();
