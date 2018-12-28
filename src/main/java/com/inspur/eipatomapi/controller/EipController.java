@@ -105,7 +105,6 @@ public class EipController {
      * @param eipId  the id of eip
      * @return  retrun
      */
-    @ICPControllerLog
     @GetMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "get detail of  eip instance", notes = "get")
@@ -117,7 +116,7 @@ public class EipController {
     }
 
 
-    @ICPControllerLog
+
     @GetMapping(value = "/eips/search")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
@@ -140,7 +139,6 @@ public class EipController {
     }
 
 
-    @ICPControllerLog
     @GetMapping(value = "/servers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
@@ -229,7 +227,7 @@ public class EipController {
         return  eipService.getEipCount();
     }
 
-    @ICPControllerLog
+
     @PostMapping(value = "/eips/{eip_id}/renew")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
@@ -239,7 +237,6 @@ public class EipController {
     }
 
     @PostMapping(value = "/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "deleiplist")
     public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
@@ -252,7 +249,6 @@ public class EipController {
     @GetMapping(value = "/health-status")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "health check")
-    @ICPControllerLog
     public ResponseEntity EipHealthCheck() {
         //HealthCheck
         String code;
@@ -265,7 +261,6 @@ public class EipController {
     }
 
 
-    @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/eips/bind/slb/{eip_id}/{slb_id}/{ip_addr}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipBindWithSlb", notes = "post")
@@ -280,7 +275,6 @@ public class EipController {
     }
 
 
-    @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/eips/unbind/slb/{slb_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipBindWithSlb", notes = "post")
@@ -293,7 +287,6 @@ public class EipController {
     }
 
 
-    @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setDebugLevel(@PathVariable("package") String packageName, @RequestBody LogLevel param) {
