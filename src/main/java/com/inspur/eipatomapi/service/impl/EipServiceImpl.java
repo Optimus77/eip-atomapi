@@ -291,7 +291,6 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity getEipByInstanceId(String instanceId) {
 
         try {
