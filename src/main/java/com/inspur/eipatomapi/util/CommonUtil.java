@@ -200,7 +200,12 @@ public class CommonUtil {
             log.error("User has no token.");
         }else {
             org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-            log.error("User has no right to operation.{}", jsonObject.toString());
+            String clientId = jsonObject.getString("clientId");
+            if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
+                log.info("Client token, User has right to operation, client:{}", clientId);
+            }else{
+                log.error("User has no right to operation.{}", jsonObject.toString());
+            }
         }
         return true;
     }
