@@ -292,7 +292,7 @@ public class HsHttpClient {
 
 	@SuppressWarnings("finally")
 	private static boolean login(String ip, String port, String login, int tryTimes) throws Exception {
-		log.info("Login firewall:{}:{}" , ip ,port);
+		log.debug("Login firewall:{}:{}" , ip ,port);
 		
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);

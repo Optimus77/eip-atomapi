@@ -41,7 +41,7 @@ class FirewallService {
                 fireWallConfig.setPort(getFireWallEntity.getPort());
                 firewallConfigMap.put(id, fireWallConfig);
                 log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
-                        fireWallConfig.getPort(), fireWallConfig.getUser(), fireWallConfig.getPasswd());
+                        fireWallConfig.getPort(), getFireWallEntity.getUser(), getFireWallEntity.getPasswd());
             } else {
                 log.warn("Failed to find the firewall by id:{}", id);
             }

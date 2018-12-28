@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.repository.EipRepository;
@@ -193,7 +194,6 @@ public class EipServiceImpl implements IEipService {
      * @return       result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity listEips(int currentPage,int limit, String status){
 
         try {
@@ -291,7 +291,6 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity getEipByInstanceId(String instanceId) {
 
         try {
@@ -405,17 +404,15 @@ public class EipServiceImpl implements IEipService {
                 case "1":
                     log.debug("bind a server:{} port:{} with eipId:{}",serverId, portId, id);
                     // 1：ecs
-                    JSONObject result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
-                    if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
-                        code = result.getString("interCode");
-                        int httpResponseCode=result.getInteger("httpCode");
-                        msg = result.getString("reason");
+                    MethodReturn result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
+                    if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
+                        msg = result.getMessage();
                         log.error(msg);
-                        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
-
+                        return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
+                                HttpStatus.valueOf(result.getHttpCode()));
                     }else{
                         EipReturnDetail eipReturnDetail = new EipReturnDetail();
-                        Eip eipEntity=(Eip)result.get("data");
+                        Eip eipEntity=(Eip)result.getEip();
                         BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                         eipReturnDetail.setResourceset(Resourceset.builder()
                                 .resourceid(eipEntity.getInstanceId())
@@ -536,7 +533,6 @@ public class EipServiceImpl implements IEipService {
 
 
     @Override
-    @ICPServiceLog
     public ResponseEntity getEipCount() {
         try {
             String projectid =CommonUtil.getUserId();
