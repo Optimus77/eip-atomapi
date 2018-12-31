@@ -58,9 +58,11 @@ public  class NeutronService {
     }
 
     synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws Exception{
-        if(slbService.isFipInUse(instanceId)){
+
+        if (slbService.isFipInUse(instanceId)) {
             return true;
         }
+
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         return osClientV3.networking().floatingip().delete(fipId).isSuccess();
     }

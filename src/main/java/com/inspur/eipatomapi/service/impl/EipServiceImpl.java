@@ -169,15 +169,16 @@ public class EipServiceImpl implements IEipService {
                             String.valueOf(actionResponse.getCode()), actionResponse.getFault()),
                             HttpStatus.BAD_REQUEST);
                 }
-            }
-            ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
-            if(actionResponse.isSuccess()){
-                log.info("renew eip:{} , add duration:{}",eipId, addTime);
+            }else {
+                ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+                if (actionResponse.isSuccess()) {
+                    log.info("renew eip:{} , add duration:{}", eipId, addTime);
 
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            }else{
-                msg = actionResponse.getFault();
-                log.error(msg);
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                } else {
+                    msg = actionResponse.getFault();
+                    log.error(msg);
+                }
             }
         }catch (Exception e){
             log.error("Exception in deleteEip", e);
