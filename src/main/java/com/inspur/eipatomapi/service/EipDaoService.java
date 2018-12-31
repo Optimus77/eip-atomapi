@@ -132,7 +132,6 @@ public class EipDaoService {
                     eipEntity.getInstanceId())){
                 msg = "Failed to delete floating ip, floatingIpId:"+eipEntity.getFloatingIpId();
                 log.error(msg);
-                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
         eipEntity.setIsDelete(1);
@@ -210,30 +209,28 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
-        if (serverId == null) {
+        if (serverId == null || portId == null) {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR));
         }
 
         try {
-            if (eip.getFloatingIpId() == null && eip.getFloatingIp() == null) {
-                String networkId = getExtNetId(eip.getRegion());
-                if (null == networkId) {
-                    log.error("Failed to get external net in region:{}. ", eip.getRegion());
-                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
-                            CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
-                }
-                floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), networkId,
-                        portId, eip, serverId);
-                if (null == floatingIP) {
-                    log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
-                            networkId, eip.getRegion(), portId);
-                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
-                            CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
-                }
-                eip.setFloatingIp(floatingIP.getFloatingIpAddress());
-                eip.setFloatingIpId(floatingIP.getId());
+            String networkId = getExtNetId(eip.getRegion());
+            if (null == networkId) {
+                log.error("Failed to get external net in region:{}. ", eip.getRegion());
+                return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
+                        CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
             }
+            floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), networkId, portId, eip, serverId);
+            if (null == floatingIP) {
+                log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
+                        networkId, eip.getRegion(), portId);
+                return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
+                        CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+            }
+            eip.setFloatingIp(floatingIP.getFloatingIpAddress());
+            eip.setFloatingIpId(floatingIP.getId());
+
             MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip);
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
                 eip.setInstanceId(serverId);
@@ -249,13 +246,12 @@ public class EipDaoService {
             }else{
                 returnMsg = fireWallReturn.getMessage();
                 returnStat = fireWallReturn.getInnerCode();
-                if (null != floatingIP) {
-                    neutronService.disassociateAndDeleteFloatingIp(floatingIP.getFloatingIpAddress(),
-                            floatingIP.getId(), serverId, eip.getRegion());
-                    eip.setFloatingIp(null);
-                    eip.setFloatingIpId(null);
-                    eipRepository.saveAndFlush(eip);
-                }
+                neutronService.disassociateAndDeleteFloatingIp(floatingIP.getFloatingIpAddress(),
+                        floatingIP.getId(), serverId, eip.getRegion());
+                eip.setFloatingIp(null);
+                eip.setFloatingIpId(null);
+                eipRepository.saveAndFlush(eip);
+
             }
         } catch (Exception e) {
             log.error("band server exception", e);

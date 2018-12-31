@@ -70,7 +70,7 @@ public  class NeutronService {
     synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
                                                                    Eip eip, String serverId) throws  Exception{
 
-        if(null == portId || portId.isEmpty()){
+        if(portId.isEmpty()){
             log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getEipId());
             return null;
         }
@@ -84,6 +84,10 @@ public  class NeutronService {
 
         NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){
+            Set<? extends IP> fixedIps = port.getFixedIps();
+            for (IP fixedIp : fixedIps) {
+                eip.setPrivateIpAddress(fixedIp.getIpAddress());
+            }
             return netFloatingIP;
         }
 
