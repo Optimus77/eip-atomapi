@@ -292,8 +292,8 @@ class FirewallService {
                         eip.setDnatId(dnatRuleId);
                         eip.setSnatId(snatRuleId);
                         eip.setPipId(pipId);
-                        log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}",
-                                eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
+                        log.info("add nat and qos successfully. snat:{}, dnat:{}, qos:{}",
+                                eip.getSnatId(), eip.getDnatId(), eip.getPipId());
                         return MethodReturnUtil.success(eip);
                     } else {
                         returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;

@@ -124,10 +124,10 @@ public  class CodeInfo {
         public static final String EIP_FORBIDDEN ="Forbidden to operate.";
         public static final String EIP_FORBIDEN_WITH_ID ="Forbidden to operate,id:{}.";
         //Return messages
-        public static final String EIP_CREATION_SUCCEEDED="Flexible public network IP creation succeeded";
-        public static final String EIP_DELETE_SUCCEEDED="Flexible public network IP deletion succeeded";
-        public static final String EIP_UPDATE_SUCCEEDED="Flexible public network IP updated successfully";
-        public static final String EIP_RENEWAL_SUCCEEDED="Flexible public network IP continued success";
+        public static final String EIP_CREATION_SUCCEEDED="Eip creation succeeded";
+        public static final String EIP_DELETE_SUCCEEDED="Eip deletion succeeded";
+        public static final String EIP_UPDATE_SUCCEEDED="Eip updated successfully";
+        public static final String EIP_RENEWAL_SUCCEEDED="Eip renew success";
         public static final String KEYCLOAK_NO_PROJECT="keycloak has no project info.";
 
     }

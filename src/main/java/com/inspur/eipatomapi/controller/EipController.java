@@ -44,7 +44,6 @@ public class EipController {
 
 
 
-    @ICPControllerLog
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
@@ -63,7 +62,6 @@ public class EipController {
 
 
     @DeleteMapping(value = "/eips/{eip_id}")
-    @ICPControllerLog
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                         @PathVariable("eip_id") String eipId) {
