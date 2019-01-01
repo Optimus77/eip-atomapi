@@ -1,11 +1,22 @@
 package com.inspur.eipatomapi.util;
 
 import com.inspur.eipatomapi.entity.ReturnMsg;
+import com.inspur.eipatomapi.entity.ReturnSbwMsg;
 
 public class ReturnMsgUtil {
 
     public static <T> ReturnMsg success(T t) {
         return ReturnMsg.builder().eip(t).build();
+    }
+
+    /**
+     * sbw msg success
+     * @param t
+     * @param <T>
+     * @return
+     */
+    public static <T> ReturnSbwMsg successSbw(T t) {
+        return ReturnSbwMsg.builder().sbw(t).build();
     }
 
 

@@ -5,10 +5,10 @@ import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.sbw.ConsoleCustomization;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
-import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.SbwRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.HsConstants;
+import com.sun.org.apache.bcel.internal.generic.I2F;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
@@ -29,9 +29,6 @@ public class SbwDaoService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private EipRepository eipRepository;
 
     public List<Sbw> findByProjectId(String projectId){
         return sbwRepository.findByProjectIdAndIsDelete(projectId,0);
@@ -64,10 +61,9 @@ public class SbwDaoService {
 
         Sbw sbwEntity = null;
         Optional<Sbw> sbw = sbwRepository.findById(id);
-        if (sbw.isPresent()) {
+        if (sbw.isPresent()){
             sbwEntity = sbw.get();
         }
-
         return sbwEntity;
     }
     /**
@@ -75,7 +71,7 @@ public class SbwDaoService {
      * @param sbwId
      * @return
      */
-    public ActionResponse deleteEip(String sbwId){
+    public ActionResponse deleteSbw(String sbwId){
         String msg;
         int ipCount = 0;
         Sbw entity = sbwRepository.findBySbwId(sbwId);
@@ -108,19 +104,16 @@ public class SbwDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
             }
         }
+        if (null != entity.getPipeId()) {
+            msg = "Failed to delete eip,please unbind sbw first."+entity.toString();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
         entity.setIsDelete(1);
         entity.setUpdateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(entity);
+        //delete the qos
 
-        List<Eip> eipList = eipRepository.findBySharedBandWidthIdAndIsDelete(sbwId, 0);
-        if (eipList!= null && eipList.size()>0){
-            for (int i = 0; i < eipList.size(); i++) {
-                Eip eip = eipList.get(i);
-                eip.setSharedBandWidthId(null);
-                eip.setUpdateTime(CommonUtil.getGmtDate());
-                eipRepository.saveAndFlush(eip);
-            }
-        }
         return ActionResponse.actionSuccess();
     }
 
@@ -133,8 +126,43 @@ public class SbwDaoService {
         long num =(long)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
-
         return num;
+    }
 
+    @Transactional
+    public ActionResponse softDownSbw(String  sbwId) {
+        String msg;
+        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        if (null == sbw) {
+            msg= "Faild to find sbw by id:"+sbwId+" ";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        if(!CommonUtil.isAuthoried(sbw.getProjectId())){
+            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+        }
+        sbw.setStatus(HsConstants.DOWN);
+        sbw.setUpdateTime(CommonUtil.getGmtDate());
+        sbwRepository.saveAndFlush(sbw);
+        return ActionResponse.actionSuccess();
+    }
+
+    @Transactional
+    public ActionResponse reNewSbwEntity(String sbwId, String renewTime)  {
+
+        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        if (null == sbw) {
+            return ActionResponse.actionFailed("Can not find the sbw by id:{}"+sbwId, HttpStatus.SC_NOT_FOUND);
+        }
+        String oldTime = sbw.getDuration();
+        int newTime = Integer.valueOf(renewTime) + Integer.valueOf(oldTime);
+        sbw.setDuration(String.valueOf(newTime));
+        if((newTime > 0) ){
+            sbw.setStatus(HsConstants.ACTIVE);
+            sbw.setUpdateTime(CommonUtil.getGmtDate());
+        }
+        sbwRepository.saveAndFlush(sbw);
+        return ActionResponse.actionSuccess();
     }
 }

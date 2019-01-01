@@ -1,6 +1,7 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
+import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParamWrapper;
 import com.inspur.eipatomapi.service.impl.SbwServiceImpl;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
@@ -56,9 +57,9 @@ public class SbwController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listsbw",notes="list")
     public ResponseEntity listSbw(@RequestParam(required = false ,name = "currentPageIndex" ,defaultValue = "1") String pageIndex ,
-                                  @RequestParam(required = false ,name = "currentPageSize" )String pageSize,
+                                  @RequestParam(required = false ,name = "currentPageSize" ,defaultValue = "10")String pageSize,
                                   @RequestParam(required = false ,name = "searchValue")String searchValue) {
-        log.info("SbwController listSbw, currentPage:{}, limit:{}", pageIndex, pageSize);
+        log.info("SbwController listSbw currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
         if(pageIndex==null||pageSize==null){
             pageIndex="0";
             pageSize="0";
@@ -114,7 +115,7 @@ public class SbwController {
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "get detail of  sbw instance", notes = "get")
+    @ApiOperation(value = "get detail of  sbw", notes = "get")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
@@ -131,5 +132,14 @@ public class SbwController {
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getSbwCount() {
         return  sbwService.getSbwCount();
+    }
+
+    @ICPControllerLog
+    @PostMapping(value = "/sbws/{sbw_id}/renew")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
+                                   @RequestBody SbwAllocateParam param ) {
+        log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.toString());
+        return sbwService.renewSbw(sbwId, param);
     }
 }
