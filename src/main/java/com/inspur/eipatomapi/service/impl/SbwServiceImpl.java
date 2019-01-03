@@ -305,14 +305,18 @@ public class SbwServiceImpl implements ISbwService {
         return null;
     }
 
-    public ResponseEntity getFloatingIpListBySbwId(){
-        return null;
-    }
-
     public ResponseEntity getFloatingIpListByUser(){
         return null;
     }
 
+    /**
+     * get eipList by sbwid
+     * @param sbwId
+     * @param currentPage
+     * @param limit
+     * @param status
+     * @return
+     */
     public ResponseEntity sbwListEip(String sbwId ,Integer currentPage, Integer limit,String status){
         String projcectid= null;
         try {
@@ -372,5 +376,35 @@ public class SbwServiceImpl implements ISbwService {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * rename sbw
+     * @return
+     */
+    public ResponseEntity renameSbw(String sbwId, SbwUpdateParamWrapper wrapper){
+        String code;
+        String msg;
+        try {
+            JSONObject result = sbwDaoService.renameSbw(sbwId, wrapper);
+            if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                code = result.getString("interCode");
+                int httpResponseCode=result.getInteger("httpCode");
+                msg = result.getString("reason");
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+            }else{
+                SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
+                Sbw sbwEntity=(Sbw)result.get("data");
+                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            log.error("Exception in rename sbw", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 }

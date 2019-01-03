@@ -20,6 +20,12 @@ public class SbwUpdateParam implements Serializable {
     @JsonProperty
     private List<String> eipAddress;
 
-    @JsonProperty
+    @JsonProperty("sbwname")
     private String sbwName;
+
+    @JsonProperty
+    private String billType;
+
+    @JsonProperty
+    private String chargeMode;
 }
