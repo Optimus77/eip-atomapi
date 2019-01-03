@@ -5,15 +5,21 @@ import lombok.Data;
 import org.springframework.lang.NonNull;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 public class SbwUpdateParam implements Serializable {
+    //@Range(min=1,max=2000)
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-    private String billType;
+    //1：ecs // 2：cps // 3：slb
+    @JsonProperty("type")
+    private String type;
 
-    @NonNull
-    @JsonProperty("serverid")
-    private String serverId;
+    @JsonProperty
+    private List<String> eipAddress;
+
+    @JsonProperty
+    private String sbwName;
 }

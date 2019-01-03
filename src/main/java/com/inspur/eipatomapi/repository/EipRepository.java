@@ -29,4 +29,8 @@ public interface EipRepository extends JpaRepository<Eip,String> {
     Page<Eip> findByProjectIdAndIsDelete(String projectId, int isDelete,Pageable pageable);
 
     List<Eip> findBySharedBandWidthIdAndIsDelete(String sharedBandWidthId, int isDelete);
+
+    Page<Eip> findByProjectIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId, Pageable pageable);
+
+    List<Eip> findByProjectIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId);
 }

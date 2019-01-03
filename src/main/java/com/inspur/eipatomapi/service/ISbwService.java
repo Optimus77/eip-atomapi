@@ -8,7 +8,7 @@ public interface ISbwService {
 
     ResponseEntity atomDeleteSbw(String sbwId);
 
-    ResponseEntity listSbws(int pageIndex,int pageSize,String searchValue);
+    ResponseEntity listSbws(Integer pageIndex,Integer pageSize,String searchValue);
 
     ResponseEntity getSbwDetail(String sbwId);
 

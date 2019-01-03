@@ -32,15 +32,11 @@ public class SbwReturnDetail implements Serializable {
     @JsonProperty("duration")
     private String duration;
 
+    @JsonProperty("ipcount")
     private int ipcount;
-
-    @JsonProperty("resourceset")
-    private Resourceset resourceset;
 
     @JsonProperty("create_at")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
-    @JsonProperty("eipList")
-    private List<Eip> eipList;
 }
