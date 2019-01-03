@@ -18,7 +18,9 @@ class SlbService {
     private String slbUrl;
 
     boolean isFipInUse(String  vmId) {
-
+        if(null ==  vmId || vmId.isEmpty()) {
+            return false;
+        }
         String url = slbUrl + vmId;
 
         try {
@@ -31,9 +33,7 @@ class SlbService {
             log.info("Slb return info:{}", response.toString());
             JSONObject returnInfo = JSONObject.parseObject(response.getResponseBody());
             if((null != returnInfo) && (null != returnInfo.getString("message"))) {
-                if (returnInfo.getString("message").equalsIgnoreCase("true")) {
-                    return true;
-                } else {
+                if (!returnInfo.getString("message").equalsIgnoreCase("true")) {
                     return false;
                 }
             }

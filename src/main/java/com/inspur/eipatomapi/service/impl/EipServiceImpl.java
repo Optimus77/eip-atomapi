@@ -11,7 +11,6 @@ import com.inspur.eipatomapi.service.IEipService;
 import com.inspur.eipatomapi.service.NeutronService;
 import com.inspur.eipatomapi.service.PortService;
 import com.inspur.eipatomapi.util.*;
-import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
@@ -47,7 +46,6 @@ public class EipServiceImpl implements IEipService {
      * @param eipConfig          config
      * @return                   json info of eip
      */
-    @ICPServiceLog
     public ResponseEntity atomCreateEip(EipAllocateParam eipConfig) {
 
         String code;
@@ -86,7 +84,6 @@ public class EipServiceImpl implements IEipService {
      * @param eipId eipid
      * @return return
      */
-    @ICPServiceLog
     public ResponseEntity atomDeleteEip(String eipId) {
         String msg;
         String code;
@@ -118,7 +115,6 @@ public class EipServiceImpl implements IEipService {
      * @return       result: true/false
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity deleteEipList(List<String> eipIds) {
         String errorMsg;
         try {
@@ -150,7 +146,6 @@ public class EipServiceImpl implements IEipService {
 
 
 
-    @ICPServiceLog
     public ResponseEntity renewEip(String eipId,  EipAllocateParam eipUpdateInfo) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
@@ -169,15 +164,16 @@ public class EipServiceImpl implements IEipService {
                             String.valueOf(actionResponse.getCode()), actionResponse.getFault()),
                             HttpStatus.BAD_REQUEST);
                 }
-            }
-            ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
-            if(actionResponse.isSuccess()){
-                log.info("renew eip:{} , add duration:{}",eipId, addTime);
+            }else {
+                ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+                if (actionResponse.isSuccess()) {
+                    log.info("renew eip:{} , add duration:{}", eipId, addTime);
 
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            }else{
-                msg = actionResponse.getFault();
-                log.error(msg);
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                } else {
+                    msg = actionResponse.getFault();
+                    log.error(msg);
+                }
             }
         }catch (Exception e){
             log.error("Exception in deleteEip", e);
@@ -259,7 +255,6 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity getEipDetail(String eipId) {
 
         try {
@@ -324,7 +319,6 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity getEipByIpAddress(String eip) {
 
         try {
@@ -358,7 +352,6 @@ public class EipServiceImpl implements IEipService {
      * @return      result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity updateEipBandWidth(String id, EipUpdateParamWrapper param) {
         String code;
         String msg;
@@ -395,7 +388,6 @@ public class EipServiceImpl implements IEipService {
      * @return        result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity eipbindPort(String id, String type,String serverId, String portId,String slbIp){
         String code;
         String msg;
@@ -444,7 +436,6 @@ public class EipServiceImpl implements IEipService {
      * @return      result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity unBindPort(String id){
 
         String code;
@@ -500,7 +491,6 @@ public class EipServiceImpl implements IEipService {
 
 
     @Override
-    @ICPServiceLog
     public ResponseEntity listServer(String region){
         log.info("listServer start execute");
 
@@ -554,7 +544,6 @@ public class EipServiceImpl implements IEipService {
      * @return        result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity eipbindSlb(String eipId, String slbId, String ipAddr) {
         String code;
         String msg;
@@ -590,7 +579,6 @@ public class EipServiceImpl implements IEipService {
      * @return        result
      */
     @Override
-    @ICPServiceLog
     public ResponseEntity unBindSlb(String slbId) {
         String code;
         String msg;

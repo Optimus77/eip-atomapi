@@ -1,13 +1,16 @@
 package com.inspur.eipatomapi.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eipatomapi.config.CodeInfo;
+import com.inspur.eipatomapi.entity.MethodReturn;
+import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.fw.*;
 import com.inspur.eipatomapi.repository.FirewallRepository;
-import com.inspur.eipatomapi.util.HsConstants;
-import com.inspur.eipatomapi.util.JaspytUtils;
+import com.inspur.eipatomapi.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -271,4 +274,88 @@ class FirewallService {
         return bSuccess;
     }
 
+
+    MethodReturn addNatAndQos(Eip eip) {
+        String pipId = null ;
+        String dnatRuleId = null ;
+        String snatRuleId  = null;
+        String returnStat;
+        String returnMsg;
+        try {
+            pipId = addQos(eip.getFloatingIp(), eip.getEipAddress(),
+                    String.valueOf(eip.getBandWidth()), eip.getFirewallId());
+            if (null != pipId || !CommonUtil.qosDebug) {
+                dnatRuleId = addDnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
+                if (dnatRuleId != null) {
+                    snatRuleId = addSnat(eip.getFloatingIp(), eip.getEipAddress(), eip.getFirewallId());
+                    if (snatRuleId != null) {
+                        eip.setDnatId(dnatRuleId);
+                        eip.setSnatId(snatRuleId);
+                        eip.setPipId(pipId);
+                        log.info("add nat and qos successfully. snat:{}, dnat:{}, qos:{}",
+                                eip.getSnatId(), eip.getDnatId(), eip.getPipId());
+                        return MethodReturnUtil.success(eip);
+                    } else {
+                        returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
+                        returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR);
+                    }
+                } else {
+                    returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
+                    returnMsg =CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR);
+                }
+            } else {
+                returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
+                returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("band server exception", e);
+            returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+            returnMsg = e.getMessage();
+        }finally {
+            if (null == snatRuleId) {
+                if (null != dnatRuleId) {
+                    delDnat(dnatRuleId, eip.getFirewallId());
+                }
+                if (null != pipId) {
+                    delQos(pipId, eip.getFirewallId());
+                }
+            }
+        }
+        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
+    }
+
+    MethodReturn delNatAndQos(Eip eipEntity){
+
+        String msg = null;
+        String returnStat = "200";
+        if (delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId())) {
+            eipEntity.setDnatId(null);
+        } else {
+            returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
+            msg = "Failed to del dnat in firewall,eipId:"+eipEntity.getEipId()+"dnatId:"+eipEntity.getDnatId()+"";
+            log.error(msg);
+        }
+
+        if (delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())) {
+            eipEntity.setSnatId(null);
+        } else {
+            returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
+            msg += "Failed to del snat in firewall, eipId:"+eipEntity.getEipId()+"snatId:"+eipEntity.getSnatId()+"";
+            log.error(msg);
+        }
+
+        if( delQos(eipEntity.getPipId(), eipEntity.getFirewallId())) {
+            eipEntity.setPipId(null);
+        } else {
+            returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
+            msg += "Failed to del qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
+            log.error(msg);
+        }
+        if(msg == null){
+            return MethodReturnUtil.success();
+        }else{
+            return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, msg);
+        }
+
+    }
 }
