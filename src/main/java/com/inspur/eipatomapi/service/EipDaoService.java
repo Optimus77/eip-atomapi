@@ -167,7 +167,7 @@ public class EipDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        eipEntity.setStatus(HsConstants.DOWN);
+        eipEntity.setStatus(HsConstants.STOP);
         if (null != eipEntity.getSnatId()) {
             if (firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())) {
                 eipEntity.setSnatId(null);
