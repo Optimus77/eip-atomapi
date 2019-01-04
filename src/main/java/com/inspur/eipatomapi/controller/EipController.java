@@ -1,11 +1,8 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
-import com.inspur.eipatomapi.entity.LogLevel;
-import com.inspur.eipatomapi.entity.eip.EipAllocateParam;
-import com.inspur.eipatomapi.entity.eip.EipAllocateParamWrapper;
-import com.inspur.eipatomapi.entity.eip.EipDelParam;
-import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
+import com.inspur.eipatomapi.entity.*;
+import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
@@ -280,12 +277,64 @@ public class EipController {
         return eipService.unBindSlb(slbId);
     }
 
+    @ICPControllerLog
+    @PutMapping(value = "/eips/addToShared/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "add eip to Shared bandwidth ", notes = "put")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eipsharedBand", value = "the sharedband wrapper of sharedbandid", required = true, dataType = "json"),
+    })
+    public ResponseEntity addEipToShared(@PathVariable("eip_id") String eipId, @Valid @RequestBody EipShardBand band , BindingResult result) {
+        log.info("addEipToShared eip_id:{}, :{}.", eipId, band.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            log.info("{}",msgBuffer);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
+        }
+        return eipService.addEipToShared(eipId,band);
+    }
 
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setDebugLevel(@PathVariable("package") String packageName, @RequestBody LogLevel param) {
-        return eipService.setLogLevel(param.getLevel(), packageName);
-
+        log.info("Set debug level to:{}", param);
+        //trace --> debug --> info --> warn --> error -->fatal
+        try{
+            String configLevel = param.getLevel();
+            if(null == configLevel){
+                configLevel = "INFO";
+            }
+            Level level = Level.toLevel(configLevel);
+            Logger logger = LogManager.getLogger(packageName);
+            logger.setLevel(level);
+        }catch (Exception e){
+            log.error("Set log level error", e);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+    }
+    @ICPControllerLog
+    @PutMapping(value = "/eips/removeFromShared/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "remove eip to Shared bandwidth ", notes = "put")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eipsharedBand", value = "the sharedband wrapper of sharedbandid", required = true, dataType = "json"),
+    })
+    public ResponseEntity removeFromShared(@PathVariable("eip_id") String eipId, @Valid @RequestBody EipShardBand band, BindingResult result) {
+        log.info("removeFromShared eip_id:{}, :{}.", eipId, band.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            log.info("{}",msgBuffer);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
+        }
+        return eipService.removeFromShared(eipId, band);
     }
 
-}
+    }

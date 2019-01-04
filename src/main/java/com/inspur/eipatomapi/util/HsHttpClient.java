@@ -378,6 +378,58 @@ public class HsHttpClient {
 		}
 	}
 
+	/**
+	 * HTTP
+	 * @throws Exception
+	 */
+	public static String HttpGet(String ip, String port, String user, String pwd, String rest) throws Exception {
+		Gson gson = new Gson();
+
+		if (!isLogin(ip, port)) {
+			FwLogin login = new FwLogin();
+			if (null != user && !"".equals(user)) {
+				login.setUserName(user);
+				login.setPassword(pwd);
+			}
+			String loginUrl = gson.toJson(login);
+			if (!login(ip, port, loginUrl, 0)) {
+				return "";
+			}
+		}
+
+		StringBuffer url = new StringBuffer();
+		url.append(HsConstants.HTTP).append(ip);
+		if (null != port && !"".equals(port)) {
+			url.append(HsConstants.COLON+port);
+		}
+		url.append(rest);
+
+		CloseableHttpClient client = getHttpsClient();
+		HttpGet httpGet = new HttpGet(url.toString());
+
+		httpGet.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+		httpGet.setHeader(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
+
+		httpGet.setHeader("Cookie", getCookie(ip));
+
+		log.debug("request line:get-{}" , httpGet.getRequestLine());
+		try {
+			HttpResponse httpResponse = client.execute(httpGet);
+			return getResponseString(httpResponse);
+
+		} catch (IOException e) {
+			System.out.println(e);
+			log.debug("Io Exception when get.",e);
+			return "";
+		} finally {
+			try {
+				client.close();
+			} catch (IOException e) {
+				log.debug("IO Exception when get.",e);
+			}
+		}
+	}
+
 	public static String hsHttpPost(String ip, String port, String user, String pwd, String rest, String payload) throws Exception {
 		Gson gson = new Gson();
 
@@ -403,6 +455,55 @@ public class HsHttpClient {
 		CloseableHttpClient client = getHttpsClient();
 		HttpPost httpPost = new HttpPost(url.toString());
 		
+		httpPost.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+		httpPost.setHeader("Cookie", getCookie(ip));
+
+		log.debug("request line:post-{}" , httpPost.getRequestLine());
+		try {
+			// payload
+			StringEntity entity = new StringEntity(payload, HTTP.UTF_8);
+			entity.setContentType(HsConstants.CONTENT_TYPE_TEXT_JSON);
+			entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON));
+			httpPost.setEntity(entity);
+			HttpResponse httpResponse = client.execute(httpPost);
+			return getResponseString(httpResponse);
+
+		} catch (IOException e) {
+			log.error("IO Exception when post.",e);
+			return "";
+		} finally {
+			try {
+				client.close();
+			} catch (IOException e) {
+				log.error("IO Exception when post.",e);
+			}
+		}
+	}
+	public static String HttpPost(String ip, String port, String user, String pwd, String rest, String payload) throws Exception {
+		Gson gson = new Gson();
+
+		if (!isLogin(ip, port)) {
+			FwLogin login = new FwLogin();
+			if (null != user && !"".equals(user)) {
+				login.setUserName(user);
+				login.setPassword(pwd);
+			}
+			String loginUrl = gson.toJson(login);
+			if (!login(ip, port, loginUrl, 0)) {
+				return "";
+			}
+		}
+
+		StringBuffer url = new StringBuffer();
+		url.append(HsConstants.HTTP).append(ip);
+		if (null != port && !"".equals(port)) {
+			url.append(HsConstants.COLON+port);
+		}
+		url.append(rest);
+
+		CloseableHttpClient client = getHttpsClient();
+		HttpPost httpPost = new HttpPost(url.toString());
+
 		httpPost.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpPost.setHeader("Cookie", getCookie(ip));
 
