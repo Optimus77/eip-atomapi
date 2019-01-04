@@ -179,7 +179,7 @@ public class HsHttpClient {
 
 			Cookie cookie = new Cookie(token, platform, hw_platform, host_name, company, oemid, vsysid, vsysname, role,
                     license, httpProtocol, soft_version, username, overseaLicense, HS_frame_lang);
-			log.info(cookie.toString());
+			log.debug(cookie.toString());
 			return HsConstants.FROM_ROOT_SYS + cookie.toString();
 
 		} else {
