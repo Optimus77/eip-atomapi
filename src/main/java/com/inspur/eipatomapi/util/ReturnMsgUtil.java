@@ -9,12 +9,6 @@ public class ReturnMsgUtil {
         return ReturnMsg.builder().eip(t).build();
     }
 
-    /**
-     * sbw msg success
-     * @param t
-     * @param <T>
-     * @return
-     */
     public static <T> ReturnSbwMsg successSbw(T t) {
         return ReturnSbwMsg.builder().sbw(t).build();
     }

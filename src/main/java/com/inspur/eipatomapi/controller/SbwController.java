@@ -230,4 +230,15 @@ public class SbwController {
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }
+    @ICPControllerLog
+    @GetMapping(value = "/sbws/{sbw_id}/othereips")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "get othereips without the sbw", notes = "get")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
+    })
+    public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
+        // todo
+        return sbwService.getOtherEips(sbwId);
+    }
 }

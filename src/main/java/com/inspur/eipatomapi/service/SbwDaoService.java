@@ -12,7 +12,6 @@ import com.inspur.eipatomapi.repository.SbwRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnStatus;
-import com.sun.org.apache.bcel.internal.generic.I2F;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;

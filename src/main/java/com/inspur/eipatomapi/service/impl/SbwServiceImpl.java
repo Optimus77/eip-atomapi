@@ -22,11 +22,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import sun.security.krb5.internal.PAData;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -92,8 +89,8 @@ public class SbwServiceImpl implements ISbwService {
                     } else {
                         page = sbwRepository.findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(projcectid, 0, searchValue, pageable);
                     }
-                }else {
-                    page = sbwRepository.findByProjectIdAndIsDelete(projcectid,0, pageable);
+                } else {
+                    page = sbwRepository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
                 }
                 log.info("page projectId:", page);
                 for (Sbw sbw : page.getContent()) {
@@ -169,7 +166,7 @@ public class SbwServiceImpl implements ISbwService {
             if (null != sbwEntity) {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
-                log.info("sbwReturnDetail:{}",sbwReturnDetail.toString());
+                log.info("sbwReturnDetail:{}", sbwReturnDetail.toString());
                 return new ResponseEntity<>(ReturnMsgUtil.successSbw(sbwReturnDetail), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
@@ -244,6 +241,7 @@ public class SbwServiceImpl implements ISbwService {
 
     /**
      * renew sbw
+     *
      * @param sbwId
      * @param sbwUpdateInfo
      * @return
@@ -283,13 +281,14 @@ public class SbwServiceImpl implements ISbwService {
 
     /**
      * add eip's floating ip to sbw
+     *
      * @param sbwId
      * @param paramWrapper
      * @return
      */
-    public ResponseEntity addEipToSbw(String sbwId,SbwUpdateParamWrapper paramWrapper){
+    public ResponseEntity addEipToSbw(String sbwId, SbwUpdateParamWrapper paramWrapper) {
         Sbw sbw = sbwDaoService.getSbwById(sbwId);
-        if (sbw.getIsDelete() !=1 && sbw.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
+        if (sbw.getIsDelete() != 1 && sbw.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
 
         }
         return null;
@@ -297,43 +296,45 @@ public class SbwServiceImpl implements ISbwService {
 
     /**
      * remove floating ip from sbw
+     *
      * @param sbwId
      * @param paramWrapper
      * @return
      */
-    public ResponseEntity removeEipToSbw(String sbwId,SbwUpdateParamWrapper paramWrapper){
+    public ResponseEntity removeEipFromSbw(String sbwId, SbwUpdateParamWrapper paramWrapper) {
         return null;
     }
 
-    public ResponseEntity getFloatingIpListByUser(){
+    public ResponseEntity getFloatingIpListByUser() {
         return null;
     }
 
     /**
      * get eipList by sbwid
+     *
      * @param sbwId
      * @param currentPage
      * @param limit
      * @param status
      * @return
      */
-    public ResponseEntity sbwListEip(String sbwId ,Integer currentPage, Integer limit,String status){
-        String projcectid= null;
+    public ResponseEntity sbwListEip(String sbwId, Integer currentPage, Integer limit, String status) {
+        String projcectid = null;
         try {
             projcectid = CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
-            if(projcectid==null){
+            if (projcectid == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
-            JSONObject data=new JSONObject();
-            JSONArray eips=new JSONArray();
-            if(currentPage!=0){
+            JSONObject data = new JSONObject();
+            JSONArray eips = new JSONArray();
+            if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-                Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
-                Page<Eip> page=eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId , pageable);
-                for(Eip eip:page.getContent()){
-                    if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
+                Page<Eip> page = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId, pageable);
+                for (Eip eip : page.getContent()) {
+                    if ((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
                     }
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -343,15 +344,15 @@ public class SbwServiceImpl implements ISbwService {
                             .resourcetype(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips",eips);
-                data.put("totalPages",page.getTotalPages());
-                data.put("totalElements",page.getTotalElements());
-                data.put("currentPage",currentPage);
-                data.put("currentPagePer",limit);
-            }else{
-                List<Eip> eipList=eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
-                for(Eip eip:eipList){
-                    if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                data.put("eips", eips);
+                data.put("totalPages", page.getTotalPages());
+                data.put("totalElements", page.getTotalElements());
+                data.put("currentPage", currentPage);
+                data.put("currentPagePer", limit);
+            } else {
+                List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
+                for (Eip eip : eipList) {
+                    if ((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
                     }
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -361,50 +362,88 @@ public class SbwServiceImpl implements ISbwService {
                             .resourcetype(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips",eips);
-                data.put("totalPages",1);
-                data.put("totalElements",eips.size());
-                data.put("currentPage",1);
-                data.put("currentPagePer",eips.size());
+                data.put("eips", eips);
+                data.put("totalPages", 1);
+                data.put("totalElements", eips.size());
+                data.put("currentPage", 1);
+                data.put("currentPagePer", eips.size());
             }
-            log.info("data:{}",data.toString());
+            log.info("data:{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
-        }catch (Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
             log.error("Exception in listEips", e);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * rename sbw
+     *
      * @return
      */
-    public ResponseEntity renameSbw(String sbwId, SbwUpdateParamWrapper wrapper){
+    public ResponseEntity renameSbw(String sbwId, SbwUpdateParamWrapper wrapper) {
         String code;
         String msg;
         try {
             JSONObject result = sbwDaoService.renameSbw(sbwId, wrapper);
-            if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+            if (!result.getString("interCode").equals(ReturnStatus.SC_OK)) {
                 code = result.getString("interCode");
-                int httpResponseCode=result.getInteger("httpCode");
+                int httpResponseCode = result.getInteger("httpCode");
                 msg = result.getString("reason");
                 log.error(msg);
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
-            }else{
+            } else {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
-                Sbw sbwEntity=(Sbw)result.get("data");
-                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                Eip eipEntity = (Eip) result.get("data");
+                BeanUtils.copyProperties(eipEntity, sbwReturnDetail);
                 return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
             log.error("Exception in rename sbw", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+            msg = e.getMessage() + "";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * get unbinding ip
+     * @param sbwId
+     * @return
+     */
+    public ResponseEntity getOtherEips(String sbwId) {
+        try {;;
+            String projcectid=CommonUtil.getUserId();
+            List<Eip> eipList = eipRepository.getEipListNotBinding(projcectid,0, sbwId);
+            log.info("get the other eips size:{}",eipList.size());
+            JSONArray eips = new JSONArray();
+            JSONObject data = new JSONObject();
+
+            if (eipList !=null && eipList.size()>0){
+                for (int i = 0; i < eipList.size(); i++) {
+                    EipReturnSbw eipReturn = new EipReturnSbw();
+                    Eip eip =  eipList.get(i);
+                    BeanUtils.copyProperties(eip, eipReturn);
+
+                    eips.add(eipReturn);
+                }
+                data.put("eips",eips);
+                log.info("data:{}",data);
+                return new ResponseEntity<>(data, HttpStatus.OK);
+            }else {
+                log.warn("Failed to find EIP by sbw id, sbwid:{}", sbwId);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find EIP by this id:" + sbwId+""),
+                        HttpStatus.NOT_FOUND);
+            }
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
+        }catch (Exception e){
+            log.error("Exception in getOtherEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
