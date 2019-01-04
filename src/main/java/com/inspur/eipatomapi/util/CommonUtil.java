@@ -188,19 +188,22 @@ public class CommonUtil {
         }
     }
     public static boolean isAuthoried(String projectId) {
-        try {
-            if (projectId.equals(getUserId())) {
-                return true;
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+
         String token = getKeycloackToken();
         if(null == token){
             log.error("User has no token.");
         }else {
             org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-            log.error("User has no right to operation.{}", jsonObject.toString());
+            String userId = (String) jsonObject.get("sub");
+            if(userId.equals(projectId)){
+                return true;
+            }
+            String clientId = jsonObject.getString("clientId");
+            if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
+                log.info("Client token, User has right to operation, client:{}", clientId);
+            }else{
+                log.error("User has no right to operation.{}", jsonObject.toString());
+            }
         }
         return true;
     }
