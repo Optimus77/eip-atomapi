@@ -1,10 +1,12 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.SbwServiceImpl;
+import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
@@ -240,5 +242,37 @@ public class SbwController {
     public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
         // todo
         return sbwService.getOtherEips(sbwId);
+    }
+
+    @ICPControllerLog
+    @PutMapping(value = "/sbws/{sbw_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "update sbw", notes = "put")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
+    })
+    public ResponseEntity updateSbw(@PathVariable("sbw_id") String sbwid, @Valid @RequestBody SbwUpdateParamWrapper param) {
+
+        String msg = "";
+        if (param.getSbwUpdateParam().getBillType() != null && param.getSbwUpdateParam().getBandwidth() != 0) {
+
+            boolean chargeTypeFlag = false;
+            if (param.getSbwUpdateParam().getBillType().equals(HsConstants.MONTHLY) ||
+                    param.getSbwUpdateParam().getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                chargeTypeFlag = true;
+            } else {
+                msg = "chargetype must be [monthly |hourlySettlement]";
+            }
+            if (chargeTypeFlag) {
+                log.info("update bandwidth, sbwid:{}, param:{} ", sbwid, param.getSbwUpdateParam());
+                return sbwService.updateSbwBandWidth(sbwid, param);
+            }
+        } else {
+            msg = "param not correct. " +
+                    "to change bindwidht,body param like {\"sbw\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
+                    "";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
+
     }
 }
