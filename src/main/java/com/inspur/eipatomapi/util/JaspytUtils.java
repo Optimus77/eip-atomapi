@@ -46,11 +46,11 @@ public class JaspytUtils {
 
     public static void main(String[] args) {
         // 加密
-        System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "InnetAdmin"));
-        System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "innetadmin"));
+        System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "hillstone"));
+       // System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "testeip0914"));
         // 解密
-        System.out.println(decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "BjNQ05gAv7HVRYJRQZVMh1jjI+maes4N"));
-        System.out.println(decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "2Gn43n7O6+ps+itl1UY6tnvmBqOjymXf"));
+       // System.out.println(decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "TSu5pS+BQFM5TbKzAgzUzQ=="));
+        System.out.println(decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "98KylQ3eba/2AKXG8m+83g=="));
 
     }
 

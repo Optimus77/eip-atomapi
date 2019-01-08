@@ -20,7 +20,6 @@ http:
   socketTimeout: 100000
   statleConnectionCheckEnabled: true
 
-openstackIp: 10.110.25.117
 
 # Mysql
 
@@ -76,3 +75,18 @@ logging:
   config: classpath:log4j.properties
 
 slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/
+
+#administrator rights
+openstackIp: https://10.110.25.117:5000/v3
+userNameS: admin
+passwordS: 89rqdHLMN5rm0x1P
+projectIdS: 140785795de64945b02363661eb9e769
+userDomainIdS: default
+debugRegionS: RegionOne
+
+
+
+
+
+
+

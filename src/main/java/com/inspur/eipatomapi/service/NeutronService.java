@@ -68,7 +68,7 @@ public  class NeutronService {
     }
 
     synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
-                                                                   Eip eip, String serverId) throws  Exception{
+                                                          Eip eip, String serverId) throws  Exception{
 
         if(portId.isEmpty()){
             log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getEipId());
@@ -164,7 +164,7 @@ public  class NeutronService {
     }
 
     synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
-                                                                          String region) throws Exception {
+                                                                String region) throws Exception {
 
         if(null == serverId || slbService.isFipInUse(serverId)){
             return ActionResponse.actionSuccess();
@@ -210,7 +210,7 @@ public  class NeutronService {
         List<? extends NetFloatingIP> list = osClientV3.networking().floatingip().list(filteringParams);
         if (list.isEmpty()) {
             return null;
-            } else {
+        } else {
             return list.get(0);
         }
     }
@@ -219,21 +219,21 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(eip.getRegion());
         Server server = osClientV3.compute().servers().get(serverId);
-            Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
-            log.info(novaAddresses.toString());
-            Set<String> keySet = novaAddresses.keySet();
-            for (String netname : keySet) {
-                List<? extends Address> address = novaAddresses.get(netname);
-                log.info(address.toString());
-                for (Address addr : address) {
-                    log.debug(server.getId() + server.getName() + "   " + addr.getType());
-                    if (addr.getType().equals("fixed")) {
-                        eip.setPrivateIpAddress(addr.getAddr());
-                    }
+        Map<String, List<? extends Address>> novaAddresses = server.getAddresses().getAddresses();
+        log.info(novaAddresses.toString());
+        Set<String> keySet = novaAddresses.keySet();
+        for (String netname : keySet) {
+            List<? extends Address> address = novaAddresses.get(netname);
+            log.info(address.toString());
+            for (Address addr : address) {
+                log.debug(server.getId() + server.getName() + "   " + addr.getType());
+                if (addr.getType().equals("fixed")) {
+                    eip.setPrivateIpAddress(addr.getAddr());
                 }
             }
-            return eip.getPrivateIpAddress();
         }
+        return eip.getPrivateIpAddress();
+    }
 
 
     private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId) {

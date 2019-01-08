@@ -1,10 +1,9 @@
 package com.inspur.eipatomapi.entity.fw;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Setter
-@Getter
+
+@Data
 public class FwResponseException {
     private String code;
     private String message;

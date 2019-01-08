@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -25,7 +26,10 @@ class FirewallService {
     @Autowired
     private FirewallRepository firewallRepository;
 
-//    @Value("${jasypt.password}")
+    @Autowired
+    private QosService qosService;
+
+    //    @Value("${jasypt.password}")
     private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
@@ -357,5 +361,67 @@ class FirewallService {
             return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, msg);
         }
 
+    }
+
+    /**
+     * add the Qos bindind ip
+     * @param firewallId
+     * @param bandId
+     * @return
+     */
+    public boolean addQosBindEip(String firewallId,String floatIp,String bandId){
+
+        Firewall fwBean = getFireWallById(firewallId);
+        if(fwBean != null) {
+//            QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
+            qosService.setFwIp(fwBean.getIp());
+            qosService.setFwPort(fwBean.getPort());
+            qosService.setFwUser(fwBean.getUser());
+            qosService.setFwPwd(fwBean.getPasswd());
+            HashMap<String, String> result = qosService.addQosPipeBindEip(floatIp, bandId);
+            if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
+                if (result.get("result") != null && Boolean.valueOf(result.get("result"))){
+                    log.info("addQosBindEip: " + firewallId + "floatIp: "+floatIp+ " --success==BandId：" + bandId);
+                    return Boolean.parseBoolean(result.get("result"));
+                }else {
+                    log.warn("addQosBindEip: " + firewallId +"floatIp: "+floatIp+ " --fail==BandId：" + bandId);
+                    return false;
+                }
+            } else {
+                log.warn("addQosBindEip: " + firewallId +"floatIp: "+floatIp+ " --fail==BandId：" + bandId);
+            }
+
+        }
+        return Boolean.parseBoolean("False");
+    }
+    /**
+     * remove eip from shared band
+     * @param firewallId
+     * @param floatIp
+     * @param bandId
+     * @return
+     */
+    public boolean removeQosBindEip(String firewallId,String floatIp,String bandId){
+        Firewall fwBean = getFireWallById(firewallId);
+        if(fwBean != null) {
+            qosService.setFwIp(fwBean.getIp());
+            qosService.setFwPort(fwBean.getPort());
+            qosService.setFwUser(fwBean.getUser());
+            qosService.setFwPwd(fwBean.getPasswd());
+            HashMap<String, String> result = qosService.removeQosPipeBindEip(floatIp, bandId);
+            if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
+                if (result.get("result") != null && Boolean.valueOf(result.get("result"))){
+                    log.info("removeQosBindEip: " + firewallId + "floatIp: "+floatIp+ " --success==BandId：" + bandId);
+                    return Boolean.parseBoolean(result.get("result"));
+                }else {
+                    log.warn("removeQosBindEip: " + firewallId + "floatIp: "+floatIp+ " --fail==BandId：" + bandId);
+                    return false;
+                }
+            } else {
+                log.warn("removeQosBindEip: " + firewallId + "floatIp: "+floatIp+" --fail==BandIp：" + bandId);
+            }
+            return Boolean.parseBoolean(result.get(HsConstants.SUCCESS));
+        }
+        return Boolean.parseBoolean("False");
     }
 }
