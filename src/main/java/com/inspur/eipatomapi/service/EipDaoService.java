@@ -298,6 +298,7 @@ public class EipDaoService {
             if (!actionResponse.isSuccess()) {
                 msg = "Failed to disassociate port with fip:"+eipEntity.toString();
                 log.error(msg);
+                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);

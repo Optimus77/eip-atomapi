@@ -42,42 +42,55 @@ public class CommonUtil {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         return new Date();
     }
-
     @Setter
     private static JSONObject KeyClockInfo;
-
     @Value("${openstackIp}")
     private String openstackIp;
-
-    public static String openstackPort;
-
-
-    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
-    private static String user = "admin";
-    private static String password = "89rqdHLMN5rm0x1P";
-    private static String projectId = "140785795de64945b02363661eb9e769";
-    private static String userDomainId = "default";
+    @Value("${userNameS}")
+    private String userNameS;
+    @Value("${passwordS}")
+    private String passwordS;
+    @Value("${projectIdS}")
+    private String projectIdS;
+    @Value("${userDomainIdS}")
+    private String userDomainIdS;
+    @Value("${debugRegionS}")
+    private String debugRegionS;
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
-    private static String debugRegion="RegionOne";
-    private static String region1="cn-north-3a";
-
-
     private static Map<String,String> userConfig = new HashMap<>(16);
 
     @PostConstruct
     public void init(){
         userConfig.put("openstackIp",openstackIp);
+        userConfig.put("userNameS",userNameS);
+        userConfig.put("passwordS",passwordS);
+        userConfig.put("projectIdS",projectIdS);
+        userConfig.put("userDomainIdS",userDomainIdS);
+        userConfig.put("debugRegionS",debugRegionS);
     }
 
+//    private static OSClientV3 getOsClientV3(){
+//        //String token = getKeycloackToken();
+//        return OSFactory.builderV3()
+//                .endpoint(openstackIp)
+//                .credentials(userNameS, passwordS, Identifier.byId(userDomainIdS))
+//                .withConfig(config)
+//                .scopeToProject(Identifier.byId(projectIdS))
+//                .authenticate().useRegion(debugRegionS);
+//    }
+
+    //administrator rights
     private static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
         return OSFactory.builderV3()
-                .endpoint(authUrl)
-                .credentials(user, password, Identifier.byId(userDomainId))
+                .endpoint(userConfig.get("openstackIp"))
+                .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
+                        Identifier.byId(userConfig.get("userDomainIdS")))
                 .withConfig(config)
-                .scopeToProject(Identifier.byId(projectId))
-                .authenticate().useRegion(debugRegion);
+                .scopeToProject(Identifier.byId(userConfig.get("projectIdS")))
+                .authenticate().useRegion(userConfig.get("debugRegionS"));
     }
+
 
     public static OSClientV3 getOsClientV3Util(String userRegion) throws KeycloakTokenException {
 
@@ -88,7 +101,8 @@ public class CommonUtil {
         }
 
         if(isDebug){
-            userRegion = debugRegion;
+            userRegion = userConfig.get("debugRegionS");
+            System.out.println("==============");
         }
         if(token.startsWith("Bearer Bearer")){
             token = token.substring(7);
@@ -101,7 +115,14 @@ public class CommonUtil {
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
-            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
+            String clientId = jsonObject.getString("clientId");
+            if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
+                log.info("Client token, User has right to operation, client:{}", clientId);
+                return getOsClientV3();
+            }else{
+                log.error("User has no right to operation.{}", jsonObject.toString());
+                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
+            }
         }
 
     }
@@ -137,7 +158,7 @@ public class CommonUtil {
         String token = getKeycloackToken();
         if(null == token){
             log.info("can't get token, use default project admin 140785795de64945b02363661eb9e769");
-            return projectId;
+            return userConfig.get("projectIdS");
         }else{
             try{
 //                OSClientV3 os= getOsClientV3Util(userRegion);
@@ -169,7 +190,7 @@ public class CommonUtil {
     }
     public static String getRegionName() {
 
-        return debugRegion;
+        return userConfig.get("debugRegionS");
     }
     public static String getUsername()throws KeycloakTokenException {
 
@@ -203,6 +224,7 @@ public class CommonUtil {
                 log.info("Client token, User has right to operation, client:{}", clientId);
             }else{
                 log.error("User has no right to operation.{}", jsonObject.toString());
+                return false;
             }
         }
         return true;
