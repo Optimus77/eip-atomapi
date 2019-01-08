@@ -33,4 +33,6 @@ public class Firewall implements Serializable {
 	private String param2;
 
 	private String param3;
+
+	private String region;
 }

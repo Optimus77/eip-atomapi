@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RepositoryRestResource(collectionResourceRel = "firewall", path = "firewall")
 public interface FirewallRepository extends JpaRepository<Firewall,String> {
-
+    Firewall findFirewallByRegion(String Region);
 }

@@ -183,7 +183,28 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     @ICPServiceLog
     public ResponseEntity updateSbwBandWidth(String id, SbwUpdateParamWrapper param) {
-        return null;
+        String code;
+        String msg;
+        try {
+            JSONObject result = sbwDaoService.updateSbwEntity(id, param);
+            if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
+                code = result.getString("interCode");
+                int httpResponseCode=result.getInteger("httpCode");
+                msg = result.getString("reason");
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+            }else{
+                SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
+                Sbw sbwEntity=(Sbw)result.get("data");
+                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            log.error("Exception in updateSbwBandWidth", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override

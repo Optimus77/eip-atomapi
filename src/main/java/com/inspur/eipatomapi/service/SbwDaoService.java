@@ -3,11 +3,13 @@ package com.inspur.eipatomapi.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.eip.Eip;
+import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.entity.sbw.ConsoleCustomization;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
 import com.inspur.eipatomapi.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eipatomapi.repository.EipRepository;
+import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.repository.SbwRepository;
 import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.HsConstants;
@@ -35,6 +37,12 @@ public class SbwDaoService {
 
     @Autowired
     private EipRepository eipRepository;
+
+    @Autowired
+    private FirewallService firewallService;
+
+    @Autowired
+    private FirewallRepository firewallRepository;
 
     public List<Sbw> findByProjectId(String projectId) {
         return sbwRepository.findByProjectIdAndIsDelete(projectId, 0);
@@ -204,5 +212,54 @@ public class SbwDaoService {
         data.put("interCode", ReturnStatus.SC_OK);
         data.put("data", sbw);
         return data;
+    }
+
+    @Transactional
+    public JSONObject updateSbwEntity(String sbwid, SbwUpdateParamWrapper param) {
+
+        JSONObject data=new JSONObject();
+        Sbw sbwEntity = sbwRepository.findBySbwId(sbwid);
+        if (null == sbwEntity) {
+            log.error("In disassociate process,failed to find the sbw by id:{} ", sbwid);
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+            data.put("httpCode", HttpStatus.SC_NOT_FOUND);
+            data.put("interCode", ReturnStatus.SC_NOT_FOUND);
+            return data;
+        }
+        if(!CommonUtil.isAuthoried(sbwEntity.getProjectId())){
+            log.error("User have no write to operate sbw:{}", sbwid);
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
+            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
+            return data;
+        }
+        if(param.getSbwUpdateParam().getBillType().equals(HsConstants.MONTHLY)){
+            //can’t sub
+            if(param.getSbwUpdateParam().getBandwidth()<sbwEntity.getBandWidth()){
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
+                data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
+                data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
+                return data;
+            }
+        }
+
+        Firewall firewall = firewallRepository.findFirewallByRegion(param.getSbwUpdateParam().getRegion());
+        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(),sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getSbwUpdateParam().getBandwidth()));
+        if (updateStatus ||CommonUtil.qosDebug) {
+            sbwEntity.setBandWidth(param.getSbwUpdateParam().getBandwidth());
+            sbwEntity.setBillType(param.getSbwUpdateParam().getBillType());
+            sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
+            sbwRepository.saveAndFlush(sbwEntity);
+            data.put("reason","");
+            data.put("httpCode", HttpStatus.SC_OK);
+            data.put("interCode", ReturnStatus.SC_OK);
+            data.put("data",sbwEntity);
+            return data;
+        }else{
+            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
+            data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
+            return data;
+        }
     }
 }
