@@ -245,7 +245,11 @@ public class SbwController {
             log.info("{}", msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
+        String msg = "";
         String method = param.getSbwUpdateParam().getMethod();
+        if (method ==null || "".equals(method)){
+            msg = "customerConsole request method must be json and not null";
+        }
         if (HsConstants.ADD_EIP_TO_SBW_METHOD.equalsIgnoreCase(method)){
             return  new ResponseEntity<>("addEIPtoSBW", HttpStatus.OK);
 //            if (paramWrapper.getSbwUpdateParam().getEipAddress() != null && paramWrapper.getSbwUpdateParam().getEipAddress().size() > 0) {
@@ -254,7 +258,6 @@ public class SbwController {
         }else if( HsConstants.REMOVE_EIP_FROM_SBW_METHOD.equalsIgnoreCase(method)){
             return  new ResponseEntity<>("removeEIPfromSBW", HttpStatus.OK);
         }else if (HsConstants.ADJUST_BANDWIDTH_SBW_METHOD.equalsIgnoreCase(method)){
-            String msg = "";
             if (param.getSbwUpdateParam().getBillType() != null ) {
                 boolean chargeTypeFlag = false;
                 if (chargeTypeFlag) {
@@ -268,6 +271,6 @@ public class SbwController {
             }
             return  new ResponseEntity<>(msg, HttpStatus.OK);
         }
-        return null;
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }
 }

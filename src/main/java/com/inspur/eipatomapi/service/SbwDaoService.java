@@ -2,9 +2,7 @@ package com.inspur.eipatomapi.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
-import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.fw.Firewall;
-import com.inspur.eipatomapi.entity.sbw.ConsoleCustomization;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
 import com.inspur.eipatomapi.entity.sbw.SbwUpdateParamWrapper;
@@ -184,6 +182,7 @@ public class SbwDaoService {
     @Transactional
     public JSONObject renameSbw(String sbwId, SbwUpdateParamWrapper wrapper) {
         JSONObject data = new JSONObject();
+        String newSbwName = wrapper.getSbwUpdateParam().getSbwName();
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
             log.error("In disassociate process,failed to find the sbw by id:{} ", sbwId);
@@ -200,12 +199,34 @@ public class SbwDaoService {
             return data;
         }
         //Distinguish between EIP binding and IP unbinding
-
-        sbw.setSharedbandwidthName(wrapper.getSbwUpdateParam().getSbwName());
-        if (sbw.getIpCount() != 0) {
+        if (sbw.getIpCount() != 0 && sbw.getIpCount()> 0) {
         //update qos
-            Eip eip = eipRepository.findBySharedBandWidthIdAndIsDelete(sbwId, 0).get(0);
+            Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
+            if(firewall ==null){
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.SBW_CHANGE_BANDWIDTH_ERROR));
+                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
+               return data;
+            }
+            boolean updateResource = firewallService.updateQosBandWidth(firewall.getId(), sbw.getPipeId(), newSbwName, String.valueOf(sbw.getBandWidth()));
+            if (updateResource ||CommonUtil.qosDebug) {
+                sbw.setSharedbandwidthName(newSbwName);
+                sbw.setUpdateTime(CommonUtil.getGmtDate());
+                sbwRepository.saveAndFlush(sbw);
+                data.put("reason","");
+                data.put("httpCode", HttpStatus.SC_OK);
+                data.put("interCode", ReturnStatus.SC_OK);
+                data.put("data",sbw);
+                return data;
+            }else{
+                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.SBW_CHANGE_BANDWIDTH_ERROR));
+                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
+                return data;
+            }
         }
+        sbw.setSharedbandwidthName(newSbwName);
+        sbw.setUpdateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(sbw);
         data.put("reason", "");
         data.put("httpCode", HttpStatus.SC_OK);
