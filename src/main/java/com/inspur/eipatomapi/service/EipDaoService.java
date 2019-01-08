@@ -169,7 +169,7 @@ public class EipDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        eipEntity.setStatus(HsConstants.DOWN);
+        eipEntity.setStatus(HsConstants.STOP);
 
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
@@ -191,7 +191,7 @@ public class EipDaoService {
     @Transactional
     public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId)
             throws Exception {
-        NetFloatingIP floatingIP = null;
+        NetFloatingIP floatingIP ;
         String returnStat;
         String returnMsg ;
         Eip eip = eipRepository.findByEipId(eipid);
@@ -285,7 +285,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) ){
+        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) && !(eipEntity.getStatus().equals(HsConstants.STOP)) ){
             msg = "Error status when disassociate eip:"+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
@@ -359,6 +359,7 @@ public class EipDaoService {
         }
 
         if (updateStatus ||CommonUtil.qosDebug) {
+            eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
             eipEntity.setUpdateTime(CommonUtil.getGmtDate());
@@ -667,7 +668,7 @@ public class EipDaoService {
             return data;
         }
         //3.check eip had not adding any Shared bandwidth
-        if (null !=eipEntity.getSharedBandWidthId()|| !"".equals(eipEntity.getSharedBandWidthId().trim())){
+        if (null != eipEntity.getSharedBandWidthId() && !eipEntity.getSharedBandWidthId().isEmpty()){
             data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_Shared_Band_Width_Id_NOT_NULL));
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
             data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
@@ -703,7 +704,7 @@ public class EipDaoService {
     @Transactional
     public ActionResponse removeEipShardBindEip(String eipid, EipShardBand band)  {
         Eip eipEntity = eipRepository.findByEipId(eipid);
-        String msg = null;
+        String msg ;
         if (null == eipEntity) {
             log.error("In removeEipShardBindEip process,failed to find the eip by id:{} ", eipid);
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);

@@ -51,7 +51,7 @@ public interface IEipService {
      * @param id    id
      * @return      result
      */
-    public ResponseEntity eipbindSlb(String id, String type, String serverId);
+    ResponseEntity eipbindSlb(String id, String type, String serverId);
 
 
     /**
@@ -59,7 +59,7 @@ public interface IEipService {
      * @param slbId     eipid
      * @return        result
      */
-    public ResponseEntity unBindSlb(String slbId);
+    ResponseEntity unBindSlb(String slbId);
 
 
     /**
@@ -83,7 +83,7 @@ public interface IEipService {
     /**
      * list all server of current users
      */
-    ResponseEntity listServer(String userRegion);
+    ResponseEntity listServer(String userRegion, String tag);
 
     /**
      * get eip by floating ip
@@ -93,20 +93,9 @@ public interface IEipService {
     ResponseEntity getEipByIpAddress(String eip);
 
     ResponseEntity getEipCount();
-    /**
-     * add eip to shared bandwidth
-     * @param eipId
-     * @param band
-     * @return
-     */
+
     ResponseEntity addEipToShared(String eipId, EipShardBand band);
 
-    /**
-     * remove eip from  shared bandwidth
-     * @param eipId
-     * @param band
-     * @return
-     */
     ResponseEntity removeFromShared(String eipId, EipShardBand band);
 
 
