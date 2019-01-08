@@ -195,6 +195,10 @@ public class HsConstants {
 
 	public static final String COLON = ":";
 
+	public static final String ADD_EIP_TO_SBW_METHOD = "addEIPtoSBW";
+	public static final String REMOVE_EIP_FROM_SBW_METHOD = "removeEIPfromSBW";
+	public static final String ADJUST_BANDWIDTH_SBW_METHOD = "adjustBandwidthSbw";
+
 	// --- 1xx Informational ---
 
 }

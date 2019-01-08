@@ -51,4 +51,7 @@ public class EipReturnDetail implements Serializable {
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
+    @JsonProperty("region")
+    private String region;
+
 }

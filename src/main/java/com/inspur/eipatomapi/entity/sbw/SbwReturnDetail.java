@@ -33,7 +33,7 @@ public class SbwReturnDetail implements Serializable {
     private String duration;
 
     @JsonProperty("ipcount")
-    private int ipcount;
+    private int ipCount;
 
     @JsonProperty("create_at")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")

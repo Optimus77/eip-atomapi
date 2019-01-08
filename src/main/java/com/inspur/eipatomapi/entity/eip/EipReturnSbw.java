@@ -16,4 +16,13 @@ public class EipReturnSbw implements Serializable {
     @JsonProperty("eipAddress")
     private String eipAddress;
 
+    @JsonProperty("bandWidth")
+    private int bandWidth;
+
+    @JsonProperty("billType")
+    private String billType;
+
+    @JsonProperty("chargeMode")
+    private String chargeMode ;
+
 }

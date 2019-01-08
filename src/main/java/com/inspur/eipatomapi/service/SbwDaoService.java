@@ -41,20 +41,16 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public Sbw allocateSbw(SbwAllocateParam sbwConfig) throws Exception {
-        ConsoleCustomization customization = sbwConfig.getConsoleCustomization();
-
+    public Sbw allocateSbw(SbwAllocateParam sbwConfig) throws Exception{
+        String userId =  CommonUtil.getUserId();
         Sbw sbwMo = new Sbw();
-        sbwMo.setRegion(customization.getRegion());
-        sbwMo.setSharedbandwidthName(customization.getSharedbandwidthname());
-        sbwMo.setBandWidth(customization.getBandwidth());
-        sbwMo.setBillType(customization.getBillType());
-        sbwMo.setChargeMode(customization.getChargemode());
-        sbwMo.setDuration(customization.getDuration());
+        sbwMo.setRegion(sbwConfig.getRegion());
+        sbwMo.setSharedbandwidthName(sbwConfig.getSbwName());
+        sbwMo.setBandWidth(sbwConfig.getBandwidth());
+        sbwMo.setBillType(sbwConfig.getBillType());
+        sbwMo.setChargeMode(sbwConfig.getChargemode());
+        sbwMo.setDuration(sbwConfig.getDuration());
         sbwMo.setDurationUnit(sbwConfig.getDurationUnit());
-        sbwMo.setBandWidth(customization.getBandwidth());
-        sbwMo.setRegion(customization.getRegion());
-        String userId = CommonUtil.getUserId();
         sbwMo.setProjectId(userId);
         sbwMo.setIsDelete(0);
         sbwMo.setCreateTime(CommonUtil.getGmtDate());
@@ -89,18 +85,18 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
         if (!CommonUtil.isAuthoried(entity.getProjectId())) {
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+            log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
         ipCount = entity.getIpCount();
         if (ipCount != 0 || ipCount > 0) {
-            msg = "Elastic IP in Shared bandwidth cannot be removed ,ipCount:{}" + ipCount;
+            msg = "EIP in sbw so that sbw cannot be removed ,ipCount:{}" + ipCount;
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
         if (null != entity.getChargeMode()) {
             if (!entity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-                msg = "Only Shared bandwidth is allowed for chargeMode";
+                msg = "Only Sharedbandwidth is allowed for chargeMode";
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
             }
@@ -112,15 +108,18 @@ public class SbwDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
             }
         }
-        if (null != entity.getPipeId()) {
-            msg = "Failed to delete eip,please unbind sbw first." + entity.toString();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        }
+//        if (null != entity.getPipeId()) {
+//            msg = "Failed to delete eip,please unbind sbw first." + entity.toString();
+//            log.error(msg);
+//            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+//        }
         entity.setIsDelete(1);
         entity.setUpdateTime(CommonUtil.getGmtDate());
+        // todo delete the qos
+        String region = entity.getRegion();
+
+
         sbwRepository.saveAndFlush(entity);
-        //delete the qos
 
         return ActionResponse.actionSuccess();
     }

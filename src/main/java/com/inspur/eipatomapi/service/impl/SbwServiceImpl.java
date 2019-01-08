@@ -57,10 +57,11 @@ public class SbwServiceImpl implements ISbwService {
                 msg = "Failed to create sbw :" + sbwConfig.getRegion();
                 log.error(msg);
             }
-        } catch (Exception e) {
-            log.error("Exception in atomCreateSbw", e.getMessage());
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+        }
+        catch (KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch ( Exception e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -396,8 +397,8 @@ public class SbwServiceImpl implements ISbwService {
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
             } else {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
-                Eip eipEntity = (Eip) result.get("data");
-                BeanUtils.copyProperties(eipEntity, sbwReturnDetail);
+                Sbw sbwEntity = (Sbw) result.get("data");
+                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
                 return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
@@ -414,23 +415,26 @@ public class SbwServiceImpl implements ISbwService {
      * @return
      */
     public ResponseEntity getOtherEips(String sbwId) {
-        try {;;
+        try {
             String projcectid=CommonUtil.getUserId();
-            List<Eip> eipList = eipRepository.getEipListNotBinding(projcectid,0, sbwId);
+            if (projcectid == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            List<Eip> eipList = eipRepository.getEipListNotBinding(projcectid,0,HsConstants.HOURLYSETTLEMENT, sbwId);
             log.info("get the other eips size:{}",eipList.size());
             JSONArray eips = new JSONArray();
             JSONObject data = new JSONObject();
 
             if (eipList !=null && eipList.size()>0){
                 for (int i = 0; i < eipList.size(); i++) {
-                    EipReturnSbw eipReturn = new EipReturnSbw();
+                    EipReturnDetail eipReturn = new EipReturnDetail();
                     Eip eip =  eipList.get(i);
                     BeanUtils.copyProperties(eip, eipReturn);
 
                     eips.add(eipReturn);
                 }
                 data.put("eips",eips);
-                log.info("data:{}",data);
                 return new ResponseEntity<>(data, HttpStatus.OK);
             }else {
                 log.warn("Failed to find EIP by sbw id, sbwid:{}", sbwId);

@@ -5,6 +5,7 @@ import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.SbwServiceImpl;
+import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
@@ -150,14 +151,14 @@ public class SbwController {
     }
 
     @ICPControllerLog
-    @PostMapping(value = "/sbws/addToSbw/{sbw_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "addEipToSbw", notes = "post")
+    @PutMapping(value = "/sbws/{sbw_id}/update", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "updateSBWconfig", notes = "post")
     @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip", value = "the eip wrapper ", required = true, dataType = "json"),
+            @ApiImplicitParam(paramType = "path", name = "eip", value = "the sbw wrapper ", required = true, dataType = "json"),
     })
     @CrossOrigin(origins = "*", maxAge = 3000)
-    public ResponseEntity addEipToSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper paramWrapper, BindingResult result) {
-        log.info("removeFromShared eip_id:{}, :{}.", sbwId, paramWrapper.toString());
+    public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper paramWrapper, BindingResult result) {
+        log.info("removeFromShared sbwId:{}, :{}.", sbwId, paramWrapper.toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -167,12 +168,27 @@ public class SbwController {
             log.info("{}", msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        if (paramWrapper.getSbwUpdateParam().getEipAddress() != null && paramWrapper.getSbwUpdateParam().getEipAddress().size() > 0) {
-            return sbwService.addEipToSbw(sbwId, paramWrapper);
+        String method = paramWrapper.getSbwUpdateParam().getMethod();
+        if (HsConstants.ADD_EIP_TO_SBW_METHOD.equalsIgnoreCase(method)){
+            return  new ResponseEntity<>("addEIPtoSBW", HttpStatus.OK);
+//            if (paramWrapper.getSbwUpdateParam().getEipAddress() != null && paramWrapper.getSbwUpdateParam().getEipAddress().size() > 0) {
+//                return sbwService.addEipToSbw(sbwId, paramWrapper);
+//            }
+        }else if( HsConstants.REMOVE_EIP_FROM_SBW_METHOD.equalsIgnoreCase(method)){
+            return  new ResponseEntity<>("removeEIPfromSBW", HttpStatus.OK);
+        }else if (HsConstants.ADJUST_BANDWIDTH_SBW_METHOD.equalsIgnoreCase(method)){
+            return  new ResponseEntity<>("addEIPtoSBW", HttpStatus.OK);
         }
         return null;
     }
 
+    /**
+     * get the eipList by sbw
+     * @param sbwId
+     * @param pageIndex
+     * @param pageSize
+     * @return
+     */
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}/eips")
     @CrossOrigin(origins = "*", maxAge = 3000)
@@ -238,7 +254,33 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
-        // todo
         return sbwService.getOtherEips(sbwId);
     }
+
+    @ICPControllerLog
+    @PutMapping(value = "/sbws/{sbw_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "update sbw", notes = "put")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+    })
+    public ResponseEntity updateSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param , BindingResult result) {
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            log.info("{}",msgBuffer);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
+        }
+        //todo update interface condition
+        String method = param.getSbwUpdateParam().getMethod();
+        String msg="";
+        if(param.getSbwUpdateParam().getSbwName()!=null){
+        }else{
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
+    }
+
 }
