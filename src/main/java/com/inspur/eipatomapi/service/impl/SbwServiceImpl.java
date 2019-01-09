@@ -52,7 +52,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);
                 log.info("Atom create a sbw success:{}", sbwMo);
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
+                return new ResponseEntity<>(ReturnMsgUtil.successSbw(sbwInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
                 msg = "Failed to create sbw :" + sbwConfig.getRegion();
