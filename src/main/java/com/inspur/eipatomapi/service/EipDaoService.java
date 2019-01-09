@@ -169,7 +169,7 @@ public class EipDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        eipEntity.setStatus(HsConstants.DOWN);
+        eipEntity.setStatus(HsConstants.STOP);
 
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
@@ -191,7 +191,7 @@ public class EipDaoService {
     @Transactional
     public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId)
             throws Exception {
-        NetFloatingIP floatingIP = null;
+        NetFloatingIP floatingIP ;
         String returnStat;
         String returnMsg ;
         Eip eip = eipRepository.findByEipId(eipid);
@@ -285,7 +285,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) ){
+        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) && !(eipEntity.getStatus().equals(HsConstants.STOP)) ){
             msg = "Error status when disassociate eip:"+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
@@ -704,7 +704,7 @@ public class EipDaoService {
     @Transactional
     public ActionResponse removeEipShardBindEip(String eipid, EipShardBand band)  {
         Eip eipEntity = eipRepository.findByEipId(eipid);
-        String msg = null;
+        String msg ;
         if (null == eipEntity) {
             log.error("In removeEipShardBindEip process,failed to find the eip by id:{} ", eipid);
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);
