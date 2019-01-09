@@ -1,6 +1,5 @@
 package com.inspur.eipatomapi.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.eip.*;
@@ -9,10 +8,7 @@ import com.inspur.eipatomapi.repository.SbwRepository;
 import com.inspur.eipatomapi.service.ISbwService;
 import com.inspur.eipatomapi.service.QosService;
 import com.inspur.eipatomapi.service.SbwDaoService;
-import com.inspur.eipatomapi.util.CommonUtil;
-import com.inspur.eipatomapi.util.KeycloakTokenException;
-import com.inspur.eipatomapi.util.ReturnMsgUtil;
-import com.inspur.eipatomapi.util.ReturnStatus;
+import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -52,7 +48,8 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);
                 log.info("Atom create a sbw success:{}", sbwMo);
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
+                return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
+
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
                 msg = "Failed to create sbw :" + sbwConfig.getRegion();
@@ -64,7 +61,7 @@ public class SbwServiceImpl implements ISbwService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage() + "";
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(SbwReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -75,7 +72,7 @@ public class SbwServiceImpl implements ISbwService {
             String projcectid = CommonUtil.getUserId();
             log.debug("listSbws  of user, userId:{}", projcectid);
             if (projcectid == null) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                return new ResponseEntity<>(SbwReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
@@ -121,10 +118,10 @@ public class SbwServiceImpl implements ISbwService {
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             log.error("Exception in listSbws", e);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -140,9 +137,9 @@ public class SbwServiceImpl implements ISbwService {
                         .resourceid(sbwEntity.getInstanceId())
                         .resourcetype(sbwEntity.getInstanceType()).build());
 
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "Can not find eip by id:" + sbwId+"."),
                         HttpStatus.NOT_FOUND);
 
@@ -176,11 +173,11 @@ public class SbwServiceImpl implements ISbwService {
     public ResponseEntity getSbwCount() {
         try {
             String projectid =CommonUtil.getUserId();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",sbwDaoService.getSbwNum(projectid)), HttpStatus.OK);
+            return new ResponseEntity<>(SbwReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",sbwDaoService.getSbwNum(projectid)), HttpStatus.OK);
         }catch (KeycloakTokenException e){
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(SbwReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
         }catch(Exception e){
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(SbwReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -189,7 +186,7 @@ public class SbwServiceImpl implements ISbwService {
     public ResponseEntity getSbwByProjectId(String projectId){
         try {
             if( projectId == null ){
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                return new ResponseEntity<>(SbwReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data=new JSONObject();
@@ -212,7 +209,7 @@ public class SbwServiceImpl implements ISbwService {
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch (Exception e){
             log.error("Exception in listSbws", e);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
