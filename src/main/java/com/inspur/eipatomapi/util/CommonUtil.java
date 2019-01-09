@@ -102,7 +102,7 @@ public class CommonUtil {
 
         if(isDebug){
             userRegion = userConfig.get("debugRegionS");
-            System.out.println("==============");
+            log.info("=============={}", userRegion);
         }
         if(token.startsWith("Bearer Bearer")){
             token = token.substring(7);
