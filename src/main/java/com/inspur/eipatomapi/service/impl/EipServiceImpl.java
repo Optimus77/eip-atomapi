@@ -389,7 +389,7 @@ public class EipServiceImpl implements IEipService {
      * @return        result
      */
     @Override
-    public ResponseEntity eipbindPort(String id, String type,String serverId, String portId,String slbIp){
+    public ResponseEntity eipbindPort(String id, String type,String serverId, String portId,String addrIp){
         String code;
         String msg;
         try {
@@ -414,7 +414,7 @@ public class EipServiceImpl implements IEipService {
                     }
                 case "2":
                 case "3":
-                    return eipbindSlb( id,  serverId,  slbIp);
+                    return eipbindInstance( id,  serverId,  addrIp, type);
 
                 default:
                     code = ReturnStatus.SC_PARAM_ERROR;
@@ -431,6 +431,7 @@ public class EipServiceImpl implements IEipService {
         log.info("Error when bind port，code:{}, msg:{}.", code, msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     /**
      * un bind port
      * @param id    id
@@ -464,7 +465,7 @@ public class EipServiceImpl implements IEipService {
                             break;
                         case "2":
                         case "3":
-                            return unBindSlb(eipEntity.getInstanceId());
+                            return unBindInstance(eipEntity.getInstanceId());
                         default:
                             //default ecs
                             code = ReturnStatus.SC_PARAM_ERROR;
@@ -534,23 +535,20 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-
-
     /**
      * eip bind with port
      * @param eipId     eip id
-     * @param slbId     eipid
-     * @param ipAddr    slbip
+     * @param InstanceId     eipid
+     * @param ipAddr    Addrip
      * @return        result
      */
-    @Override
-    public ResponseEntity eipbindSlb(String eipId, String slbId, String ipAddr) {
+    public ResponseEntity eipbindInstance(String eipId, String InstanceId, String ipAddr,String type) {
         String code;
         String msg;
         // bind slb
         JSONObject result;
         try {
-            result = eipDaoService.associateSlbWithEip(eipId, slbId, ipAddr);
+            result = eipDaoService.cpsOrSlbBindEip(eipId, InstanceId, ipAddr,type);
             if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){
                 code = result.getString("interCode");
                 int httpResponseCode=result.getInteger("httpCode");
@@ -559,7 +557,7 @@ public class EipServiceImpl implements IEipService {
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
             }else {
                 code = ReturnStatus.SC_OK;
-                msg = "The Eip binding Slb succeeded";
+                msg = "The Eip binding Instance succeeded";
                 log.info(msg);
                 log.info(code);
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
@@ -575,20 +573,19 @@ public class EipServiceImpl implements IEipService {
 
     /**
      * eip bind with port
-     * @param slbId     eipid
+     * @param instanceId     eipid
      * @return        result
      */
-    @Override
-    public ResponseEntity unBindSlb(String slbId) {
+    public ResponseEntity unBindInstance(String instanceId) {
         String code;
         String msg;
         // slb
         JSONObject result = null;
         try {
-            ActionResponse actionResponse = eipDaoService.disassociateSlbWithEip(slbId);
+            ActionResponse actionResponse = eipDaoService.unCpcOrSlbBindEip(instanceId);
             if (actionResponse.isSuccess()){
                 code = ReturnStatus.SC_OK;
-                msg=("The Eip unbinds the Slb successfully");
+                msg=("The Eip unbinds the instance successfully");
                 log.info(code);
                 log.info(msg);
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
@@ -599,12 +596,14 @@ public class EipServiceImpl implements IEipService {
                 log.error(msg);
             }
         }catch (Exception e){
-            log.error("eipbindSlb exception", e);
+            log.error("eipbindInstance exception", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
     @ICPServiceLog
     @Override
     public ResponseEntity addEipToShared(String eipId ,EipShardBand band ){

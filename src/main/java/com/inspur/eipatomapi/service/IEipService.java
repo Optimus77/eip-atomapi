@@ -47,22 +47,6 @@ public interface IEipService {
 
 
     /**
-     * update eip band width
-     * @param id    id
-     * @return      result
-     */
-    ResponseEntity eipbindSlb(String id, String type, String serverId);
-
-
-    /**
-     * eip bind with port
-     * @param slbId     eipid
-     * @return        result
-     */
-    ResponseEntity unBindSlb(String slbId);
-
-
-    /**
      * eip bind with port
      * @param id      id
      * @param serverId  server id

@@ -162,9 +162,9 @@ public class EipController {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
         String msg="";
-        if(param.getEipUpdateParam().getPortId()!=null){
+        if(param.getEipUpdateParam().getServerId()!=null){
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-            if(param.getEipUpdateParam().getPortId().trim().equals("")){
+            if(param.getEipUpdateParam().getServerId().trim().equals("")){
                 log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
                 return eipService.unBindPort(eipId);
 

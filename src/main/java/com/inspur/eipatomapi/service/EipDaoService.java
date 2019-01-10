@@ -498,15 +498,157 @@ public class EipDaoService {
      * @return             true or false
      * @throws Exception   e
      */
+//    @Transactional
+//    public JSONObject associateSlbWithEip(String eipId, String slbId, String ipAddr)
+//            throws Exception {
+//
+//        JSONObject data = new JSONObject();
+//        Eip eip = eipRepository.findByEipId(eipId);
+//        String eipIp = eip.getEipAddress();
+//
+//        if (!eip.getProjectId().equals(CommonUtil.getUserId())) {
+//            log.error("User have no write to operate eip:{}", eipId);
+//            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+//            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
+//            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
+//            return data;
+//        }
+//
+//        if (!("DOWN".equals(eip.getStatus())) || (null != eip.getDnatId())
+//                || (null != eip.getSnatId()) || (null != eip.getPipId())) {
+//            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
+//            data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
+//            data.put("interCode", ReturnStatus.EIP_BIND_HAS_BAND);
+//            return data;
+//        }
+//        if (slbId == null) {
+//            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
+//            data.put("httpCode", HttpStatus.SC_NOT_FOUND);
+//            data.put("interCode", ReturnStatus.SC_NOT_FOUND);
+//            return data;
+//        }
+//
+//        String pipId;
+//        String dnatRuleId ;
+//        String snatRuleId ;
+//        try {
+//            log.debug("======start dnat oprate ");
+//            dnatRuleId = firewallService.addDnat(ipAddr, eipIp, eip.getFirewallId());
+//            log.info("dnatRuleId:  " + dnatRuleId);
+//            if (dnatRuleId == null) {
+//                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR));
+//                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+//                data.put("interCode", ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE);
+//                return data;
+//            }
+//            log.debug("======start snat oprate ");
+//            snatRuleId = firewallService.addSnat(ipAddr, eipIp, eip.getFirewallId());
+//            log.info("snatRuleId:  " + snatRuleId);
+//            if (snatRuleId == null) {
+//                firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+//
+//                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
+//                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+//                data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
+//                return data;
+//            }
+//
+//            pipId = firewallService.addQos(ipAddr, eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
+//            if(pipId==null ){
+//                firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+//                firewallService.delSnat(snatRuleId, eip.getFirewallId());
+//
+//                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
+//                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+//                data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
+//                return data;
+//            }
+//
+//            eip.setDnatId(dnatRuleId);
+//            eip.setSnatId(snatRuleId);
+//            eip.setPipId(pipId);
+//            eip.setStatus("ACTIVE");
+//            eip.setInstanceType("3");
+//            eip.setInstanceId(slbId);
+//            eip.setPrivateIpAddress(ipAddr);
+//            eip.setUpdateTime(CommonUtil.getGmtDate());
+//            eipRepository.saveAndFlush(eip);
+//            data.put("reason", "success");
+//            data.put("httpCode", HttpStatus.SC_OK);
+//            data.put("interCode", ReturnStatus.SC_OK);
+//            data.put("data", eip);
+//            return data;
+//
+//        } catch (Exception e) {
+//            log.error("band server firewall exception", e);
+//            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
+//            data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+//            data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
+//            return data;
+//        }
+//    }
+//
+//
+//    /**
+//     * associate port with eip
+//     * @param slbId          slbid
+//     * @return             true or false
+//     * @throws Exception   e
+//     */
+//    public ActionResponse disassociateSlbWithEip(String slbId) throws Exception  {
+//
+//        String msg ;
+//        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(slbId, 0);
+//
+//        if(null == eipEntity){
+//            log.error("In disassociate process,failed to find the eip by id:{} ",slbId);
+//            return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
+//        }
+//        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+//            log.error("User have no write to delete eip:{}", slbId);
+//            return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
+//        }
+//
+//        if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())
+//                || (null == eipEntity.getDnatId()) ){
+//            msg = "Error status when disassociate eip , slbId: "+slbId+ " status : "+eipEntity.getStatus()+
+//                    " snatId : "+eipEntity.getSnatId()+" dnatId : "+eipEntity.getDnatId();
+//            log.error(msg);
+//            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
+//        }
+//
+//        MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+//
+//        eipEntity.setInstanceId(null);
+//        eipEntity.setPrivateIpAddress(null);
+//        eipEntity.setInstanceType(null);
+//
+//
+//        eipEntity.setStatus("DOWN");
+//        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+//        eipRepository.saveAndFlush(eipEntity);
+//        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+//            return ActionResponse.actionFailed(fireWallReturn.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
+//        }else {
+//            return ActionResponse.actionSuccess();
+//        }
+//    }
+    /**
+     * associate port with eip
+     * @param eipId          eip
+     * @param InstanceId     slb id
+     * @param ipAddr    ip
+     * @return             true or false
+     * @throws Exception   e
+     */
     @Transactional
-    public JSONObject associateSlbWithEip(String eipId, String slbId, String ipAddr)
+    public JSONObject cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr,String type)
             throws Exception {
 
         JSONObject data = new JSONObject();
         Eip eip = eipRepository.findByEipId(eipId);
         String eipIp = eip.getEipAddress();
-
-        if (!eip.getProjectId().equals(CommonUtil.getUserId())) {
+        if (!eip.getProjectId().equals( CommonUtil.getUserId())) {
             log.error("User have no write to operate eip:{}", eipId);
             data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
             data.put("httpCode", HttpStatus.SC_FORBIDDEN);
@@ -521,7 +663,7 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.EIP_BIND_HAS_BAND);
             return data;
         }
-        if (slbId == null) {
+        if (InstanceId == null) {
             data.put("reason", CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
             data.put("httpCode", HttpStatus.SC_NOT_FOUND);
             data.put("interCode", ReturnStatus.SC_NOT_FOUND);
@@ -568,8 +710,8 @@ public class EipDaoService {
             eip.setSnatId(snatRuleId);
             eip.setPipId(pipId);
             eip.setStatus("ACTIVE");
-            eip.setInstanceType("3");
-            eip.setInstanceId(slbId);
+            eip.setInstanceType(type);
+            eip.setInstanceId(InstanceId);
             eip.setPrivateIpAddress(ipAddr);
             eip.setUpdateTime(CommonUtil.getGmtDate());
             eipRepository.saveAndFlush(eip);
@@ -591,27 +733,27 @@ public class EipDaoService {
 
     /**
      * associate port with eip
-     * @param slbId          slbid
+     * @param InstanceId          slbid
      * @return             true or false
      * @throws Exception   e
      */
-    public ActionResponse disassociateSlbWithEip(String slbId) throws Exception  {
+    public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws Exception  {
 
         String msg ;
-        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(slbId, 0);
+        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(InstanceId, 0);
 
         if(null == eipEntity){
-            log.error("In disassociate process,failed to find the eip by id:{} ",slbId);
+            log.error("In disassociate process,failed to find the eip by id:{} ",InstanceId);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
         if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
-            log.error("User have no write to delete eip:{}", slbId);
+            log.error("User have no write to delete eip:{}", InstanceId);
             return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
         }
 
         if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())
                 || (null == eipEntity.getDnatId()) ){
-            msg = "Error status when disassociate eip , slbId: "+slbId+ " status : "+eipEntity.getStatus()+
+            msg = "Error status when disassociate eip , InstanceId: "+InstanceId+ " status : "+eipEntity.getStatus()+
                     " snatId : "+eipEntity.getSnatId()+" dnatId : "+eipEntity.getDnatId();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
@@ -633,6 +775,7 @@ public class EipDaoService {
             return ActionResponse.actionSuccess();
         }
     }
+
 
     @Transactional
     public JSONObject addEipShardBindEip(String eipid, EipShardBand param)  {
