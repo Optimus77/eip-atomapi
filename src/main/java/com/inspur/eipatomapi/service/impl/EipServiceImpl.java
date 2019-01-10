@@ -491,12 +491,12 @@ public class EipServiceImpl implements IEipService {
 
 
     @Override
-    public ResponseEntity listServer(String region){
+    public ResponseEntity listServer(String region, String tag){
         log.info("listServer start execute");
 
         try {
             OSClient.OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
-            List<NovaServerEntity> serverList= portService.listServerByTags("ECS", osClientV3);
+            List<NovaServerEntity> serverList= portService.listServerByTags(tag, osClientV3);
             JSONArray dataArray=new JSONArray();
             for(NovaServerEntity server:serverList){
                 log.debug("Server list , name:{}.",server.getName());
@@ -610,7 +610,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity addEipToShared(String eipId ,EipShardBand band ){
         String code;
         String msg;
-        JSONObject result = null;
+        JSONObject result ;
         try {
             result = eipDaoService.addEipShardBindEip(eipId, band);
             if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){

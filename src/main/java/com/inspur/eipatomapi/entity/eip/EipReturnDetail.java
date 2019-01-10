@@ -29,6 +29,9 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("bandwidth")
     private int bandWidth;
 
+    @JsonProperty("oldBandwidth")
+    private int oldBandWidth;
+
     @JsonProperty("duration")
     private String duration;
 

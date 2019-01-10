@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.entity.eip;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -47,6 +48,8 @@ public class Eip implements Serializable {
     private String duration;
 
     private int bandWidth;
+
+    private int oldBandWidth;
 
     private String ipType;
 

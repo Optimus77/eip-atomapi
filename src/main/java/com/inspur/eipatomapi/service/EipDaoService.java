@@ -360,6 +360,7 @@ public class EipDaoService {
         }
 
         if (updateStatus ||CommonUtil.qosDebug) {
+            eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
             eipEntity.setUpdateTime(CommonUtil.getGmtDate());
@@ -668,7 +669,7 @@ public class EipDaoService {
             return data;
         }
         //3.check eip had not adding any Shared bandwidth
-        if (null !=eipEntity.getSharedBandWidthId()|| !"".equals(eipEntity.getSharedBandWidthId().trim())){
+        if (null != eipEntity.getSharedBandWidthId() && !eipEntity.getSharedBandWidthId().isEmpty()){
             data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_Shared_Band_Width_Id_NOT_NULL));
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
             data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
