@@ -749,5 +749,8 @@ public class EipDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
     }
+    public Eip get(String instanceId) {
+        return eipRepository.findByInstanceIdAndIsDelete(instanceId,0);
+    }
 
 }

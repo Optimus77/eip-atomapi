@@ -340,5 +340,13 @@ public class EipController {
         }
         return eipService.removeFromShared(eipId, band);
     }
+    @ICPControllerLog
+    @GetMapping(value = "/eips/othersbws/{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value = "show all sbws list", notes = "get")
+    public ResponseEntity getUnbindSbwList(@RequestParam String eipId) {
+        // todo list unbind sbw
+        return eipService.listUnbindSbw(eipId);
+    }
 
     }

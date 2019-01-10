@@ -5,11 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
+import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
-import com.inspur.eipatomapi.service.EipDaoService;
-import com.inspur.eipatomapi.service.IEipService;
-import com.inspur.eipatomapi.service.NeutronService;
-import com.inspur.eipatomapi.service.PortService;
+import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
@@ -676,5 +674,37 @@ public class EipServiceImpl implements IEipService {
             msg = e.getMessage()+"";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ICPServiceLog
+    public ResponseEntity listUnbindSbw(String eipId) {
+        log.info("listServer start execute");
+        try {
+            String projcectid = CommonUtil.getUserId();
+            if (projcectid == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            List<Sbw> sbwList = null;
+            if (eipId == null || "".equals(eipId)) {
+                sbwList = sbwDaoService.findByProjectId(projcectid);
+            }
+            // todo :get sbwList
+            Eip eip = eipDaoService.getEipById(eipId);
+            if (eip != null) {
+
+            } else {
+                log.warn("Failed to find eip by eip id, eipId:{}", eipId);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find eip by this id:" + eipId + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+            return null;
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            log.error("Exception in getOtherEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

@@ -37,7 +37,9 @@ public  class CodeInfo {
     public static final String EIP_BILLTYPE_NOT_HOURLYSETTLEMENT="EIP_BILLTYPE_NOT_HOURLYSETTLEMENT";
     public static final String EIP_FLOATINGIP_NULL="EIP_FLOATINGIP_NULL";
     public static final String EIP_Shared_Band_Width_Id_NOT_NULL="EIP_Shared_Band_Width_Id_NOT_NULL";
-
+    //SBW
+    public static final String SBW_FORBIDEN_WITH_ID="SBW_FORBIDEN_WITH_ID";
+    public static final String SBW_CHANGE_BANDWIDTH_ERROR="SBW_CHANGE_BANDWIDTH_ERROR";
 
 
 
@@ -70,6 +72,9 @@ public  class CodeInfo {
         public static final String KEYCLOAK_NO_PROJECT="没有项目信息";
 
         public static final String SLB_BIND_NOT_FOND ="Bad request: 根据此id无法找到对应的SLB信息";
+
+        //sbw
+        public static final String ELASTIC_IP_IN_SBW_CANNOT_BE_REMOVED = "共享带宽中存在弹性IP，无法删除";
 
     }
 
