@@ -13,14 +13,18 @@ import java.util.List;
 
 @Repository
 @RepositoryRestResource(collectionResourceRel = "sbw", path = "sbw")
-public interface SbwRepository extends JpaRepository<Sbw,String> {
+public interface SbwRepository extends JpaRepository<Sbw, String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Sbw findBySbwId(String id);
 
-    Sbw findByInstanceIdAndIsDelete (String instanceId,int isDelete);
+    Sbw findByInstanceIdAndIsDelete(String instanceId, int isDelete);
 
-    List<Sbw> findByProjectId(String projectId);
+    List<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete);
 
     Page<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
+
+    Page<Sbw> findBySbwIdAndProjectIdAndIsDelete(String id, String projectId, int isDelete, Pageable pageable);
+
+    Page<Sbw> findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(String projectId, int isDelete, String name, Pageable pageable);
 }

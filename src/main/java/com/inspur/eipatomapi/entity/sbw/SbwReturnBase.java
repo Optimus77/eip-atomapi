@@ -20,7 +20,6 @@ public class SbwReturnBase implements Serializable {
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-    @Column(name="sharedbandwidthname")
     @JsonProperty("sharedbandwidthname")
     private String sharedbandwidthName;
 
