@@ -40,6 +40,9 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private PortService portService;
+
+    @Autowired
+    private SbwDaoService sbwDaoService;
     /**
      * create a eip
      * @param eipConfig          config
