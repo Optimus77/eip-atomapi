@@ -32,4 +32,6 @@ public class EipUpdateParam {
     @JsonProperty("slbip")
     private String slbIp;
 
+    @JsonProperty("privateip")
+    private String privateIp;
 }
