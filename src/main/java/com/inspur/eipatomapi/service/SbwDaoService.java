@@ -126,7 +126,10 @@ public class SbwDaoService {
         entity.setUpdateTime(CommonUtil.getGmtDate());
         // todo delete the qos
         String region = entity.getRegion();
-
+        Firewall firewall=firewallRepository.findFirewallByRegion(region);
+        String devIp = firewall.getIp();
+        String pipeId = entity.getPipeId();
+        firewallService.delQos(pipeId,devIp);
 
         sbwRepository.saveAndFlush(entity);
 
