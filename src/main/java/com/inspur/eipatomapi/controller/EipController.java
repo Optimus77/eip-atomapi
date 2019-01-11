@@ -266,7 +266,7 @@ public class EipController {
             , @PathVariable("eip_id") String eipId
             ,@PathVariable("ip_addr") String ipAddr) {
         log.info("Bind eip.{}, {}, {}", slbId,ipAddr,eipId);
-        return eipService.eipbindSlb(eipId,slbId,ipAddr);
+        return eipService.eipbindInstance(eipId,slbId,ipAddr, "3");
     }
 
 
@@ -278,7 +278,7 @@ public class EipController {
     })
     public ResponseEntity eipUnbinWithSlb(@PathVariable("slb_id") String slbId) {
         log.info("unBind eip.{}, {}, {}", slbId);
-        return eipService.unBindSlb(slbId);
+        return eipService.unBindInstance(slbId);
     }
 
     @ICPControllerLog
