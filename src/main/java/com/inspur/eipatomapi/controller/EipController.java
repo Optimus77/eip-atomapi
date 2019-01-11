@@ -174,7 +174,7 @@ public class EipController {
                     return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
                             param.getEipUpdateParam().getServerId(),
                             param.getEipUpdateParam().getPortId(),
-                            param.getEipUpdateParam().getSlbIp());
+                            param.getEipUpdateParam().getPrivateIp());
                 }else{
                     msg="need param serverid and type";
                 }
