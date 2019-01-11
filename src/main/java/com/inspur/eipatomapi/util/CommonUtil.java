@@ -46,6 +46,8 @@ public class CommonUtil {
     private static JSONObject KeyClockInfo;
     @Value("${openstackIp}")
     private String openstackIp;
+    @Value("${openstackUrl}")
+    private String openstackUrl;
     @Value("${userNameS}")
     private String userNameS;
     @Value("${passwordS}")
@@ -67,6 +69,7 @@ public class CommonUtil {
         userConfig.put("projectIdS",projectIdS);
         userConfig.put("userDomainIdS",userDomainIdS);
         userConfig.put("debugRegionS",debugRegionS);
+        userConfig.put("openstackUrl",openstackUrl);
     }
 
 //    private static OSClientV3 getOsClientV3(){
@@ -83,7 +86,7 @@ public class CommonUtil {
     private static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
         return OSFactory.builderV3()
-                .endpoint(userConfig.get("openstackIp"))
+                .endpoint(userConfig.get("openstackUrl"))
                 .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
                         Identifier.byId(userConfig.get("userDomainIdS")))
                 .withConfig(config)
@@ -113,7 +116,7 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
-            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userConfig.get("debugRegionS"));
         }else {
             String clientId = jsonObject.getString("clientId");
             if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
@@ -214,6 +217,7 @@ public class CommonUtil {
         if(null == token){
             log.error("User has no token.");
         }else {
+
             org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
             String userId = (String) jsonObject.get("sub");
             if(userId.equals(projectId)){
