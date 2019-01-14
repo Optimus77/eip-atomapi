@@ -84,6 +84,7 @@ public class SbwDaoService {
      * @param sbwId
      * @return
      */
+    @Transactional
     public ActionResponse deleteSbw(String sbwId) {
         String msg;
         int ipCount = 0;
