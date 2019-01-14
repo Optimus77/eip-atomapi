@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Data
 public class SbwAllocateParam implements Serializable {
     @NotBlank(message = "can not be blank.")
-    private String region;
+        private String region;
 
     @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
     private String billType = "hourlySettlement";

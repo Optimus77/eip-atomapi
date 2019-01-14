@@ -38,6 +38,8 @@ public  class CodeInfo {
     public static final String EIP_FLOATINGIP_NULL="EIP_FLOATINGIP_NULL";
     public static final String EIP_Shared_Band_Width_Id_NOT_NULL="EIP_Shared_Band_Width_Id_NOT_NULL";
     //SBW
+    public static final String SBW_FORBIDDEN="SBW_FORBIDDEN";
+    public static final String SBW_NOT_FOND_BY_ID ="EIP_NOT_FOND_BY_ID";
     public static final String SBW_FORBIDEN_WITH_ID="SBW_FORBIDEN_WITH_ID";
     public static final String SBW_CHANGE_BANDWIDTH_ERROR="SBW_CHANGE_BANDWIDTH_ERROR";
 
