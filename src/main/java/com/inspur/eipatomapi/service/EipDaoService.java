@@ -637,7 +637,7 @@ public class EipDaoService {
 
 
     @Transactional
-    public JSONObject addEipShardBindEip(String eipid, EipShardBand param)  {
+    public JSONObject addEipShardBindEip(String eipid, String  sharedSbwId)  {
 
         // todo 2.check Shared bandwidth ip quota
         JSONObject data = new JSONObject();
@@ -680,15 +680,15 @@ public class EipDaoService {
         }
         boolean updateStatus = false;
         try {
-            log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+eipEntity.getFloatingIp()+" ShardBandId: "+param.getShardBandId());
-            updateStatus = firewallService.addQosBindEip(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), param.getShardBandId());
+            log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+eipEntity.getFloatingIp()+" ShardBandId: "+ sharedSbwId);
+            updateStatus = firewallService.addQosBindEip(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sharedSbwId);
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (updateStatus || CommonUtil.qosDebug) {
             eipEntity.setUpdateTime(new Date());
             //update the eip table
-            eipEntity.setSharedBandWidthId(param.getShardBandId());
+            eipEntity.setSharedBandWidthId(sharedSbwId);
             eipRepository.saveAndFlush(eipEntity);
             data.put("reason", "");
             data.put("httpCode", HttpStatus.SC_OK);
@@ -705,7 +705,7 @@ public class EipDaoService {
     }
 
     @Transactional
-    public ActionResponse removeEipShardBindEip(String eipid, EipShardBand band)  {
+    public ActionResponse removeEipShardBindEip(String eipid, String sharedSbwId)  {
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String msg ;
         if (null == eipEntity) {
@@ -734,7 +734,7 @@ public class EipDaoService {
         //todo remove eip
         boolean removeStatus = false;
         try {
-            removeStatus = firewallService.removeQosBindEip(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), band.getShardBandId());
+            removeStatus = firewallService.removeQosBindEip(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sharedSbwId);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -746,7 +746,7 @@ public class EipDaoService {
             return ActionResponse.actionSuccess();
 
         } else {
-            msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getEipId() + "sharedBandWidthId:" + band + "";
+            msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getEipId() + "sharedBandWidthId:" + sharedSbwId + "";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }

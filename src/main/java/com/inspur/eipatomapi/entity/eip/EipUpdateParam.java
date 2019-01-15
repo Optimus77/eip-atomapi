@@ -34,4 +34,8 @@ public class EipUpdateParam {
 
     @JsonProperty("privateip")
     private String privateIp;
+
+    private String chargemode;
+
+    private String sharedBandWidthId;
 }

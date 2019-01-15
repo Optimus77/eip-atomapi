@@ -186,6 +186,10 @@ public class EipController {
                 return eipService.unBindPort(eipId);
             }else{
                 if(param.getEipUpdateParam().getBillType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
+                    if(param.getEipUpdateParam().getChargemode().equalsIgnoreCase("SharedBandwidth")){
+                        log.info("update eip to shared bandwidth:{}", param.getEipUpdateParam().toString());
+                        return eipService.addEipToShared(eipId, param.getEipUpdateParam().getSharedBandWidthId());
+                    }
 
                     boolean chargeTypeFlag=false;
                     if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)||
@@ -299,7 +303,7 @@ public class EipController {
             log.info("{}",msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        return eipService.addEipToShared(eipId,band);
+        return eipService.addEipToShared(eipId,band.getShardBandId());
     }
 
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -338,7 +342,7 @@ public class EipController {
             log.info("{}",msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        return eipService.removeFromShared(eipId, band);
+        return eipService.removeFromShared(eipId, band.getShardBandId());
     }
     @ICPControllerLog
     @GetMapping(value = "/eips/othersbws/{eip_id}")
