@@ -3,6 +3,7 @@ package com.inspur.eipatomapi.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodSbwReturn;
+import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
@@ -23,6 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +46,9 @@ public class SbwDaoService {
 
     @Autowired
     private FirewallRepository firewallRepository;
+
+    @Autowired
+    private QosService qosService;
 
     public List<Sbw> findByProjectId(String projectId) {
         return sbwRepository.findByProjectIdAndIsDelete(projectId, 0);
@@ -298,6 +303,7 @@ public class SbwDaoService {
     public MethodSbwReturn addEipToSbw(String sbwId, List<String> eipId, String region)throws Exception{
         String returnStat = "";
         String returnMsg = "";
+        JSONObject data=new JSONObject();
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
             log.error("In addEipToSbw process, failed to find the sbw by id:{} ", sbwId);
@@ -308,6 +314,27 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
+        }
+        if(eipId!=null&&eipId.size()>0) {
+            for (int count=0;count<eipId.size();count++) {
+                String id = eipId.get(count);
+                Eip eipEntity = eipRepository.findByEipId(id);
+                Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
+                if(eipEntity.getFloatingIp()!=null) {
+                    firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipEntity.getBandWidth()), eipEntity.getFirewallId());
+                    log.info("addQos sucess floatingIp:{},eipAddress:{},bandWidth:{},fireWallId:{}",eipEntity.getFloatingIp(),eipEntity.getEipAddress(),String.valueOf(eipEntity.getBandWidth()),eipEntity.getFirewallId());
+                }
+//                HashMap<String, String> pipeId = qosService.getQosPipeId(id);
+                int eipbandWidth = eipEntity.getBandWidth();
+                eipEntity.setOldBandWidth(eipbandWidth);
+                eipRepository.saveAndFlush(eipEntity);
+                int sbwBandWidth= sbwEntity.getBandWidth();
+                eipEntity.setBandWidth(sbwBandWidth);
+                eipEntity.setChargeMode("SharedBandwidth");
+                eipEntity.setSharedBandWidthId(sbwId);
+                eipRepository.saveAndFlush(eipEntity);
+            }
+
         }
         // todo add Eip toSbw
         // find eip and checked
