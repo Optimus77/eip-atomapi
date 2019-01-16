@@ -2,6 +2,7 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eipatomapi.entity.MethodSbwReturn;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.sbw.*;
 import com.inspur.eipatomapi.repository.EipRepository;
@@ -309,11 +310,29 @@ public class SbwServiceImpl implements ISbwService {
      * @return
      */
     public ResponseEntity addEipToSbw(String sbwId, SbwUpdateParamWrapper paramWrapper) {
-        Sbw sbw = sbwDaoService.getSbwById(sbwId);
-        if (sbw.getIsDelete() != 1 && sbw.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
-
+        String code;
+        String msg;
+        SbwUpdateParam update = paramWrapper.getSbwUpdateParam();
+        try {
+            log.debug("add eip to sbw sbwId:{} eipIds:{} region:{}",update.getEipIds(), update.getRegion());
+            MethodSbwReturn result = sbwDaoService.addEipToSbw(sbwId, update.getEipIds(), update.getRegion());
+            if (!result.getInnerCode().equals(ReturnStatus.SC_OK)) {
+                msg = result.getMessage();
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
+                        HttpStatus.valueOf(result.getHttpCode()));
+            } else {
+                SbwReturnDetail eipReturnDetail = new SbwReturnDetail();
+                Sbw sbwEntity = (Sbw) result.getSbw();
+                BeanUtils.copyProperties(sbwEntity, eipReturnDetail);
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            log.error("add eip to sbw exception", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage() + "";
         }
-        return null;
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -324,7 +343,29 @@ public class SbwServiceImpl implements ISbwService {
      * @return
      */
     public ResponseEntity removeEipFromSbw(String sbwId, SbwUpdateParamWrapper paramWrapper) {
-        return null;
+        String code;
+        String msg;
+        SbwUpdateParam update = paramWrapper.getSbwUpdateParam();
+        try {
+            log.debug("remove eip to sbw sbwId:{} eipIds:{} region:{}",update.getEipIds(), update.getRegion());
+            MethodSbwReturn result = sbwDaoService.removeEipFromSbw(sbwId, update.getEipIds(), update.getRegion());
+            if (!result.getInnerCode().equals(ReturnStatus.SC_OK)) {
+                msg = result.getMessage();
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
+                        HttpStatus.valueOf(result.getHttpCode()));
+            } else {
+                SbwReturnDetail eipReturnDetail = new SbwReturnDetail();
+                Sbw sbwEntity = (Sbw) result.getSbw();
+                BeanUtils.copyProperties(sbwEntity, eipReturnDetail);
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            log.error("remove eip to sbw exception", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage() + "";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     public ResponseEntity getFloatingIpListByUser() {

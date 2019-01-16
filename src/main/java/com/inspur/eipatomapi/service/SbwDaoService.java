@@ -1,8 +1,9 @@
 package com.inspur.eipatomapi.service;
 
-
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
+import com.inspur.eipatomapi.entity.eip.Eip;
+import com.inspur.eipatomapi.entity.MethodSbwReturn;
 import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.entity.sbw.ConsoleCustomization;
@@ -23,9 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -290,4 +289,132 @@ public class SbwDaoService {
             return data;
         }
     }
+
+    /**
+     *
+     * add eip to SBW
+     * @param sbwId
+     * @param eipId
+     * @param region
+     * @return
+     */
+    @Transactional
+    public MethodSbwReturn addEipToSbw(String sbwId, List<String> eipId, String region)throws Exception{
+        Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
+        if (null == sbwEntity) {
+            log.error("In addEipToSbw process, failed to find the sbw by id:{} ", sbwId);
+            return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
+        }
+        if (!sbwEntity.getProjectId().equals(CommonUtil.getUserId())) {
+            log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
+            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+                    CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
+        }
+        if(eipId!=null&&eipId.size()>0) {
+            for (int count = 0;count<eipId.size();count++) {
+                String id = eipId.get(count);
+                Eip eipEntity = eipRepository.findByEipId(id);
+                String  pipeid= firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipEntity.getBandWidth()), eipEntity.getFirewallId());
+
+
+                int eipbandWidth = eipEntity.getBandWidth();
+                eipEntity.setOldBandWidth(eipbandWidth);
+                eipRepository.saveAndFlush(eipEntity);
+                int sbwBandWidth= sbwEntity.getBandWidth();
+                sbwEntity.setIpCount(count);
+                sbwEntity.setPipeId(pipeid);
+                eipEntity.setBandWidth(sbwBandWidth);
+                eipEntity.setChargeMode("SharedBandwidth");
+                eipEntity.setSharedBandWidthId(sbwId);
+                eipRepository.saveAndFlush(eipEntity);
+                if (pipeid!=null){
+                    log.info("addQos sucess floatingIp:{},eipAddress:{},bandWidth:{},fireWallId:{}",eipEntity.getFloatingIp(),eipEntity.getEipAddress(),String.valueOf(eipEntity.getBandWidth()),eipEntity.getFirewallId());
+                    firewallService.delQos(eipEntity.getPipId(),eipEntity.getFirewallId());
+                }else {
+                    log.error("addQos failed pipeid:{}",pipeid);
+                }
+
+
+
+
+            }
+
+        }
+        // todo add Eip toSbw
+        // find eip and checked
+        //create the qos and get the qos pipe id ,then remeber the pipe id
+        //update the eip and sbw database (sbw table need to add the origin bandwidth field)
+        //get the floatip and insert to the qos
+        //add net and qos to firewall
+        //If the above steps execute successfully,then remove the origin qos and update eip table
+        return MethodReturnUtil.success();
+    }
+
+    /**
+     * remove eip from sbw is same as addToSbw
+     * @param sbwId
+     * @param eipId
+     * @param region
+     * @return
+     * @throws Exception
+     */
+    @Transactional
+    public MethodSbwReturn removeEipFromSbw(String sbwId, List<String> eipId, String region)throws Exception{
+        String returnStat = "";
+        String returnMsg = "";
+        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        if (null == sbw) {
+            log.error("In addEipToSbw process, failed to find the sbw by id:{} ", sbwId);
+            return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
+        }
+        if (!sbw.getProjectId().equals(CommonUtil.getUserId())) {
+            log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
+            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+                    CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
+        }
+        // todo remove Eip toSbw
+        for (String eipid:eipId) {
+            Eip eipEntity = eipRepository.findByEipId(eipid);
+            if (eipEntity == null) {
+                log.error("In removeEipToSbw process, failed to find the eipEntity by eipid:{} ", eipid);
+                return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                        CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
+            }
+            String firewallId = eipEntity.getFirewallId();
+            String floatingIp = eipEntity.getFloatingIp();
+            String bandWidth = eipEntity.getBandWidth()+"";
+            int oldBandWidth = eipEntity.getOldBandWidth();
+            String  pipeId=sbw.getPipeId();
+            if (pipeId==null||pipeId==""){
+                log.error("In removeEipToSbw process, failed to find sbw from the pipId:{} ", pipeId);
+                return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                        CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
+            }
+            boolean delQosResult = firewallService.delQos(pipeId, firewallId);
+            if(delQosResult) {
+                eipEntity.setPipId(null);
+            } else {
+                returnMsg = "Failed to del Qos, eipId:"+eipEntity.getEipId()+"pipId:"+eipEntity.getPipId()+"";
+                log.error(returnMsg);
+            }
+            String pipid = firewallService.addQos(floatingIp, eipid, bandWidth, firewallId);
+            if(pipid==null ){
+                log.error("In removeEipToSbw process, failed to find the pipId:{} ", pipeId);
+                return MethodReturnUtil.errorSbw(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE,
+                        CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
+            }
+            eipEntity.setPipId(pipid);
+            eipEntity.setSharedBandWidthId(null);
+            eipEntity.setBandWidth(oldBandWidth);
+            eipEntity.setUpdateTime(new Date());
+            eipRepository.saveAndFlush(eipEntity);
+        }
+        sbw.setPipeId(null);
+        sbw.setChargeMode("BandWidth");
+        sbwRepository.saveAndFlush(sbw);
+        return MethodReturnUtil.success();
+    }
+
 }

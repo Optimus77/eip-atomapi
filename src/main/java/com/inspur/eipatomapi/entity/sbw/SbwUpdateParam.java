@@ -16,7 +16,7 @@ public class SbwUpdateParam implements Serializable {
     private int bandwidth;
 
     @JsonProperty
-    private List<String> eipAddress;
+    private List<String> eipIds;
 
     @JsonProperty("sbwName")
     private String sbwName;

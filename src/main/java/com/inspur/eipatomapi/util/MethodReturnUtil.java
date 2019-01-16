@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.util;
 
+
 import com.inspur.eipatomapi.entity.MethodReturn;
 
 public class MethodReturnUtil {

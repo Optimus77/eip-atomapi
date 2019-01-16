@@ -62,8 +62,8 @@ public class SbwController {
     @GetMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "listsbw", notes = "list")
-    public ResponseEntity listSbw(@RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
-                                  @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize,
+    public ResponseEntity listSbw(@RequestParam( name = "currentPageIndex", defaultValue = "1") String pageIndex,
+                                  @RequestParam( name = "currentPageSize", defaultValue = "10") String pageSize,
                                   @RequestParam(required = false, name = "searchValue") String searchValue) {
         log.info("SbwController listSbw currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
         if (pageIndex == null || pageSize == null) {
@@ -103,7 +103,7 @@ public class SbwController {
     @DeleteMapping(value = "/sbws/{sbw_id}")
     @ICPControllerLog
     @CrossOrigin(origins = "*", maxAge = 3000)
-    public ResponseEntity atomDeleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
+    public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
                                         @PathVariable("sbw_id") String sbwId) {
         //Check the parameters
         log.info("Atom delete the sbw:{} ", sbwId);
@@ -249,14 +249,16 @@ public class SbwController {
         String method = param.getSbwUpdateParam().getMethod();
         if (method ==null || "".equals(method)){
             msg = "customerConsole request method must be json and not null";
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
         }
         if (HsConstants.ADD_EIP_TO_SBW_METHOD.equalsIgnoreCase(method)){
-            return  new ResponseEntity<>("addEIPtoSBW", HttpStatus.OK);
+
+            return sbwService.addEipToSbw(sbwId,param);
 //            if (paramWrapper.getSbwUpdateParam().getEipAddress() != null && paramWrapper.getSbwUpdateParam().getEipAddress().size() > 0) {
 //                return sbwService.addEipToSbw(sbwId, paramWrapper);
 //            }
         }else if( HsConstants.REMOVE_EIP_FROM_SBW_METHOD.equalsIgnoreCase(method)){
-            return  new ResponseEntity<>("removeEIPfromSBW", HttpStatus.OK);
+            return  sbwService.removeEipFromSbw(sbwId,param);
         }else if (HsConstants.ADJUST_BANDWIDTH_SBW_METHOD.equalsIgnoreCase(method)){
             if (param.getSbwUpdateParam().getBillType() != null ) {
                 boolean chargeTypeFlag = false;
