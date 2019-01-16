@@ -649,10 +649,16 @@ public class EipDaoService {
             data.put("interCode", ReturnStatus.SC_NOT_FOUND);
             return data;
         }
-        if (null ==eipEntity.getFloatingIp()||"".equals(eipEntity.getFloatingIp().trim())){
+        if (null ==eipEntity.getFloatingIp()||"".equals(eipEntity.getFloatingIp().trim()) ||
+            !eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             data.put("reason",CodeInfo.EIP_FLOATINGIP_NULL);
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
             log.error("Have no floatingIP", eipEntity.getFloatingIp());
+            eipEntity.setOldBandWidth(eipEntity.getBandWidth());
+            eipEntity.setSharedBandWidthId(sharedSbwId);
+            eipEntity.setChargeMode("SharedBandwidth");
+            eipRepository.saveAndFlush(eipEntity);
+            return data;
         }
         if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
             log.error("User have no write to operate eip:{}", eipid);
