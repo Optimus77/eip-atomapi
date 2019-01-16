@@ -1,6 +1,7 @@
 package com.inspur.eipatomapi.service;
 
 import com.inspur.eipatomapi.entity.eip.EipShardBand;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
 
@@ -78,9 +79,9 @@ public interface IEipService {
 
     ResponseEntity getEipCount();
 
-    ResponseEntity addEipToShared(String eipId, String sharedSbwId);
+    ResponseEntity addEipToShared(String eipId,  EipUpdateParam eipUpdateParam);
 
-    ResponseEntity removeFromShared(String eipId, String sharedSbwId);
+    ResponseEntity removeFromShared(String eipId, EipUpdateParam eipUpdateParam);
 
 
 }

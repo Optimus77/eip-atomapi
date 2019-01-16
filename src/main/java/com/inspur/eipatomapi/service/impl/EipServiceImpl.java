@@ -358,16 +358,16 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            JSONObject result = eipDaoService.updateEipEntity(id, param);
-            if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
-                code = result.getString("interCode");
-                int httpResponseCode=result.getInteger("httpCode");
-                msg = result.getString("reason");
+            MethodReturn result = eipDaoService.updateEipEntity(id, param);
+            if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
+                code = result.getInnerCode();
+                int httpResponseCode=result.getHttpCode();
+                msg = result.getMessage();
                 log.error(msg);
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
             }else{
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
-                Eip eipEntity=(Eip)result.get("data");
+                Eip eipEntity=(Eip)result.getEip();
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
                         .resourceid(eipEntity.getInstanceId())
@@ -547,21 +547,18 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         // bind slb
-        JSONObject result;
+        MethodReturn result;
         try {
             result = eipDaoService.cpsOrSlbBindEip(eipId, InstanceId, ipAddr,type);
-            if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){
-                code = result.getString("interCode");
-                int httpResponseCode=result.getInteger("httpCode");
-                msg = result.getString("reason");
+            if (!result.getInnerCode().equals(ReturnStatus.SC_OK)){
+                msg = result.getMessage();
                 log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
+                        HttpStatus.valueOf(result.getHttpCode()));
             }else {
-                code = ReturnStatus.SC_OK;
                 msg = "The Eip binding Instance succeeded";
                 log.info(msg);
-                log.info(code);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_OK, msg), HttpStatus.OK);
             }
         }catch (Exception e){
             log.error("eipbindSlb exception", e);
@@ -580,8 +577,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity unBindInstance(String instanceId) {
         String code;
         String msg;
-        // slb
-        JSONObject result = null;
+
         try {
             ActionResponse actionResponse = eipDaoService.unCpcOrSlbBindEip(instanceId);
             if (actionResponse.isSuccess()){
@@ -607,12 +603,12 @@ public class EipServiceImpl implements IEipService {
 
     @ICPServiceLog
     @Override
-    public ResponseEntity addEipToShared(String eipId ,String sharedSbwId ){
+    public ResponseEntity addEipToShared(String eipId ,EipUpdateParam eipUpdateParam ){
         String code;
         String msg;
         MethodReturn result ;
         try {
-            result = eipDaoService.addEipShardBindEip(eipId, sharedSbwId);
+            result = eipDaoService.addEipShardBindEip(eipId, eipUpdateParam);
             if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
                 msg = result.getMessage();
                 log.error(msg);
@@ -650,11 +646,12 @@ public class EipServiceImpl implements IEipService {
     }
 
     @Override
-    public ResponseEntity removeFromShared(String eipId, String sharedSbwId) {
+    public ResponseEntity removeFromShared(String eipId, EipUpdateParam eipUpdateParam) {
         String code;
         String msg;
+
         try {
-            ActionResponse actionResponse = eipDaoService.removeEipShardBindEip(eipId, sharedSbwId);
+            ActionResponse actionResponse = eipDaoService.removeEipShardBindEip(eipId, eipUpdateParam);
             if (actionResponse.isSuccess()){
                 code = ReturnStatus.SC_OK;
                 msg=("remove from shared successfully");
@@ -675,35 +672,35 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ICPServiceLog
-    public ResponseEntity listUnbindSbw(String eipId) {
-        log.info("listServer start execute");
-        try {
-            String projcectid = CommonUtil.getUserId();
-            if (projcectid == null) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
-            }
-            List<Sbw> sbwList = null;
-            if (eipId == null || "".equals(eipId)) {
-                sbwList = sbwDaoService.findByProjectId(projcectid);
-            }
-            // todo :get sbwList
-            Eip eip = eipDaoService.getEipById(eipId);
-            if (eip != null) {
-
-            } else {
-                log.warn("Failed to find eip by eip id, eipId:{}", eipId);
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-                        "can not find eip by this id:" + eipId + ""),
-                        HttpStatus.NOT_FOUND);
-            }
-            return null;
-        } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
-        } catch (Exception e) {
-            log.error("Exception in getOtherEips", e);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @ICPServiceLog
+//    public ResponseEntity listUnbindSbw(String eipId) {
+//        log.info("listServer start execute");
+//        try {
+//            String projcectid = CommonUtil.getUserId();
+//            if (projcectid == null) {
+//                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+//                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+//            }
+//            List<Sbw> sbwList = null;
+//            if (eipId == null || "".equals(eipId)) {
+//                sbwList = sbwDaoService.findByProjectId(projcectid);
+//            }
+//            // todo :get sbwList
+//            Eip eip = eipDaoService.getEipById(eipId);
+//            if (eip != null) {
+//
+//            } else {
+//                log.warn("Failed to find eip by eip id, eipId:{}", eipId);
+//                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+//                        "can not find eip by this id:" + eipId + ""),
+//                        HttpStatus.NOT_FOUND);
+//            }
+//            return null;
+//        } catch (KeycloakTokenException e) {
+//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+//        } catch (Exception e) {
+//            log.error("Exception in getOtherEips", e);
+//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 }

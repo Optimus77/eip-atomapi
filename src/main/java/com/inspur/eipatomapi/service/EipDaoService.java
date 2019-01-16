@@ -234,7 +234,8 @@ public class EipDaoService {
             eip.setFloatingIp(floatingIP.getFloatingIpAddress());
             eip.setFloatingIpId(floatingIP.getId());
 
-            MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip);
+            MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
+                                                    eip.getBandWidth(), eip.getFirewallId());
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
                 eip.setInstanceId(serverId);
                 eip.setInstanceType(instanceType);
@@ -325,32 +326,27 @@ public class EipDaoService {
     }
 
     @Transactional
-    public JSONObject updateEipEntity(String eipid, EipUpdateParamWrapper param) {
+    public MethodReturn updateEipEntity(String eipid, EipUpdateParamWrapper param) {
 
         JSONObject data=new JSONObject();
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
             log.error("In disassociate process,failed to find the eip by id:{} ", eipid);
-            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
-            data.put("httpCode", HttpStatus.SC_NOT_FOUND);
-            data.put("interCode", ReturnStatus.SC_NOT_FOUND);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
 
         if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
             log.error("User have no write to operate eip:{}", eipid);
-            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
-            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
-            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+
         }
         if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)){
             //can’t sub
             if(param.getEipUpdateParam().getBandWidth()<eipEntity.getBandWidth()){
-                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
-                data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
-                data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
-                return data;
+                return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
+                        CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
             }
         }
         boolean updateStatus;
@@ -366,16 +362,10 @@ public class EipDaoService {
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
             eipEntity.setUpdateTime(CommonUtil.getGmtDate());
             eipRepository.saveAndFlush(eipEntity);
-            data.put("reason","");
-            data.put("httpCode", HttpStatus.SC_OK);
-            data.put("interCode", ReturnStatus.SC_OK);
-            data.put("data",eipEntity);
-            return data;
+            return MethodReturnUtil.success(eipEntity);
         }else{
-            data.put("reason",CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
-            data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
         }
 
     }
@@ -391,7 +381,8 @@ public class EipDaoService {
         int newTime = Integer.valueOf(addTime) + Integer.valueOf(oldTime);
         eipEntity.setDuration(String.valueOf(newTime));
         if((newTime > 0) && (null ==eipEntity.getSnatId()) && (null == eipEntity.getDnatId())){
-            MethodReturn fireWallReturn =  firewallService.addNatAndQos(eipEntity);
+            MethodReturn fireWallReturn =  firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                    eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId() );
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
                 eipEntity.setStatus(HsConstants.ACTIVE);
@@ -501,7 +492,7 @@ public class EipDaoService {
      * @throws Exception   e
      */
     @Transactional
-    public JSONObject cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr,String type)
+    public MethodReturn cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr,String type)
             throws Exception {
 
         JSONObject data = new JSONObject();
@@ -509,83 +500,32 @@ public class EipDaoService {
         String eipIp = eip.getEipAddress();
         if (!eip.getProjectId().equals( CommonUtil.getUserId())) {
             log.error("User have no write to operate eip:{}", eipId);
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
-            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
-            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
         }
 
         if (!("DOWN".equals(eip.getStatus())) || (null != eip.getDnatId())
                 || (null != eip.getSnatId()) || (null != eip.getPipId())) {
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
-            data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
-            data.put("interCode", ReturnStatus.EIP_BIND_HAS_BAND);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
         if (InstanceId == null) {
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
-            data.put("httpCode", HttpStatus.SC_NOT_FOUND);
-            data.put("interCode", ReturnStatus.SC_NOT_FOUND);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
         }
 
-        String pipId;
-        String dnatRuleId ;
-        String snatRuleId ;
-        try {
-            log.debug("======start dnat oprate ");
-            dnatRuleId = firewallService.addDnat(ipAddr, eipIp, eip.getFirewallId());
-            log.info("dnatRuleId:  " + dnatRuleId);
-            if (dnatRuleId == null) {
-                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR));
-                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                data.put("interCode", ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE);
-                return data;
-            }
-            log.debug("======start snat oprate ");
-            snatRuleId = firewallService.addSnat(ipAddr, eipIp, eip.getFirewallId());
-            log.info("snatRuleId:  " + snatRuleId);
-            if (snatRuleId == null) {
-                firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-
-                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR));
-                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                data.put("interCode", ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE);
-                return data;
-            }
-
-            pipId = firewallService.addQos(ipAddr, eip.getEipAddress(), String.valueOf(eip.getBandWidth()), eip.getFirewallId());
-            if(pipId==null ){
-                firewallService.delDnat(dnatRuleId, eip.getFirewallId());
-                firewallService.delSnat(snatRuleId, eip.getFirewallId());
-
-                data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
-                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                data.put("interCode", ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE);
-                return data;
-            }
-
-            eip.setDnatId(dnatRuleId);
-            eip.setSnatId(snatRuleId);
-            eip.setPipId(pipId);
-            eip.setStatus("ACTIVE");
-            eip.setInstanceType(type);
+        MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, ipAddr, eipIp, eip.getBandWidth(), eip.getFirewallId());
+        if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
             eip.setInstanceId(InstanceId);
+            eip.setInstanceType(type);
+            eip.setStatus(HsConstants.ACTIVE);
             eip.setPrivateIpAddress(ipAddr);
             eip.setUpdateTime(CommonUtil.getGmtDate());
             eipRepository.saveAndFlush(eip);
-            data.put("reason", "success");
-            data.put("httpCode", HttpStatus.SC_OK);
-            data.put("interCode", ReturnStatus.SC_OK);
-            data.put("data", eip);
-            return data;
-
-        } catch (Exception e) {
-            log.error("band server firewall exception", e);
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
-            data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            data.put("interCode", ReturnStatus.SC_FIREWALL_UNAVAILABLE);
-            return data;
+            return MethodReturnUtil.success(eip);
+        }else{
+            return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
         }
     }
 
@@ -637,10 +577,11 @@ public class EipDaoService {
 
 
     @Transactional
-    public MethodReturn addEipShardBindEip(String eipid, String  sharedSbwId)  {
+    public MethodReturn addEipShardBindEip(String eipid, EipUpdateParam eipUpdateParam)  {
 
         // todo 2.check Shared bandwidth ip quota
         JSONObject data = new JSONObject();
+        String sharedSbwId = eipUpdateParam.getSharedBandWidthId();
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
             log.error("In addEipShardBindEip process,failed to find the eip by id:{} ", eipid);
@@ -648,12 +589,12 @@ public class EipDaoService {
            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
-        if (null ==eipEntity.getFloatingIp()||"".equals(eipEntity.getFloatingIp().trim()) ||
-            !eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
-            log.error("Have no floatingIP", eipEntity.getFloatingIp());
+        if (!eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
+            log.info("Eip status is not active:{}");
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setSharedBandWidthId(sharedSbwId);
             eipEntity.setChargeMode("SharedBandwidth");
+            eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
             eipRepository.saveAndFlush(eipEntity);
             return MethodReturnUtil.success();
         }
@@ -696,15 +637,22 @@ public class EipDaoService {
     }
 
     @Transactional
-    public ActionResponse removeEipShardBindEip(String eipid, String sharedSbwId)  {
+    public ActionResponse removeEipShardBindEip(String eipid, EipUpdateParam eipUpdateParam)  {
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String msg ;
+        String sharedSbwId = eipUpdateParam.getSharedBandWidthId();
         if (null == eipEntity) {
             log.error("In removeEipShardBindEip process,failed to find the eip by id:{} ", eipid);
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);
         }
-        if (null ==eipEntity.getFloatingIp()||"".equals(eipEntity.getFloatingIp().trim())){
-            log.error("this eip have no floatingIP", eipEntity.getFloatingIp());
+        if (!eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
+            log.info("this eip is not active.");
+            eipEntity.setOldBandWidth(eipEntity.getBandWidth());
+            eipEntity.setSharedBandWidthId(sharedSbwId);
+            eipEntity.setChargeMode("BandWidth");
+            eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
+            eipEntity.setUpdateTime(new Date());
+            eipRepository.saveAndFlush(eipEntity);
             return ActionResponse.actionFailed("Have no floating ip",HttpStatus.SC_FORBIDDEN);
         }
         if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
@@ -717,11 +665,11 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
         }
-        if (null ==eipEntity.getSharedBandWidthId()|| "".equals(eipEntity.getSharedBandWidthId().trim())){
-            msg = "Error sharedBandWidthId when removeEipShardBindEip eip , eipid: " + eipid + " sharedBandWidthId : " + eipEntity.getSharedBandWidthId();
-            log.error("the shared band id is null !", "");
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
-        }
+//        if (null ==eipEntity.getSharedBandWidthId()|| "".equals(eipEntity.getSharedBandWidthId().trim())){
+//            msg = "Error sharedBandWidthId when removeEipShardBindEip eip , eipid: " + eipid + " sharedBandWidthId : " + eipEntity.getSharedBandWidthId();
+//            log.error("the shared band id is null !", "");
+//            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
+//        }
         //todo remove eip
         boolean removeStatus = false;
         try {

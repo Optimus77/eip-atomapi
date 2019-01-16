@@ -36,6 +36,6 @@ public interface EipRepository extends JpaRepository<Eip,String> {
     List<Eip> findByProjectIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId);
 
     //todo this sql might changed  if query by billType
-    @Query(value = "SELECT * from eip where project_id=?1 and is_delete=?2 and bill_type=?3 and(shared_band_width_id is null or shared_band_width_id <>?4)",nativeQuery = true)
+    @Query(value = "SELECT * from eip where project_id=?1 and is_delete=?2 and bill_type=?3 and(shared_band_width_id is null or shared_band_width_id=?4)",nativeQuery = true)
     List<Eip> getEipListNotBinding(String projectId, int isDelete,String billType, String sbwId);
 }
