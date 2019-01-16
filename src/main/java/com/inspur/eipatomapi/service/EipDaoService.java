@@ -637,53 +637,42 @@ public class EipDaoService {
 
 
     @Transactional
-    public JSONObject addEipShardBindEip(String eipid, String  sharedSbwId)  {
+    public MethodReturn addEipShardBindEip(String eipid, String  sharedSbwId)  {
 
         // todo 2.check Shared bandwidth ip quota
         JSONObject data = new JSONObject();
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
             log.error("In addEipShardBindEip process,failed to find the eip by id:{} ", eipid);
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
-            data.put("httpCode", HttpStatus.SC_NOT_FOUND);
-            data.put("interCode", ReturnStatus.SC_NOT_FOUND);
-            return data;
+
+           return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
         if (null ==eipEntity.getFloatingIp()||"".equals(eipEntity.getFloatingIp().trim()) ||
             !eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
-            data.put("reason",CodeInfo.EIP_FLOATINGIP_NULL);
-            data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
-            data.put("interCode", ReturnStatus.SC_OK);
             log.error("Have no floatingIP", eipEntity.getFloatingIp());
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setSharedBandWidthId(sharedSbwId);
             eipEntity.setChargeMode("SharedBandwidth");
             eipRepository.saveAndFlush(eipEntity);
-            return data;
+            return MethodReturnUtil.success();
         }
         if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
             log.error("User have no write to operate eip:{}", eipid);
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
-            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
-            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
         }
         //1.ensure eip is billed on hourlySettlement
         if (eipEntity.getBillType().equals(HsConstants.MONTHLY)) {
-            //can’t sub
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BILLTYPE_NOT_HOURLYSETTLEMENT));
-            data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
-            data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
             log.error("the bill type isn't hourlySettment!", eipEntity.getBillType());
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BILLTYPE_NOT_HOURLYSETTLEMENT));
         }
         //3.check eip had not adding any Shared bandwidth
         if (null != eipEntity.getSharedBandWidthId() && !eipEntity.getSharedBandWidthId().isEmpty()){
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_Shared_Band_Width_Id_NOT_NULL));
-            data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
-            data.put("interCode", ReturnStatus.SC_PARAM_ERROR);
             log.error("the shared band id not null !", eipEntity.getSharedBandWidthId());
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_Shared_Band_Width_Id_NOT_NULL));
         }
         boolean updateStatus = false;
         try {
@@ -697,16 +686,11 @@ public class EipDaoService {
             //update the eip table
             eipEntity.setSharedBandWidthId(sharedSbwId);
             eipRepository.saveAndFlush(eipEntity);
-            data.put("reason", "");
-            data.put("httpCode", HttpStatus.SC_OK);
-            data.put("interCode", ReturnStatus.SC_OK);
-            data.put("data", eipEntity);
-            return data;
+            return MethodReturnUtil.success(eipEntity);
+
         } else {
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
-            data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
-            return data;
+            return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
         }
 
     }

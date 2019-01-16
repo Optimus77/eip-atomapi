@@ -166,7 +166,6 @@ public class SbwController {
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
                                      @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        String status = "ACTIVE";
         log.info("SbwController sbwListEip currentPageIndex:{}, currentPageSize:{}", pageIndex, pageSize);
         if (pageIndex == null || pageSize == null) {
             pageIndex = "0";
@@ -184,7 +183,7 @@ public class SbwController {
                 pageSize = "0";
             }
         }
-        return sbwService.sbwListEip(sbwId ,Integer.parseInt(pageIndex), Integer.parseInt(pageSize),status);
+        return sbwService.sbwListEip(sbwId ,Integer.parseInt(pageIndex), Integer.parseInt(pageSize));
     }
 
     /**

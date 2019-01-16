@@ -378,10 +378,9 @@ public class SbwServiceImpl implements ISbwService {
      * @param sbwId
      * @param currentPage
      * @param limit
-     * @param status
      * @return
      */
-    public ResponseEntity sbwListEip(String sbwId, Integer currentPage, Integer limit, String status) {
+    public ResponseEntity sbwListEip(String sbwId, Integer currentPage, Integer limit) {
         String projcectid = null;
         try {
             projcectid = CommonUtil.getUserId();
@@ -397,9 +396,7 @@ public class SbwServiceImpl implements ISbwService {
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                 Page<Eip> page = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {
-                    if ((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
-                        continue;
-                    }
+
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
@@ -415,9 +412,7 @@ public class SbwServiceImpl implements ISbwService {
             } else {
                 List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
                 for (Eip eip : eipList) {
-                    if ((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
-                        continue;
-                    }
+
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()

@@ -610,21 +610,18 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity addEipToShared(String eipId ,String sharedSbwId ){
         String code;
         String msg;
-        JSONObject result ;
+        MethodReturn result ;
         try {
             result = eipDaoService.addEipShardBindEip(eipId, sharedSbwId);
-            if (!result.getString("interCode").equals(ReturnStatus.SC_OK)){
-                code = result.getString("interCode");
-                int httpResponseCode=result.getInteger("httpCode");
-                msg = result.getString("reason");
+            if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
+                msg = result.getMessage();
                 log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
+                        HttpStatus.valueOf(result.getHttpCode()));
             }else {
-                code = ReturnStatus.SC_OK;
                 msg = "The Eip add to shared band succeeded";
                 log.info(msg);
-                log.info(code);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_OK, msg), HttpStatus.OK);
             }
 
         } catch (Exception e) {
