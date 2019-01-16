@@ -653,6 +653,7 @@ public class EipDaoService {
             !eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             data.put("reason",CodeInfo.EIP_FLOATINGIP_NULL);
             data.put("httpCode", HttpStatus.SC_BAD_REQUEST);
+            data.put("interCode", ReturnStatus.SC_OK);
             log.error("Have no floatingIP", eipEntity.getFloatingIp());
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setSharedBandWidthId(sharedSbwId);
