@@ -141,14 +141,14 @@ class FirewallService {
 
 
 
-    String addQos(String innerip, String eipid, String bandwidth, String equipid) {
+    String addQos(String innerip, String name, String bandwidth, String equipid) {
         String pipid = null;
 
         Firewall fwBean = getFireWallById(equipid);
         if(fwBean != null) {
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> map = new HashMap<>();
-            map.put("pipeName", eipid);
+            map.put("pipeName", name);
             map.put("ip", innerip);
             map.put("serviceNamne", "Any");
             map.put("mgNetCardName", fwBean.getParam3());
@@ -159,7 +159,7 @@ class FirewallService {
             if(resJson.getBoolean(HsConstants.SUCCESS)) {
                 pipid = res.get("id");
                 if (StringUtils.isBlank(pipid)) {
-                    Map<String, String> idmap = qs.getQosPipeId(eipid);
+                    Map<String, String> idmap = qs.getQosPipeId(name);
                     pipid = idmap.get("id");
                 }
                 log.info("Qos add successfully.pipid:{}", pipid);
@@ -366,9 +366,9 @@ class FirewallService {
 
     /**
      * add the Qos bindind ip
-     * @param firewallId
-     * @param bandId
-     * @return
+     * @param firewallId id
+     * @param bandId bad id
+     * @return ret
      */
     public boolean addQosBindEip(String firewallId,String floatIp,String bandId){
 
@@ -397,10 +397,10 @@ class FirewallService {
     }
     /**
      * remove eip from shared band
-     * @param firewallId
-     * @param floatIp
-     * @param bandId
-     * @return
+     * @param firewallId id
+     * @param floatIp fip
+     * @param bandId bandid
+     * @return ret
      */
     public boolean removeQosBindEip(String firewallId,String floatIp,String bandId){
         Firewall fwBean = getFireWallById(firewallId);

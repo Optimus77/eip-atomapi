@@ -603,12 +603,12 @@ public class EipServiceImpl implements IEipService {
 
     @ICPServiceLog
     @Override
-    public ResponseEntity addEipToShared(String eipId ,EipUpdateParam eipUpdateParam ){
+    public ResponseEntity addEipToSbw(String eipId ,EipUpdateParam eipUpdateParam ){
         String code;
         String msg;
         MethodReturn result ;
         try {
-            result = eipDaoService.addEipShardBindEip(eipId, eipUpdateParam);
+            result = sbwDaoService.addEipShardBindEip(eipId, eipUpdateParam);
             if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
                 msg = result.getMessage();
                 log.error(msg);
@@ -646,12 +646,12 @@ public class EipServiceImpl implements IEipService {
     }
 
     @Override
-    public ResponseEntity removeFromShared(String eipId, EipUpdateParam eipUpdateParam) {
+    public ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam) {
         String code;
         String msg;
 
         try {
-            ActionResponse actionResponse = eipDaoService.removeEipShardBindEip(eipId, eipUpdateParam);
+            ActionResponse actionResponse = sbwDaoService.removeEipShardBindEip(eipId, eipUpdateParam);
             if (actionResponse.isSuccess()){
                 code = ReturnStatus.SC_OK;
                 msg=("remove from shared successfully");

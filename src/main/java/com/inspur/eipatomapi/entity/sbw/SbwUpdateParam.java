@@ -30,9 +30,4 @@ public class SbwUpdateParam implements Serializable {
 //    @NotBlank(message = "can not be blank.")
     private String region;
 
-    @JsonProperty("chargemode")
-    private String chargeMode;
-
-    @JsonProperty("method")
-    private String method;
 }

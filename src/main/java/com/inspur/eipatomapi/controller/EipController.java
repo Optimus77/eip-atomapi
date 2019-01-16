@@ -187,11 +187,11 @@ public class EipController {
                 if(updateParam.getBillType()!=null&&updateParam.getBandWidth()!=0){
                     if(updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")){
                         log.info("add eip to shared bandwidth:{}", updateParam.toString());
-                        return eipService.addEipToShared(eipId, updateParam);
+                        return eipService.addEipToSbw(eipId, updateParam);
                     }else if(updateParam.getChargemode().equalsIgnoreCase("Bandwidth") &&
                             updateParam.getSharedBandWidthId().isEmpty()){
                         log.info("remove eip from shared bandwidth:{}", updateParam.toString());
-                        return eipService.removeFromShared(eipId, updateParam);
+                        return eipService.removeEipFromSbw(eipId, updateParam);
                     }
 
                     boolean chargeTypeFlag=false;

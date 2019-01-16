@@ -79,9 +79,9 @@ public interface IEipService {
 
     ResponseEntity getEipCount();
 
-    ResponseEntity addEipToShared(String eipId,  EipUpdateParam eipUpdateParam);
+    ResponseEntity addEipToSbw(String eipId,  EipUpdateParam eipUpdateParam);
 
-    ResponseEntity removeFromShared(String eipId, EipUpdateParam eipUpdateParam);
+    ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam);
 
 
 }

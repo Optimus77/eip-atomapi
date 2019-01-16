@@ -94,10 +94,9 @@ public class SbwController {
         if (null == projectId) {
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
-        if (null != projectId) {
-            return sbwService.getSbwByProjectId(projectId);
-        }
-        return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
+
+        return sbwService.getSbwByProjectId(projectId);
+
     }
 
     @DeleteMapping(value = "/sbws/{sbw_id}")
@@ -154,10 +153,10 @@ public class SbwController {
 
     /**
      * get the eipList by sbw
-     * @param sbwId
-     * @param pageIndex
-     * @param pageSize
-     * @return
+     * @param sbwId id
+     * @param pageIndex index
+     * @param pageSize size
+     * @return ret
      */
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}/eips")
@@ -188,7 +187,7 @@ public class SbwController {
 
     /**
      * modify sbw name
-     * @return
+     * @return ret
      */
     @ICPControllerLog
     @PutMapping(value = "/sbws/{sbw_id}/rename", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -207,7 +206,7 @@ public class SbwController {
             log.info("{}",msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        String msg="";
+        String msg;
         if (param.getSbwUpdateParam().getSbwName() !=null && !"".equalsIgnoreCase(param.getSbwUpdateParam().getSbwName())){
             return sbwService.renameSbw(sbwId, param);
         }else {
@@ -244,33 +243,17 @@ public class SbwController {
             log.info("{}", msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        String msg = "";
-        String method = param.getSbwUpdateParam().getMethod();
-        if (method ==null || "".equals(method)){
-            msg = "customerConsole request method must be json and not null";
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
-        }
-        if (HsConstants.ADD_EIP_TO_SBW_METHOD.equalsIgnoreCase(method)){
+        String msg ;
 
-            return sbwService.addEipToSbw(sbwId,param);
-//            if (paramWrapper.getSbwUpdateParam().getEipAddress() != null && paramWrapper.getSbwUpdateParam().getEipAddress().size() > 0) {
-//                return sbwService.addEipToSbw(sbwId, paramWrapper);
-//            }
-        }else if( HsConstants.REMOVE_EIP_FROM_SBW_METHOD.equalsIgnoreCase(method)){
-            return  sbwService.removeEipFromSbw(sbwId,param);
-        }else if (HsConstants.ADJUST_BANDWIDTH_SBW_METHOD.equalsIgnoreCase(method)){
-            if (param.getSbwUpdateParam().getBillType() != null ) {
-                boolean chargeTypeFlag = false;
-                if (chargeTypeFlag) {
-                    log.info("update bandwidth, sbwid:{}, param:{} ", sbwId, param.getSbwUpdateParam());
-                    return sbwService.updateSbwBandWidth(sbwId, param);
-                }
-            } else {
-                msg = "param not correct. " +
-                        "to change bindwidht,body param like {\"sbw\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
-                        "";
-            }
-            return  new ResponseEntity<>(msg, HttpStatus.OK);
+        if (param.getSbwUpdateParam().getBillType() != null ) {
+
+            log.info("update bandwidth, sbwid:{}, param:{} ", sbwId, param.getSbwUpdateParam());
+            return sbwService.updateSbwBandWidth(sbwId, param);
+
+        } else {
+            msg = "param not correct. " +
+                    "to change bindwidht,body param like {\"sbw\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
+                    "";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }
