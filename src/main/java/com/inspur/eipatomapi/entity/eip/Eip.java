@@ -78,6 +78,4 @@ public class Eip implements Serializable {
 
     private int isDelete=0;
 
-    private int oldBandWidth=0;
-
 }

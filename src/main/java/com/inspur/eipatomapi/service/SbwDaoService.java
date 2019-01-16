@@ -303,12 +303,12 @@ public class SbwDaoService {
         Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
         if (null == sbwEntity) {
             log.error("In addEipToSbw process, failed to find the sbw by id:{} ", sbwId);
-            return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+            return MethodSbwReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
         }
         if (!sbwEntity.getProjectId().equals(CommonUtil.getUserId())) {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
-            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+            return MethodSbwReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
         }
         if(eipId!=null&&eipId.size()>0) {
@@ -348,7 +348,7 @@ public class SbwDaoService {
         //get the floatip and insert to the qos
         //add net and qos to firewall
         //If the above steps execute successfully,then remove the origin qos and update eip table
-        return MethodReturnUtil.success();
+        return MethodSbwReturnUtil.success();
     }
 
     /**
@@ -366,12 +366,12 @@ public class SbwDaoService {
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
             log.error("In addEipToSbw process, failed to find the sbw by id:{} ", sbwId);
-            return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+            return MethodSbwReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
         }
         if (!sbw.getProjectId().equals(CommonUtil.getUserId())) {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
-            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+            return MethodSbwReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
         }
         // todo remove Eip toSbw
@@ -379,7 +379,7 @@ public class SbwDaoService {
             Eip eipEntity = eipRepository.findByEipId(eipid);
             if (eipEntity == null) {
                 log.error("In removeEipToSbw process, failed to find the eipEntity by eipid:{} ", eipid);
-                return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                return MethodSbwReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                         CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
             }
             String firewallId = eipEntity.getFirewallId();
@@ -389,7 +389,7 @@ public class SbwDaoService {
             String  pipeId=sbw.getPipeId();
             if (pipeId==null||pipeId==""){
                 log.error("In removeEipToSbw process, failed to find sbw from the pipId:{} ", pipeId);
-                return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                return MethodSbwReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                         CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
             }
             boolean delQosResult = firewallService.delQos(pipeId, firewallId);
@@ -402,7 +402,7 @@ public class SbwDaoService {
             String pipid = firewallService.addQos(floatingIp, eipid, bandWidth, firewallId);
             if(pipid==null ){
                 log.error("In removeEipToSbw process, failed to find the pipId:{} ", pipeId);
-                return MethodReturnUtil.errorSbw(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE,
+                return MethodSbwReturnUtil.errorSbw(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE,
                         CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR));
             }
             eipEntity.setPipId(pipid);
@@ -414,7 +414,7 @@ public class SbwDaoService {
         sbw.setPipeId(null);
         sbw.setChargeMode("BandWidth");
         sbwRepository.saveAndFlush(sbw);
-        return MethodReturnUtil.success();
+        return MethodSbwReturnUtil.success();
     }
 
 }

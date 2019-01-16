@@ -5,17 +5,52 @@ import com.inspur.eipatomapi.entity.MethodSbwReturn;
 
 public class MethodSbwReturnUtil {
 
-    public static <T> MethodSbwReturn success(T t) {
-        return MethodSbwReturn.builder().httpCode(200).innerCode(ReturnStatus.SC_OK).sbw(t).build();
-    }
+        /**
+         * eip success
+         * @param t
+         * @param <T>
+         * @return
+         */
+        public static <T> MethodSbwReturn success(T t) {
+            return MethodSbwReturn.builder().httpCode(200).innerCode(ReturnStatus.SC_OK).sbw(t).build();
+        }
+
+        /**
+         * sbw success
+         * @param t
+         * @param <T>
+         * @return
+         */
+        public static <T> MethodSbwReturn successSbw(T t) {
+            return MethodSbwReturn.builder().httpCode(200).innerCode(ReturnStatus.SC_OK).sbw(t).build();
+        }
+        public static MethodSbwReturn success() {
+            return successSbw(null);
+        }
+
+        /**
+         * eip error
+         * @param httpCode
+         * @param code
+         * @param msg
+         * @return
+         */
+        public static MethodSbwReturn error(int httpCode, String code, String msg) {
+            return MethodSbwReturn.builder().httpCode(httpCode).innerCode(code).message(msg).build();
+        }
+
+        /**
+         * sbw error
+         * @param httpCode
+         * @param code
+         * @param msg
+         * @return
+         */
+        public static MethodSbwReturn errorSbw(int httpCode, String code, String msg) {
+            return MethodSbwReturn.builder().httpCode(httpCode).innerCode(code).message(msg).build();
+        }
 
 
-    public static MethodSbwReturn success() {
-        return success(null);
-    }
 
-    public static MethodSbwReturn error(int httpCode, String code, String msg) {
-        return MethodSbwReturn.builder().httpCode(httpCode).innerCode(code).message(msg).build();
-    }
 
 }
