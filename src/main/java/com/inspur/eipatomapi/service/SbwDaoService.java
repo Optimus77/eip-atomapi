@@ -324,7 +324,7 @@ public class SbwDaoService {
             eipRepository.saveAndFlush(eipEntity);
             return MethodReturnUtil.success();
         }
-        boolean updateStatus ;
+        boolean updateStatus = false ;
         String innerIp ;// 1:ecs 2:cps 3:slb
         if(eipEntity.getInstanceType().equals("1")){
             innerIp = eipEntity.getFloatingIp();
@@ -333,11 +333,22 @@ public class SbwDaoService {
         }
         try {
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+innerIp+" ShardBandId: "+ sharedSbwId);
-            updateStatus = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp, sharedSbwId);
+
+            Sbw sbwEntiy = sbwRepository.findBySbwId(sharedSbwId);
+            if(null == sbwEntiy.getPipeId() || sbwEntiy.getPipeId().isEmpty() ){
+                String newPipId = firewallService.addQos(innerIp, sharedSbwId, String.valueOf(eipEntity.getBandWidth()), eipEntity.getFirewallId());
+                if(newPipId != null){
+                    sbwEntiy.setPipeId(newPipId);
+                    sbwRepository.saveAndFlush(sbwEntiy);
+                    updateStatus = true;
+                }
+            }else {
+                updateStatus = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp,sbwEntiy.getPipeId(), sharedSbwId);
+            }
             if (updateStatus || CommonUtil.qosDebug) {
                 boolean delRet = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
                 if (delRet) {
-                    eipEntity.setPipId(null);
+                    eipEntity.setPipId(sbwEntiy.getPipeId());
                 }
                 eipEntity.setUpdateTime(new Date());
                 //update the eip table
@@ -374,7 +385,7 @@ public class SbwDaoService {
         if (!eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             log.info("this eip is not active.");
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
-            eipEntity.setSharedBandWidthId(sharedSbwId);
+            eipEntity.setSharedBandWidthId(null);
             eipEntity.setChargeMode("BandWidth");
             eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
             eipEntity.setUpdateTime(new Date());

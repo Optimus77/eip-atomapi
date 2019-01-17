@@ -367,10 +367,10 @@ class FirewallService {
     /**
      * add the Qos bindind ip
      * @param firewallId id
-     * @param bandId bad id
+     * @param sbwId bad id
      * @return ret
      */
-    public boolean addQosBindEip(String firewallId,String floatIp,String bandId){
+    public boolean addQosBindEip(String firewallId,String floatIp,String pipId,String sbwId){
 
         Firewall fwBean = getFireWallById(firewallId);
         if(fwBean != null) {
@@ -379,17 +379,17 @@ class FirewallService {
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
-            HashMap<String, String> result = qosService.addQosPipeBindEip(floatIp, bandId);
+            HashMap<String, String> result = qosService.addQosPipeBindEip(floatIp, pipId, sbwId);
             if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
                 if (result.get("result") != null && Boolean.valueOf(result.get("result"))){
-                    log.info("addQosBindEip: " + firewallId + "floatIp: "+floatIp+ " --success==BandId：" + bandId);
+                    log.info("addQosBindEip: " + firewallId + "floatIp: "+floatIp+ " --success==BandId：" + sbwId);
                     return Boolean.parseBoolean(result.get("result"));
                 }else {
-                    log.warn("addQosBindEip: " + firewallId +"floatIp: "+floatIp+ " --fail==BandId：" + bandId);
+                    log.warn("addQosBindEip: " + firewallId +"floatIp: "+floatIp+ " --fail==BandId：" + sbwId);
                     return false;
                 }
             } else {
-                log.warn("Failed addQosBindEip:firewallId:{} fip:{} eip:{} reslut:{}", firewallId,floatIp, bandId, result);
+                log.warn("Failed addQosBindEip:firewallId:{} fip:{} eip:{} reslut:{}", firewallId,floatIp, sbwId, result);
             }
 
         }

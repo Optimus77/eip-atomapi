@@ -177,55 +177,42 @@ public class QosService {
     /**
      * add Qos Pipe bind eip
      *
-     * @param eipAddress
-     * @param pipeId
-     * @return
+     * @param fip fip
+     * @param sbwId id
+     * @return ret
      */
-    HashMap<String, String> addQosPipeBindEip(String eipAddress, String pipeId) {
+    HashMap<String, String> addQosPipeBindEip(String fip, String pipId,String sbwId) {
         HashMap<String, String> res = new HashMap();
-        String IP32 = IpUtil.ipToLong(eipAddress);
+        String IP32 = IpUtil.ipToLong(fip);
         IpRange newIp = new IpRange(IP32, IP32);
         UpdateCondition condition = new UpdateCondition();
         condition.setName("first");
         RootConfig root = new RootConfig();
-        root.setId(pipeId);
+        root.setId(pipId);
         RuleConfig config = new RuleConfig();
         Set<IpRange> ipSet = new HashSet<>();
         ArrayList<RuleConfig> list = new ArrayList<>();
+        ipSet.add(newIp);
         try {
             //query qos pipe details by pipeId
-            List<Eip> eipList = getQueryQosByDataBase(pipeId);
-            if (eipList == null || eipList.size() == 0) {
-                res.put("msg", "qos not exist");
-                res.put(HsConstants.SUCCESS, "false");
-                return res;
-            }
-            boolean flag = false;
-            for (int i = 0; i < eipList.size(); i++) {
-                Eip eip = eipList.get(i);
-                String floatingIp = eip.getFloatingIp();
-                String longFloatIp = IpUtil.ipToLong(floatingIp);
-                IpRange range = new IpRange(longFloatIp, longFloatIp);
-                if (!ipSet.contains(range)) {
-                    ipSet.add(range);
-                }
-                if ((i == eipList.size() - 1) && !ipSet.contains(newIp)) {
-                    ipSet.add(newIp);
-                    flag = true;
-                    break;
-                } else if ((i == eipList.size() - 1) && ipSet.contains(newIp)) {
-                    flag = true;
-                    break;
+            List<Eip> eipList = getQueryQosByDataBase(sbwId);
+            if (eipList != null && eipList.size() > 0) {
+                for (int i = 0; i < eipList.size(); i++) {
+                    Eip eip = eipList.get(i);
+                    String floatingIp = eip.getFloatingIp();
+                    if(floatingIp.equalsIgnoreCase(fip)){
+                        res.put("msg", "ip exist");
+                        res.put(HsConstants.SUCCESS, "false");
+                        return res;
+                    }
+                    String longFloatIp = IpUtil.ipToLong(floatingIp);
+                    IpRange range = new IpRange(longFloatIp, longFloatIp);
+                    if (!ipSet.contains(range)) {
+                        ipSet.add(range);
+                    }
                 }
             }
-            if (flag) {
-                res.put("msg", "success");
-                res.put(HsConstants.SUCCESS, "true");
-            } else {
-                res.put("msg", "ip exist");
-                res.put(HsConstants.SUCCESS, "false");
-                return res;
-            }
+
             //src addr
             ArrayList addrList = new ArrayList();
             addrList.add(new SrcAddr());
@@ -241,7 +228,8 @@ public class QosService {
             String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
             log.info(conditionStr);
             //add the ip to ip Array
-            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+//            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+            String retr = HsHttpClient.hsHttpPut("10.110.29.206", "443", "hillstone", "hillstone", "/rest/iQos?target=root.rule", conditionStr);
             JSONObject jo = new JSONObject(retr);
             log.info("addQosPipeBindEip result:{}", jo);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
