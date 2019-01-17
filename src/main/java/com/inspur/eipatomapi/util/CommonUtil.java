@@ -46,6 +46,8 @@ public class CommonUtil {
     private static JSONObject KeyClockInfo;
     @Value("${openstackIp}")
     private String openstackIp;
+    @Value("${openstackUrl}")
+    private String openstackUrl;
     @Value("${userNameS}")
     private String userNameS;
     @Value("${passwordS}")
@@ -67,6 +69,7 @@ public class CommonUtil {
         userConfig.put("projectIdS",projectIdS);
         userConfig.put("userDomainIdS",userDomainIdS);
         userConfig.put("debugRegionS",debugRegionS);
+        userConfig.put("openstackUrl",openstackUrl);
     }
 
 //    private static OSClientV3 getOsClientV3(){
@@ -83,7 +86,7 @@ public class CommonUtil {
     private static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
         return OSFactory.builderV3()
-                .endpoint(userConfig.get("openstackIp"))
+                .endpoint(userConfig.get("openstackUrl"))
                 .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
                         Identifier.byId(userConfig.get("userDomainIdS")))
                 .withConfig(config)
