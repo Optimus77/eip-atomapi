@@ -17,7 +17,7 @@ public class EipUpdateParam {
 //    @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
     private String billType;
 
-    @NonNull
+    //@NonNull
     @JsonProperty("serverid")
     private String serverId;
 
