@@ -389,7 +389,7 @@ class FirewallService {
                     return false;
                 }
             } else {
-                log.warn("addQosBindEip: " + firewallId +"floatIp: "+floatIp+ " --fail==BandId：" + bandId);
+                log.warn("Failed addQosBindEip:firewallId:{} fip:{} eip:{} reslut:{}", firewallId,floatIp, bandId, result);
             }
 
         }

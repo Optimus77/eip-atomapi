@@ -8,9 +8,6 @@ import org.springframework.lang.NonNull;
 
 @Data
 public class EipUpdateParam {
-
-
-    @NonNull
     @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
     private String billType;
 

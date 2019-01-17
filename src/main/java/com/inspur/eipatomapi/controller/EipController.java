@@ -180,7 +180,7 @@ public class EipController {
                     }
                 }
             } else {
-                if (updateParam.getBandWidth() != 0) {
+                if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
                     if ( updateParam.getSharedBandWidthId() != null &&
                             updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
                         log.info("add eip to shared bandwidth:{}", updateParam.toString());
