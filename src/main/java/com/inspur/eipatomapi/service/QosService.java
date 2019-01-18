@@ -235,8 +235,8 @@ public class QosService {
             String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
             log.info(conditionStr);
             //add the ip to ip Array
-//            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
-            String retr = HsHttpClient.hsHttpPut("10.110.29.206", "443", "hillstone", "hillstone", "/rest/iQos?target=root.rule", conditionStr);
+            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+//            String retr = HsHttpClient.hsHttpPut("10.110.29.206", "443", "hillstone", "hillstone", "/rest/iQos?target=root.rule", conditionStr);
             JSONObject jo = new JSONObject(retr);
             log.info("addQosPipeBindEip result:{}", jo);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
@@ -264,7 +264,6 @@ public class QosService {
      */
     HashMap<String, String> removeIpFromQos(String floatIp, String pipeId, String sbwId) {
         HashMap<String, String> res = new HashMap();
-        String newIp = IpUtil.ipToLong(floatIp);
         UpdateCondition condition = new UpdateCondition();
         condition.setName("first");
         RootConfig root = new RootConfig();
@@ -280,27 +279,25 @@ public class QosService {
                 res.put(HsConstants.SUCCESS, "false");
                 return res;
             }
-            boolean flag = false;
-            for (int i = 0; i < eipList.size(); i++) {
-                Eip eip = eipList.get(i);
+
+            for (Eip eip: eipList) {
                 String floatingIp = eip.getFloatingIp();
                 if (StringUtils.isNotBlank(floatingIp)) {
-                    String longFloatIp = IpUtil.ipToLong(floatingIp);
-                    IpRange range = new IpRange(longFloatIp, longFloatIp);
-                    if (!longFloatIp.equals(newIp)){
+                    if (!floatingIp.equals(floatIp)){
+                        String longFloatIp = IpUtil.ipToLong(floatingIp);
+                        IpRange range = new IpRange(longFloatIp, longFloatIp);
                         ipSet.add(range);
-                        flag = true;
                     }
                 }
             }
-            if (flag) {
-                res.put("msg", "success");
-                res.put(HsConstants.SUCCESS, "true");
-            } else {
-                res.put("msg", "no have this ip");
-                res.put(HsConstants.SUCCESS, "false");
-                return res;
-            }
+//            if (flag) {
+//                res.put("msg", "success");
+//                res.put(HsConstants.SUCCESS, "true");
+//            } else {
+//                res.put("msg", "no have this ip");
+//                res.put(HsConstants.SUCCESS, "false");
+//                return res;
+//            }
             //src addr
             ArrayList addrList = new ArrayList();
             addrList.add(new SrcAddr());
@@ -322,8 +319,10 @@ public class QosService {
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (Boolean.valueOf(success)) {
                 res.put("result", "true");
+                res.put(HsConstants.SUCCESS, "true");
             } else {
                 res.put("result", "false");
+                res.put(HsConstants.SUCCESS, "false");
             }
         } catch (Exception var8) {
             log.error(var8.getMessage());

@@ -444,7 +444,7 @@ class FirewallService {
                     return false;
                 }
             } else {
-                log.warn("removeQosBindEip: " + firewallId + "floatIp: "+floatIp+" --fail==BandIp：" + pipeId);
+                log.warn("Failed removeQosBindEip:fip:{} pipeId:{} result:{} " ,floatIp, pipeId, result);
             }
             return Boolean.parseBoolean(result.get(HsConstants.SUCCESS));
         }
