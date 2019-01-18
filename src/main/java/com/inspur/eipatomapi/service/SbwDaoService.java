@@ -301,6 +301,7 @@ public class SbwDaoService {
 
         String sharedSbwId = eipUpdateParam.getSharedBandWidthId();
         Eip eipEntity = eipRepository.findByEipId(eipid);
+        String pipeId ="";
         if(eipRepository.countBySharedBandWidthIdAndIsDelete(sharedSbwId,0)>50){
             log.error("The quota is full in this sbwId:{}",sharedSbwId);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN,ReturnStatus.SC_FORBIDDEN,
@@ -336,17 +337,17 @@ public class SbwDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
+
         if(eipRepository.countBySharedBandWidthIdAndIsDelete(sharedSbwId, 0) == 0){
-            String pipeId =firewallService.addQos(eipEntity.getFloatingIp(),eipEntity.getEipAddress(),sbwEntiy.getBandWidth().toString(),eipEntity.getFirewallId());
-            sbwEntiy.setPipeId(pipeId);
-            sbwRepository.saveAndFlush(sbwEntiy);
+            pipeId =firewallService.addQos(eipEntity.getFloatingIp(),eipEntity.getEipAddress(),sbwEntiy.getBandWidth().toString(),eipEntity.getFirewallId());
+        }else {
+            pipeId = sbwEntiy.getPipeId();
         }
         boolean updateStatus = true ;
-        String pipeId = "";
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             String innerIp = eipEntity.getFloatingIp();
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+innerIp+" ShardBandId: "+ sharedSbwId);
-            pipeId = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp,sbwEntiy.getPipeId(), sharedSbwId, eipEntity.getBandWidth());
+            pipeId = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp,pipeId, sharedSbwId, eipEntity.getBandWidth());
             if(null != pipeId){
                 updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
                 if(sbwEntiy.getPipeId() == null || sbwEntiy.getPipeId().isEmpty()) {
