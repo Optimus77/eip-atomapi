@@ -42,6 +42,7 @@ public  class CodeInfo {
     public static final String SBW_NOT_FOND_BY_ID ="EIP_NOT_FOND_BY_ID";
     public static final String SBW_FORBIDEN_WITH_ID="SBW_FORBIDEN_WITH_ID";
     public static final String SBW_CHANGE_BANDWIDTH_ERROR="SBW_CHANGE_BANDWIDTH_ERROR";
+    public static final String SBW_QUOTA_IS_FULL="SBW_QUOTA_IS_FULL";
 
 
 
