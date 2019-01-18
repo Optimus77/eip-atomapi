@@ -408,7 +408,7 @@ public class SbwDaoService {
             return ActionResponse.actionSuccess();
         }
 
-        msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getEipId() + "sharedBandWidthId:" + sharedSbwId + "";
+        msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getEipId() + " sharedBandWidthId:" + sharedSbwId + "";
         log.error(msg);
         return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
 

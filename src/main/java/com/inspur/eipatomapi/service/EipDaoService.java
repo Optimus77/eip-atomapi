@@ -207,8 +207,7 @@ public class EipDaoService {
                     CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
         }
 
-        if (!(HsConstants.DOWN.equals(eip.getStatus())) || (null != eip.getDnatId())
-                || (null != eip.getSnatId()) || (null != eip.getPipId())) {
+        if (!(HsConstants.DOWN.equals(eip.getStatus())) || (null != eip.getDnatId()) || (null != eip.getSnatId()) ) {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
