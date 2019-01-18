@@ -336,6 +336,11 @@ public class SbwDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
+        if(eipRepository.countBySharedBandWidthIdAndIsDelete(sharedSbwId, 0) == 0){
+            String pipeId =firewallService.addQos(eipEntity.getFloatingIp(),eipEntity.getEipAddress(),sbwEntiy.getBandWidth().toString(),eipEntity.getFirewallId());
+            sbwEntiy.setPipeId(pipeId);
+            sbwRepository.saveAndFlush(sbwEntiy);
+        }
         boolean updateStatus = false ;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             String innerIp = eipEntity.getFloatingIp();
