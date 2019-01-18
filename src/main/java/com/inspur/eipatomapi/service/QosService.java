@@ -206,7 +206,7 @@ public class QosService {
                 for (int i = 0; i < eipList.size(); i++) {
                     Eip eip = eipList.get(i);
                     String floatingIp = eip.getFloatingIp();
-                    if(floatingIp.equalsIgnoreCase(fip)){
+                    if(floatingIp.equalsIgnoreCase(fip) && eip.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
                         res.put("msg", "ip exist");
                         res.put(HsConstants.SUCCESS, "false");
                         res.put("id", pipId);

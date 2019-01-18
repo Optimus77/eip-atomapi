@@ -348,6 +348,8 @@ public class SbwDaoService {
                     sbwEntiy.setPipeId(pipeId);
                     sbwRepository.saveAndFlush(sbwEntiy);
                 }
+            }else{
+                updateStatus = false;
             }
         }
 
