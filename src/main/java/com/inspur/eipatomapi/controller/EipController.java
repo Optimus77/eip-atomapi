@@ -163,56 +163,54 @@ public class EipController {
         }
         String msg="";
         EipUpdateParam updateParam = param.getEipUpdateParam();
-        try {
-            if (updateParam.getServerId() != null){
-                //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-                if (updateParam.getServerId().trim().equals("")) {
-                    log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
-                    return eipService.unBindPort(eipId);
 
-                } else {
-                    log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
-                    if (updateParam.getType() != null) {
-                        return eipService.eipbindPort(eipId, updateParam.getType(), updateParam.getServerId(),
-                                updateParam.getPortId(), updateParam.getPrivateIp());
-                    } else {
-                        msg = "need param serverid and type";
-                    }
-                }
+        if (updateParam.getServerId() != null){
+            //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
+            if (updateParam.getServerId().trim().equals("")) {
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
+                return eipService.unBindPort(eipId);
+
             } else {
-                if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
-                    if ( updateParam.getSharedBandWidthId() != null &&
-                            updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
-                        log.info("add eip to shared bandwidth:{}", updateParam.toString());
-                        return eipService.addEipToSbw(eipId, updateParam);
-                    } else if (updateParam.getChargemode().equalsIgnoreCase("Bandwidth") &&
-                            updateParam.getSharedBandWidthId() != null) {
-                        log.info("remove eip from shared bandwidth:{}", updateParam.toString());
-                        return eipService.removeEipFromSbw(eipId, updateParam);
-                    }
-
-                    boolean chargeTypeFlag = false;
-                    if (updateParam.getBillType().equals(HsConstants.MONTHLY) ||
-                            updateParam.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                        chargeTypeFlag = true;
-                    } else {
-                        msg = "chargetype must be [monthly |hourlySettlement]";
-                    }
-                    if (chargeTypeFlag) {
-                        log.info("update bandwidth, eipid:{}, param:{} ", eipId, updateParam);
-                        return eipService.updateEipBandWidth(eipId, param);
-                    }
+                log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
+                if (updateParam.getType() != null) {
+                    return eipService.eipbindPort(eipId, updateParam.getType(), updateParam.getServerId(),
+                            updateParam.getPortId(), updateParam.getPrivateIp());
                 } else {
-                    msg = "param not correct. " +
-                            "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
-                            "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
-                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
-                            "";
+                    msg = "need param serverid and type";
                 }
             }
-        }catch (Exception e){
-            log.error("update exception", e);
+        } else {
+            if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
+                if ( updateParam.getSharedBandWidthId() != null &&
+                        updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
+                    log.info("add eip to shared bandwidth:{}", updateParam.toString());
+                    return eipService.addEipToSbw(eipId, updateParam);
+                } else if (updateParam.getChargemode().equalsIgnoreCase("Bandwidth") &&
+                        updateParam.getSharedBandWidthId() != null) {
+                    log.info("remove eip from shared bandwidth:{}", updateParam.toString());
+                    return eipService.removeEipFromSbw(eipId, updateParam);
+                }
+
+                boolean chargeTypeFlag = false;
+                if (updateParam.getBillType().equals(HsConstants.MONTHLY) ||
+                        updateParam.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                    chargeTypeFlag = true;
+                } else {
+                    msg = "chargetype must be [monthly |hourlySettlement]";
+                }
+                if (chargeTypeFlag) {
+                    log.info("update bandwidth, eipid:{}, param:{} ", eipId, updateParam);
+                    return eipService.updateEipBandWidth(eipId, param);
+                }
+            } else {
+                msg = "param not correct. " +
+                        "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
+                        "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
+                        "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
+                        "";
+            }
         }
+
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
     }
