@@ -63,9 +63,9 @@ public class SbwDaoService {
         sbwMo.setIsDelete(0);
         sbwMo.setCreateTime(CommonUtil.getGmtDate());
 
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbwMo.getRegion());
-        String pipId = firewallService.addQos(null, sbwMo.getSbwId(), String.valueOf(sbwMo.getBandWidth()), firewall.getId());
-        sbwMo.setPipeId(pipId);
+//        Firewall firewall = firewallRepository.findFirewallByRegion(sbwMo.getRegion());
+//        String pipId = firewallService.addQos(null, sbwMo.getSbwId(), String.valueOf(sbwMo.getBandWidth()), firewall.getId());
+//        sbwMo.setPipeId(pipId);
 
         Sbw sbw = sbwRepository.saveAndFlush(sbwMo);
         log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
@@ -332,12 +332,8 @@ public class SbwDaoService {
             return MethodReturnUtil.success();
         }
         boolean updateStatus = false ;
-        String innerIp ;// 1:ecs 2:cps 3:slb
-        if(eipEntity.getInstanceType().equals("1")){
-            innerIp = eipEntity.getFloatingIp();
-        }else{
-            innerIp = eipEntity.getPrivateIpAddress();
-        }
+
+        String innerIp = eipEntity.getFloatingIp();
         try {
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+innerIp+" ShardBandId: "+ sharedSbwId);
             if(null == sbwEntiy.getPipeId() || sbwEntiy.getPipeId().isEmpty() ){
@@ -398,13 +394,8 @@ public class SbwDaoService {
         }
         //todo remove eip
         boolean removeStatus ;
-        String innerIp ;// 1:ecs 2:cps 3:slb
-        if(eipEntity.getInstanceType().equals("1")){
-            innerIp = eipEntity.getFloatingIp();
-        }else{
-            innerIp = eipEntity.getPrivateIpAddress();
-        }
 
+        String innerIp = eipEntity.getFloatingIp();
         try {
             String newPipId = firewallService.addQos(innerIp, eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandWidth()),
                     eipEntity.getFirewallId());

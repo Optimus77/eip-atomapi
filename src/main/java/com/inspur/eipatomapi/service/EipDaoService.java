@@ -520,6 +520,7 @@ public class EipDaoService {
             eip.setInstanceType(type);
             eip.setStatus(HsConstants.ACTIVE);
             eip.setPrivateIpAddress(ipAddr);
+            eip.setFloatingIp(ipAddr);
             eip.setUpdateTime(CommonUtil.getGmtDate());
             eipRepository.saveAndFlush(eip);
             return MethodReturnUtil.success(eip);
@@ -563,6 +564,7 @@ public class EipDaoService {
         eipEntity.setInstanceId(null);
         eipEntity.setPrivateIpAddress(null);
         eipEntity.setInstanceType(null);
+        eipEntity.setFloatingIp(null);
 
 
         eipEntity.setStatus("DOWN");
