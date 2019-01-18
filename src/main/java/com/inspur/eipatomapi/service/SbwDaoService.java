@@ -341,11 +341,12 @@ public class SbwDaoService {
             sbwEntiy.setPipeId(pipeId);
             sbwRepository.saveAndFlush(sbwEntiy);
         }
-        boolean updateStatus = false ;
+        boolean updateStatus = true ;
+        String pipeId = "";
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             String innerIp = eipEntity.getFloatingIp();
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+innerIp+" ShardBandId: "+ sharedSbwId);
-            String pipeId = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp,sbwEntiy.getPipeId(), sharedSbwId, eipEntity.getBandWidth());
+            pipeId = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp,sbwEntiy.getPipeId(), sharedSbwId, eipEntity.getBandWidth());
             if(null != pipeId){
                 updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
                 if(sbwEntiy.getPipeId() == null || sbwEntiy.getPipeId().isEmpty()) {
@@ -389,7 +390,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
         }
         String innerIp = eipEntity.getFloatingIp();
-        boolean removeStatus =false;
+        boolean removeStatus =true;
         String newPipId = null;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
             newPipId = firewallService.addQos(innerIp, eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandWidth()),
@@ -412,7 +413,7 @@ public class SbwDaoService {
             return ActionResponse.actionSuccess();
         }
 
-        msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getEipId() + "sharedBandWidthId:" + sharedSbwId + "";
+        msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getEipId() + " sharedBandWidthId:" + sharedSbwId + "";
         log.error(msg);
         return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
