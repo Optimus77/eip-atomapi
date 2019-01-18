@@ -394,6 +394,8 @@ public class SbwDaoService {
                     eipEntity.getFirewallId());
             if(null != newPipId) {
                 removeStatus = firewallService.removeQosBindEip(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId(), sharedSbwId);
+            }else {
+                removeStatus = false;
             }
         }
 
