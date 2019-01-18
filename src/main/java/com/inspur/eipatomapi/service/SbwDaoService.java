@@ -331,7 +331,7 @@ public class SbwDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
-        boolean updateStatus = false ;
+        boolean updateStatus = true ;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             String innerIp = eipEntity.getFloatingIp();
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+innerIp+" ShardBandId: "+ sharedSbwId);
