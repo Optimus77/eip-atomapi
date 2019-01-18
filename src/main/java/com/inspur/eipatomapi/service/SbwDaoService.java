@@ -63,10 +63,6 @@ public class SbwDaoService {
         sbwMo.setIsDelete(0);
         sbwMo.setCreateTime(CommonUtil.getGmtDate());
 
-//        Firewall firewall = firewallRepository.findFirewallByRegion(sbwMo.getRegion());
-//        String pipId = firewallService.addQos(null, sbwMo.getSbwId(), String.valueOf(sbwMo.getBandWidth()), firewall.getId());
-//        sbwMo.setPipeId(pipId);
-
         Sbw sbw = sbwRepository.saveAndFlush(sbwMo);
         log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
         return sbwMo;
