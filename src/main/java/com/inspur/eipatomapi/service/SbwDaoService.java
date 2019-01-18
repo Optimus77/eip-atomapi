@@ -159,7 +159,6 @@ public class SbwDaoService {
         /////////////////////////////////////////
         //todo: get all the eip, and softdown eip
         /////////////////////////////////////////
-        sbw.setStatus(HsConstants.DOWN);
         sbw.setUpdateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(sbw);
         return ActionResponse.actionSuccess();
@@ -176,7 +175,6 @@ public class SbwDaoService {
         int newTime = Integer.valueOf(renewTime) + Integer.valueOf(oldTime);
         sbw.setDuration(String.valueOf(newTime));
         if ((newTime > 0)) {
-            sbw.setStatus(HsConstants.ACTIVE);
             sbw.setUpdateTime(CommonUtil.getGmtDate());
         }
         sbwRepository.saveAndFlush(sbw);
