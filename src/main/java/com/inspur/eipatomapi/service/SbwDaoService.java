@@ -372,6 +372,8 @@ public class SbwDaoService {
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String msg ;
         String sharedSbwId = eipUpdateParam.getSharedBandWidthId();
+        Sbw sbw = sbwRepository.findBySbwId(sharedSbwId);
+        int ipcount = (int)eipRepository.countBySharedBandWidthIdAndIsDelete(sharedSbwId, 0);
         if (null == eipEntity) {
             log.error("In removeEipShardBindEip process,failed to find the eip by id:{} ", eipid);
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);
@@ -400,6 +402,8 @@ public class SbwDaoService {
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
             eipRepository.saveAndFlush(eipEntity);
+            sbw.setIpCount(ipcount);
+            sbwRepository.saveAndFlush(sbw);
             return ActionResponse.actionSuccess();
         }
 
