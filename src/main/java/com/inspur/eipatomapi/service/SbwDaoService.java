@@ -298,9 +298,14 @@ public class SbwDaoService {
     @Transactional
     public MethodReturn addEipShardBindEip(String eipid, EipUpdateParam eipUpdateParam)  {
 
-        // todo 2.check Shared bandwidth ip quota
+
         String sharedSbwId = eipUpdateParam.getSharedBandWidthId();
         Eip eipEntity = eipRepository.findByEipId(eipid);
+        if(eipRepository.countBySharedBandWidthIdAndIsDelete(sharedSbwId,0)>50){
+            log.error("The quota is full in this sbwId:{}",sharedSbwId);
+            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN,ReturnStatus.SC_FORBIDDEN,
+                    CodeInfo.getCodeMessage(CodeInfo.SBW_QUOTA_IS_FULL));
+        }
         if (null == eipEntity) {
             log.error("In addEipShardBindEip process,failed to find the eip by id:{} ", eipid);
 
