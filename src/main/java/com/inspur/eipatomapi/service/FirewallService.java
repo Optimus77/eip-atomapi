@@ -409,16 +409,12 @@ class FirewallService {
                 }
             } else {
                 HashMap<String, String> result = qosService.addIpTosharedQos(floatIp, oldPipeId, sbwId);
-                if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
-                    if (result.get("result") != null && Boolean.valueOf(result.get("result"))) {
-                        log.info("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --success==BandId：" + sbwId);
-                        retPipeId = result.get("ip");
-                    } else {
-                        log.warn("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --fail==BandId：" + sbwId);
-
-                    }
+                log.info("addQosBindEip:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
+                if (result.get("result") != null && Boolean.valueOf(result.get("result"))) {
+                    log.info("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --success==BandId：" + sbwId);
+                    retPipeId = result.get("id");
                 } else {
-                    log.warn("Failed addQosBindEip:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
+                    log.warn("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --fail==BandId：" + sbwId);
                 }
             }
         }
