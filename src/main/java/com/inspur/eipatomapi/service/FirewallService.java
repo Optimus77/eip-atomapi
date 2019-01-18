@@ -297,7 +297,7 @@ class FirewallService {
             }else{
                 pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
             }
-            if (null != pipId || !CommonUtil.qosDebug) {
+            if (null != pipId || CommonUtil.qosDebug) {
                 dnatRuleId = addDnat(fipAddress, eipAddress,firewallId);
                 if (dnatRuleId != null) {
                     snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
@@ -417,7 +417,7 @@ class FirewallService {
 
                     }
                 } else {
-                    log.warn("Failed addQosBindEip:firewallId:{} fip:{} eip:{} reslut:{}", firewallId, floatIp, sbwId, result);
+                    log.warn("Failed addQosBindEip:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
                 }
             }
         }
