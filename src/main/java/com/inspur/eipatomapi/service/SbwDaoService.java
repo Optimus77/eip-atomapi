@@ -131,6 +131,11 @@ public class SbwDaoService {
         entity.setUpdateTime(CommonUtil.getGmtDate());
         // todo delete the qos
         String region = entity.getRegion();
+        if(null ==region  && region == ""){
+            msg = "do not get region successfully";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
+        }
         Firewall firewall=firewallRepository.findFirewallByRegion(region);
         String devIp = firewall.getIp();
         String pipeId = entity.getPipeId();
