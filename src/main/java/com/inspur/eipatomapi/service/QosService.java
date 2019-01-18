@@ -209,6 +209,7 @@ public class QosService {
                     if(floatingIp.equalsIgnoreCase(fip)){
                         res.put("msg", "ip exist");
                         res.put(HsConstants.SUCCESS, "false");
+                        res.put("id", pipId);
                         return res;
                     }
                     String longFloatIp = IpUtil.ipToLong(floatingIp);
@@ -241,6 +242,7 @@ public class QosService {
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (Boolean.valueOf(success)) {
                 res.put("result", "true");
+                res.put("id", pipId);
             } else {
                 res.put("result", "false");
             }
