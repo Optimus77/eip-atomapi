@@ -291,11 +291,9 @@ public class SbwDaoService {
 
     @Transactional
     public MethodReturn addEipShardBindEip(String eipid, EipUpdateParam eipUpdateParam)  {
-
-
         String sharedSbwId = eipUpdateParam.getSharedBandWidthId();
         Eip eipEntity = eipRepository.findByEipId(eipid);
-        String pipeId ="";
+
         if(eipRepository.countBySharedBandWidthIdAndIsDelete(sharedSbwId,0)>50){
             log.error("The quota is full in this sbwId:{}",sharedSbwId);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN,ReturnStatus.SC_FORBIDDEN,
@@ -332,16 +330,11 @@ public class SbwDaoService {
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
 
-        if(eipRepository.countBySharedBandWidthIdAndIsDelete(sharedSbwId, 0) == 0){
-            pipeId =firewallService.addQos(eipEntity.getFloatingIp(),eipEntity.getEipAddress(),sbwEntiy.getBandWidth().toString(),eipEntity.getFirewallId());
-        }else {
-            pipeId = sbwEntiy.getPipeId();
-        }
         boolean updateStatus = true ;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
             String innerIp = eipEntity.getFloatingIp();
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+innerIp+" ShardBandId: "+ sharedSbwId);
-            pipeId = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp,pipeId, sharedSbwId, eipEntity.getBandWidth());
+            String pipeId = firewallService.addQosBindEip(eipEntity.getFirewallId(), innerIp,sbwEntiy.getPipeId(), sharedSbwId, eipEntity.getBandWidth());
             if(null != pipeId){
                 updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
                 if(sbwEntiy.getPipeId() == null || sbwEntiy.getPipeId().isEmpty()) {
@@ -394,6 +387,8 @@ public class SbwDaoService {
                     eipEntity.getFirewallId());
             if(null != newPipId) {
                 removeStatus = firewallService.removeQosBindEip(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId(), sharedSbwId);
+            }else {
+                removeStatus = false;
             }
         }
 

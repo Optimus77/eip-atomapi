@@ -292,6 +292,11 @@ public class EipDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
         }
 
+        MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
+        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+            msg += fireWallReturn.getMessage();
+        }
+
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
             ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
                     eipEntity.getFloatingIpId(),
@@ -309,10 +314,6 @@ public class EipDaoService {
             eipEntity.setFloatingIpId(null);
         }
 
-        MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
-        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
-            msg += fireWallReturn.getMessage();
-        }
         eipEntity.setStatus(HsConstants.DOWN);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);

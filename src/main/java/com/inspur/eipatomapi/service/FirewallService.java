@@ -386,42 +386,39 @@ class FirewallService {
      * @param sbwId bad id
      * @return ret
      */
-    public String addQosBindEip(String firewallId,String floatIp,String pipId,String sbwId, int ibandWidth){
+    public String addQosBindEip(String firewallId,String floatIp,String oldPipeId,String sbwId, int ibandWidth){
 
         Firewall fwBean = getFireWallById(firewallId);
         String bandWidth = String.valueOf(ibandWidth);
+        String retPipeId = null;
         if(fwBean != null) {
 //            QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             qosService.setFwIp(fwBean.getIp());
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
-            if (null == pipId || pipId.isEmpty()) {
-                String pipeId = addQos(floatIp, sbwId, bandWidth, firewallId);
-                if(null != pipeId) {
+            if (null == oldPipeId || oldPipeId.isEmpty()) {
+                retPipeId = addQos(floatIp, sbwId, bandWidth, firewallId);
+                if(null != retPipeId) {
                     Optional<Sbw> sbw = sbwRepository.findById(sbwId);
                     if (sbw.isPresent()) {
                         Sbw sbwEntiy = sbw.get();
-                        sbwEntiy.setPipeId(pipeId);
+                        sbwEntiy.setPipeId(retPipeId);
                         sbwRepository.saveAndFlush(sbwEntiy);
                     }
                 }
             } else {
-                HashMap<String, String> result = qosService.addIpTosharedQos(floatIp, pipId, sbwId);
-                if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
-                    if (result.get("result") != null && Boolean.valueOf(result.get("result"))) {
-                        log.info("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --success==BandId：" + sbwId);
-                        return result.get("ip");
-                    } else {
-                        log.warn("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --fail==BandId：" + sbwId);
-
-                    }
+                HashMap<String, String> result = qosService.addIpTosharedQos(floatIp, oldPipeId, sbwId);
+                log.info("addQosBindEip:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
+                if (result.get("result") != null && Boolean.valueOf(result.get("result"))) {
+                    log.info("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --success==BandId：" + sbwId);
+                    retPipeId = result.get("id");
                 } else {
-                    log.warn("Failed addQosBindEip:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
+                    log.warn("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --fail==BandId：" + sbwId);
                 }
             }
         }
-        return null;
+        return retPipeId;
     }
     /**
      * remove eip from shared band
@@ -447,7 +444,7 @@ class FirewallService {
                     return false;
                 }
             } else {
-                log.warn("removeQosBindEip: " + firewallId + "floatIp: "+floatIp+" --fail==BandIp：" + pipeId);
+                log.warn("Failed removeQosBindEip:fip:{} pipeId:{} result:{} " ,floatIp, pipeId, result);
             }
             return Boolean.parseBoolean(result.get(HsConstants.SUCCESS));
         }
