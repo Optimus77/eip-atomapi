@@ -187,16 +187,16 @@ public class SbwServiceImpl implements ISbwService {
         String code;
         String msg;
         try {
-            JSONObject result = sbwDaoService.updateSbwEntity(id, param);
-            if(!result.getString("interCode").equals(ReturnStatus.SC_OK)){
-                code = result.getString("interCode");
-                int httpResponseCode=result.getInteger("httpCode");
-                msg = result.getString("reason");
+            MethodSbwReturn result = sbwDaoService.updateSbwEntity(id, param);
+            if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
+                code = result.getInnerCode();
+                int httpResponseCode=result.getHttpCode();
+                msg = result.getMessage();
                 log.error(msg);
-                return new ResponseEntity<>(SbwReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
             }else{
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
-                Sbw sbwEntity=(Sbw)result.get("data");
+                Sbw sbwEntity=(Sbw)result.getSbw();
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
