@@ -47,7 +47,5 @@ public class Sbw implements Serializable {
 
     private int isDelete =0;
 
-    private String status ="ACTIVE";
-
     private String pipeId;
 }
