@@ -293,7 +293,10 @@ class FirewallService {
         String returnMsg;
         try {
             if(eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) ) {
-                pipId = addQosBindEip(eip.getFirewallId(), fipAddress, eip.getPipId(), eip.getSharedBandWidthId(), eip.getBandWidth());
+                Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSharedBandWidthId());
+                if(null != sbwEntity){
+                    pipId = addQosBindEip(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId(), eip.getSharedBandWidthId(), eip.getBandWidth());
+                }
             }else{
                 pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
             }
@@ -386,7 +389,7 @@ class FirewallService {
      * @param sbwId bad id
      * @return ret
      */
-    public String addQosBindEip(String firewallId,String floatIp,String oldPipeId,String sbwId, int ibandWidth){
+    public String addQosBindEip(String firewallId,String floatIp,String sbwPipeId,String sbwId, int ibandWidth){
 
         Firewall fwBean = getFireWallById(firewallId);
         String bandWidth = String.valueOf(ibandWidth);
@@ -397,7 +400,7 @@ class FirewallService {
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
-            if (null == oldPipeId || oldPipeId.isEmpty()) {
+            if (null == sbwPipeId || sbwPipeId.isEmpty()) {
                 retPipeId = addQos(floatIp, sbwId, bandWidth, firewallId);
                 if(null != retPipeId) {
                     Optional<Sbw> sbw = sbwRepository.findById(sbwId);
@@ -408,7 +411,7 @@ class FirewallService {
                     }
                 }
             } else {
-                HashMap<String, String> result = qosService.addIpTosharedQos(floatIp, oldPipeId, sbwId);
+                HashMap<String, String> result = qosService.addIpTosharedQos(floatIp, sbwPipeId, sbwId);
                 log.info("addQosBindEip:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
                 if (result.get("result") != null && Boolean.valueOf(result.get("result"))) {
                     log.info("addQosBindEip: " + firewallId + "floatIp: " + floatIp + " --success==BandId：" + sbwId);
