@@ -124,9 +124,10 @@ public class SbwDaoService {
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
         if (sbwEntity.getPipeId() ==null ||"".equals(sbwEntity.getPipeId())){
-            msg = "The sbw pipeId is null or  ''!" + sbwEntity.getPipeId();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
+            sbwEntity.setIsDelete(1);
+            sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
+            sbwRepository.saveAndFlush(sbwEntity);
+            return  ActionResponse.actionSuccess();
         }
         boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), firewall.getId());
         if (delQos){
@@ -134,7 +135,7 @@ public class SbwDaoService {
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
             sbwEntity.setPipeId(null);
             sbwRepository.saveAndFlush(sbwEntity);
-            ActionResponse.actionSuccess();
+            return ActionResponse.actionSuccess();
         }
         return ActionResponse.actionFailed(CodeInfo.SBW_DELETE_ERROR, HttpStatus.SC_FORBIDDEN);
     }
