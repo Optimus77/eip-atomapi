@@ -64,6 +64,11 @@ public class SbwDaoService {
         sbwMo.setCreateTime(CommonUtil.getGmtDate());
 
         Sbw sbw = sbwRepository.saveAndFlush(sbwMo);
+        Firewall firewall=firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
+
+        String pipeId = firewallService.addQos(null, sbw.getSbwId(), String.valueOf(sbw.getBandWidth()), firewall.getId());
+        sbwMo.setPipeId(pipeId);
+        sbwRepository.saveAndFlush(sbwMo);
         log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
         return sbwMo;
     }
