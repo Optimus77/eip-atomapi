@@ -446,12 +446,6 @@ class FirewallService {
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
-            if (count == 1) {
-                boolean delQos = delQos(pipeId, firewallId);
-                if (delQos) {
-                    return Boolean.parseBoolean(HsConstants.SUCCESS);
-                } else return false;
-            }
             HashMap<String, String> result = qosService.removeIpFromQos(floatIp, pipeId, sbwId);
             if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
                 if (result.get("result") != null && Boolean.valueOf(result.get("result"))) {
