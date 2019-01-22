@@ -181,7 +181,10 @@ public class EipController {
                 }
             }
         } else {
-            if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
+            if(updateParam.getBillType()==null&&updateParam.getBandWidth()==0) {
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEipUpdateParam());
+                return eipService.unBindPort(eipId);
+            }else if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
                 if ( updateParam.getSharedBandWidthId() != null &&
                         updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
                     log.info("add eip to shared bandwidth:{}", updateParam.toString());
