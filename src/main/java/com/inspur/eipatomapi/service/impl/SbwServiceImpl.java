@@ -195,6 +195,8 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 Sbw sbwEntity=(Sbw)result.getSbw();
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwEntity.getSbwId(), 0);
+                sbwReturnDetail.setIpCount((int)count);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
@@ -380,6 +382,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 Sbw sbwEntity = (Sbw) result.get("data");
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                sbwReturnDetail.setIpCount((int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0));
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {

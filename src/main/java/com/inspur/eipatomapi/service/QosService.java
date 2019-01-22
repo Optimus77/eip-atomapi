@@ -233,7 +233,12 @@ public class QosService {
             String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
             log.info(conditionStr);
             //add the ip to ip Array
-            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+            String retr ="";
+            if (ipSet.size() != 1) {
+                retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+            } else if (ipSet.size() == 1 ){
+                retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+            }
 //            String retr = HsHttpClient.hsHttpPut("10.110.29.206", "443", "hillstone", "hillstone", "/rest/iQos?target=root.rule", conditionStr);
             JSONObject jo = new JSONObject(retr);
             log.info("addQosPipeBindEip result:{}", jo);
@@ -311,7 +316,12 @@ public class QosService {
             String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
             log.info(conditionStr);
             //add the ip to ip Array
-            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+            String retr = "";
+            if (ipSet .size() != 1) {
+                retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+            } else if (ipSet.size() == 1){
+                retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+            }
             JSONObject jo = new JSONObject(retr);
             log.info("removeQosPipeBindEip  result:{}", jo);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);

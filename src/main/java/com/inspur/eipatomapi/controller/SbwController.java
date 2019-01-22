@@ -62,8 +62,8 @@ public class SbwController {
     @GetMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "listsbw", notes = "list")
-    public ResponseEntity listSbw(@RequestParam( name = "currentPageIndex", defaultValue = "1") String pageIndex,
-                                  @RequestParam( name = "currentPageSize", defaultValue = "10") String pageSize,
+    public ResponseEntity listSbw(@RequestParam(required = false, name = "currentPageIndex") String pageIndex,
+                                  @RequestParam(required = false, name = "currentPageSize") String pageSize,
                                   @RequestParam(required = false, name = "searchValue") String searchValue) {
         log.info("SbwController listSbw currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
         if (pageIndex == null || pageSize == null) {

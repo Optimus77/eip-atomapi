@@ -18,8 +18,6 @@ public interface SbwRepository extends JpaRepository<Sbw, String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Sbw findBySbwId(String id);
 
-    Sbw findByInstanceIdAndIsDelete(String instanceId, int isDelete);
-
     List<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete);
 
     Page<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
