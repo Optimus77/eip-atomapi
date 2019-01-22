@@ -185,7 +185,7 @@ public class EipServiceImpl implements IEipService {
 
 
     /**
-     *  list the eip
+     *  listShareBandWidth the eip
      * @param currentPage  the current page
      * @param limit  element of per page
      * @return       result
@@ -500,7 +500,7 @@ public class EipServiceImpl implements IEipService {
             List<NovaServerEntity> serverList= portService.listServerByTags(tag, osClientV3);
             JSONArray dataArray=new JSONArray();
             for(NovaServerEntity server:serverList){
-                log.debug("Server list , name:{}.",server.getName());
+                log.debug("Server listShareBandWidth , name:{}.",server.getName());
                 String serverId = server.getId();
                 if(null == eipDaoService.findByInstanceId(serverId)) {
                     List<String> portIds = neutronService.getPortIdByServerId(serverId, osClientV3);

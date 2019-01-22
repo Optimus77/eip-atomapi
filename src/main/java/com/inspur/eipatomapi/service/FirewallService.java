@@ -402,7 +402,6 @@ class FirewallService {
         String bandWidth = String.valueOf(ibandWidth);
         String retPipeId = null;
         if(fwBean != null) {
-//            QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             qosService.setFwIp(fwBean.getIp());
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
@@ -420,11 +419,11 @@ class FirewallService {
             } else {
                 HashMap<String, String> result = qosService.addIpToQos(floatIp, sbwPipeId, sbwId);
                 log.info("addFloatingIPtoQos:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
-                if (result.get("result") != null && Boolean.valueOf(result.get("result"))) {
-                    log.info("addFloatingIPtoQos: " + firewallId + "floatIp: " + floatIp + " --success==sbwId：" + sbwId);
+                if (result.get("resultSet") != null && Boolean.valueOf(result.get("resultSet"))) {
+                    log.info("addFloatingIPtoQos: " + firewallId + "floatingIp: " + floatIp + " --success==sbwId：" + sbwId);
                     retPipeId = result.get("id");
                 } else {
-                    log.warn("addFloatingIPtoQos: " + firewallId + "floatIp: " + floatIp + " --fail==sbwId：" + sbwId);
+                    log.warn("addFloatingIPtoQos: " + firewallId + "floatingIp: " + floatIp + " --fail==sbwId：" + sbwId);
                 }
             }
         }
@@ -460,9 +459,9 @@ class FirewallService {
             }
             HashMap<String, String> result = qosService.removeIpFromQos(floatIp, pipeId, sbwId);
             if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
-                if (result.get("result") != null && Boolean.valueOf(result.get("result"))){
+                if (result.get(HsConstants.RESULT) != null && Boolean.valueOf(result.get(HsConstants.RESULT))){
                     log.info("removeFloatingIpFromQos: " + firewallId + "floatIp: "+floatIp+ " --success==pipeId：" + pipeId);
-                    return Boolean.parseBoolean(result.get("result"));
+                    return Boolean.parseBoolean(result.get(HsConstants.RESULT));
                 }else {
                     log.warn("removeFloatingIpFromQos: " + firewallId + "floatIp: "+floatIp+ " --fail==pipeId：" + pipeId);
                     return false;

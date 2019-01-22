@@ -23,7 +23,7 @@ public interface IEipService {
     ResponseEntity deleteEipList(List<String> eipIds);
 
     /**
-     *  list the eip
+     *  listShareBandWidth the eip
      * @param currentPage  the current page
      * @param limit  element of per page
      * @return       result
@@ -66,7 +66,7 @@ public interface IEipService {
 
 
     /**
-     * list all server of current users
+     * listShareBandWidth all server of current users
      */
     ResponseEntity listServer(String userRegion, String tag);
 
