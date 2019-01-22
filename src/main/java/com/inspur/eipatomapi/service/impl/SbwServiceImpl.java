@@ -58,8 +58,7 @@ public class SbwServiceImpl implements ISbwService {
                 msg = "Failed to create sbw :" + sbwConfig.getRegion();
                 log.error(msg);
             }
-        }
-        catch (KeycloakTokenException e){
+        } catch (KeycloakTokenException e){
             return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch ( Exception e) {
             return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -99,8 +98,6 @@ public class SbwServiceImpl implements ISbwService {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
                     long ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbw.getSbwId(), 0);
-                    sbw.setIpCount((int) ipCount);
-                    sbwRepository.saveAndFlush(sbw);
                     sbwReturnDetail.setIpCount((int)ipCount);
                     sbws.add(sbwReturnDetail);
                 }

@@ -35,8 +35,6 @@ public class Sbw implements Serializable {
 
     private String region;
 
-    private int ipCount;
-
     @Column(name="create_time" ,nullable = false)
     private Date createTime  = new Date(System.currentTimeMillis());
 

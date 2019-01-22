@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
-import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
@@ -608,7 +607,7 @@ public class EipServiceImpl implements IEipService {
         String msg;
         MethodReturn result ;
         try {
-            result = sbwDaoService.addEipShardBindEip(eipId, eipUpdateParam);
+            result = sbwDaoService.addEipIntoSbw(eipId, eipUpdateParam);
             if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
                 msg = result.getMessage();
                 log.error(msg);
@@ -621,7 +620,7 @@ public class EipServiceImpl implements IEipService {
             }
 
         } catch (Exception e) {
-            log.error("eipbindSlb exception", e);
+            log.error("eip add to shared band exception", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
@@ -651,7 +650,7 @@ public class EipServiceImpl implements IEipService {
         String msg;
 
         try {
-            ActionResponse actionResponse = sbwDaoService.removeEipShardBindEip(eipId, eipUpdateParam);
+            ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eipId, eipUpdateParam);
             if (actionResponse.isSuccess()){
                 code = ReturnStatus.SC_OK;
                 msg=("remove from shared successfully");
@@ -665,7 +664,7 @@ public class EipServiceImpl implements IEipService {
                 log.error(msg);
             }
         } catch (Exception e) {
-            log.error("remove  exception", e);
+            log.error("remove from sbw  exception", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
