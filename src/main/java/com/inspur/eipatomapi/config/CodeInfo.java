@@ -36,8 +36,17 @@ public  class CodeInfo {
     public static final String SLB_BIND_NOT_FOND="SLB_BIND_NOT_FOND";
     public static final String EIP_BILLTYPE_NOT_HOURLYSETTLEMENT="EIP_BILLTYPE_NOT_HOURLYSETTLEMENT";
     public static final String EIP_FLOATINGIP_NULL="EIP_FLOATINGIP_NULL";
-    public static final String EIP_Shared_Band_Width_Id_NOT_NULL="EIP_Shared_Band_Width_Id_NOT_NULL";
+    public static final String EIP_SHARED_BAND_WIDTH_ID_NOT_NULL="EIP_SHARED_BAND_WIDTH_ID_NOT_NULL";
 
+
+    //SBW
+    public static final String SBW_FORBIDDEN="SBW_FORBIDDEN";
+    public static final String SBW_NOT_FOND_BY_ID ="EIP_NOT_FOND_BY_ID";
+    public static final String SBW_FORBIDEN_WITH_ID="SBW_FORBIDEN_WITH_ID";
+    public static final String SBW_CHANGE_BANDWIDTH_ERROR="SBW_CHANGE_BANDWIDTH_ERROR";
+    public static final String SBW_QUOTA_IS_FULL="SBW_QUOTA_IS_FULL";
+    public static final String SBW_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="SBW_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR";
+    public static final String SBW_BILLTYPE_NOT_HOURLYSETTLEMENT="SBW_BILLTYPE_NOT_HOURLYSETTLEMENT";
 
 
 
@@ -70,6 +79,12 @@ public  class CodeInfo {
         public static final String KEYCLOAK_NO_PROJECT="没有项目信息";
 
         public static final String SLB_BIND_NOT_FOND ="Bad request: 根据此id无法找到对应的SLB信息";
+
+        //sbw
+        public static final String ELASTIC_IP_IN_SBW_CANNOT_BE_REMOVED = "共享带宽中存在弹性IP，无法删除";
+        public static final String SBW_FORBIDDEN = "无权操作";
+        public static final String SBW_BILLTYPE_NOT_HOURLYSETTLEMENT = "无权操作";
+        public static final String SBW_NOT_FOND_BY_ID = "404-Bad request: 根据此id无法找到对应的SBW信息";
 
     }
 
@@ -134,6 +149,16 @@ public  class CodeInfo {
         public static final String EIP_UPDATE_SUCCEEDED="Eip updated successfully";
         public static final String EIP_RENEWAL_SUCCEEDED="Eip renew success";
         public static final String KEYCLOAK_NO_PROJECT="keycloak has no project info.";
+
+        //sbw
+        public static final String EIP_SHARED_BAND_WIDTH_ID_NOT_NULL="Eip had already added other SBW !";
+        public static final String SBW_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="sbw_change_bandwidht_prepaid_increase_error!";
+        public static final String SBW_FORBIDDEN="sbw_forbidden!";
+        public static final String ELASTIC_IP_IN_SBW_CANNOT_BE_REMOVED = "elastic_ip_in_sbw_cannot_be_removed";
+        public static final String SBW_BILLTYPE_NOT_HOURLYSETTLEMENT = "sbw_billtype_not_hourlysettlement";
+        public static final String SBW_NOT_FOND_BY_ID = "404-Bad request: sbw_not_fond_by_id";
+
+
 
     }
 

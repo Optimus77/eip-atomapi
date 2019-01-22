@@ -18,4 +18,6 @@ public class ConsoleCustomization implements Serializable {
     private String duration;
 
     private String sharedbandwidthname;
+
+    private String method;
 }

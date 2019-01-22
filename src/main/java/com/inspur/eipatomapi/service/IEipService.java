@@ -1,6 +1,7 @@
 package com.inspur.eipatomapi.service;
 
 import com.inspur.eipatomapi.entity.eip.EipShardBand;
+import com.inspur.eipatomapi.entity.eip.EipUpdateParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
 
@@ -22,7 +23,7 @@ public interface IEipService {
     ResponseEntity deleteEipList(List<String> eipIds);
 
     /**
-     *  list the eip
+     *  listShareBandWidth the eip
      * @param currentPage  the current page
      * @param limit  element of per page
      * @return       result
@@ -47,22 +48,6 @@ public interface IEipService {
 
 
     /**
-     * update eip band width
-     * @param id    id
-     * @return      result
-     */
-    ResponseEntity eipbindSlb(String id, String type, String serverId);
-
-
-    /**
-     * eip bind with port
-     * @param slbId     eipid
-     * @return        result
-     */
-    ResponseEntity unBindSlb(String slbId);
-
-
-    /**
      * eip bind with port
      * @param id      id
      * @param serverId  server id
@@ -81,7 +66,7 @@ public interface IEipService {
 
 
     /**
-     * list all server of current users
+     * listShareBandWidth all server of current users
      */
     ResponseEntity listServer(String userRegion, String tag);
 
@@ -94,9 +79,9 @@ public interface IEipService {
 
     ResponseEntity getEipCount();
 
-    ResponseEntity addEipToShared(String eipId, EipShardBand band);
+    ResponseEntity addEipToSbw(String eipId,  EipUpdateParam eipUpdateParam);
 
-    ResponseEntity removeFromShared(String eipId, EipShardBand band);
+    ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam);
 
 
 }

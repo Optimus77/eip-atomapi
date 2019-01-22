@@ -49,7 +49,7 @@ public class Eip implements Serializable {
 
     private int bandWidth;
 
-    private int oldBandWidth;
+    private int oldBandWidth =1;
 
     private String ipType;
 

@@ -6,9 +6,9 @@ import org.springframework.http.ResponseEntity;
 
 public interface ISbwService {
 
-    ResponseEntity deleteSbw(String sbwId);
+    ResponseEntity atomDeleteSbw(String sbwId);
 
-    ResponseEntity listSbws(int pageIndex,int pageSize,String searchValue);
+    ResponseEntity listShareBandWidth(Integer pageIndex, Integer pageSize, String searchValue);
 
     ResponseEntity getSbwDetail(String sbwId);
 

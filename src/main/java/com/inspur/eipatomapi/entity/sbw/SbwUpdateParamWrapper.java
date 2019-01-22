@@ -15,6 +15,6 @@ public class SbwUpdateParamWrapper implements Serializable {
 
     @JsonProperty("sbw")
     @Valid
-    @NotNull(message="the body must be a json and eip is not null")
+    @NotNull(message="the body must be a json and sbw is not null")
     private SbwUpdateParam sbwUpdateParam;
 }

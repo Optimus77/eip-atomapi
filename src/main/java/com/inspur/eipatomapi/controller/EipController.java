@@ -150,7 +150,7 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,@Valid @RequestBody EipUpdateParamWrapper param , BindingResult result) {
+    public ResponseEntity updateEip(@PathVariable("eip_id") String eipId, @Valid @RequestBody EipUpdateParamWrapper param ,BindingResult result) {
 
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
@@ -162,51 +162,59 @@ public class EipController {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
         String msg="";
-        if(param.getEipUpdateParam().getPortId()!=null){
+        EipUpdateParam updateParam = param.getEipUpdateParam();
+
+        if (updateParam.getServerId() != null || updateParam.getPortId()!= null){
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-            if(param.getEipUpdateParam().getPortId().trim().equals("")){
-                log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
+            if ((updateParam.getServerId() != null && updateParam.getServerId().trim().equals("")) ||
+                    (updateParam.getPortId() != null && updateParam.getPortId().trim().equals(""))) {
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
                 return eipService.unBindPort(eipId);
 
-            }else{
-                log.info("bind operate, eipid:{}, param:{}",eipId, param.getEipUpdateParam() );
-                if(param.getEipUpdateParam().getServerId()!=null&&param.getEipUpdateParam().getType()!=null){
-                    return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),
-                            param.getEipUpdateParam().getServerId(),
-                            param.getEipUpdateParam().getPortId(),
-                            param.getEipUpdateParam().getSlbIp());
-                }else{
-                    msg="need param serverid and type";
+            } else {
+                log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
+                if (updateParam.getType() != null) {
+                    return eipService.eipbindPort(eipId, updateParam.getType(), updateParam.getServerId(),
+                            updateParam.getPortId(), updateParam.getPrivateIp());
+                } else {
+                    msg = "need param serverid and type";
                 }
             }
-        }else{
-            // protid is null ,maybe unbind or update bind width
-            if(param.getEipUpdateParam().getBillType()==null&&param.getEipUpdateParam().getBandWidth()==0){
-                log.info("unbind operate, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
+        } else {
+            if(updateParam.getBillType()==null&&updateParam.getBandWidth()==0) {
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEipUpdateParam());
                 return eipService.unBindPort(eipId);
-            }else{
-                if(param.getEipUpdateParam().getBillType()!=null&&param.getEipUpdateParam().getBandWidth()!=0){
-
-                    boolean chargeTypeFlag=false;
-                    if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)||
-                            param.getEipUpdateParam().getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
-                        chargeTypeFlag=true;
-                    }else{
-                        msg="chargetype must be [monthly |hourlySettlement]";
-                    }
-                    if(chargeTypeFlag){
-                        log.info("update bandwidth, eipid:{}, param:{} ",eipId, param.getEipUpdateParam() );
-                        return eipService.updateEipBandWidth(eipId,param);
-                    }
-                }else{
-                    msg="param not correct. " +
-                            "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
-                            "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
-                            "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}"  +
-                            "";
+            }else if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
+                if ( updateParam.getSharedBandWidthId() != null &&
+                        updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
+                    log.info("add eip to shared bandwidth:{}", updateParam.toString());
+                    return eipService.addEipToSbw(eipId, updateParam);
+                } else if (updateParam.getChargemode().equalsIgnoreCase("Bandwidth") &&
+                        updateParam.getSharedBandWidthId() != null) {
+                    log.info("remove eip from shared bandwidth:{}", updateParam.toString());
+                    return eipService.removeEipFromSbw(eipId, updateParam);
                 }
+
+                boolean chargeTypeFlag = false;
+                if (updateParam.getBillType().equals(HsConstants.MONTHLY) ||
+                        updateParam.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                    chargeTypeFlag = true;
+                } else {
+                    msg = "chargetype must be [monthly |hourlySettlement]";
+                }
+                if (chargeTypeFlag) {
+                    log.info("update bandwidth, eipid:{}, param:{} ", eipId, updateParam);
+                    return eipService.updateEipBandWidth(eipId, param);
+                }
+            } else {
+                msg = "param not correct. " +
+                        "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
+                        "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
+                        "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
+                        "";
             }
         }
+
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
     }
@@ -266,7 +274,7 @@ public class EipController {
             , @PathVariable("eip_id") String eipId
             ,@PathVariable("ip_addr") String ipAddr) {
         log.info("Bind eip.{}, {}, {}", slbId,ipAddr,eipId);
-        return eipService.eipbindSlb(eipId,slbId,ipAddr);
+        return eipService.eipbindInstance(eipId,slbId,ipAddr, "3");
     }
 
 
@@ -278,29 +286,10 @@ public class EipController {
     })
     public ResponseEntity eipUnbinWithSlb(@PathVariable("slb_id") String slbId) {
         log.info("unBind eip.{}, {}, {}", slbId);
-        return eipService.unBindSlb(slbId);
+        return eipService.unBindInstance(slbId);
     }
 
-    @ICPControllerLog
-    @PutMapping(value = "/eips/addToShared/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "add eip to Shared bandwidth ", notes = "put")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eipsharedBand", value = "the sharedband wrapper of sharedbandid", required = true, dataType = "json"),
-    })
-    public ResponseEntity addEipToShared(@PathVariable("eip_id") String eipId, @Valid @RequestBody EipShardBand band , BindingResult result) {
-        log.info("addEipToShared eip_id:{}, :{}.", eipId, band.toString());
-        if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            log.info("{}",msgBuffer);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
-        }
-        return eipService.addEipToShared(eipId,band);
-    }
+
 
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -319,26 +308,6 @@ public class EipController {
             log.error("Set log level error", e);
         }
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-    }
-    @ICPControllerLog
-    @PutMapping(value = "/eips/removeFromShared/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "remove eip to Shared bandwidth ", notes = "put")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eipsharedBand", value = "the sharedband wrapper of sharedbandid", required = true, dataType = "json"),
-    })
-    public ResponseEntity removeFromShared(@PathVariable("eip_id") String eipId, @Valid @RequestBody EipShardBand band, BindingResult result) {
-        log.info("removeFromShared eip_id:{}, :{}.", eipId, band.toString());
-        if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            log.info("{}",msgBuffer);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
-        }
-        return eipService.removeFromShared(eipId, band);
     }
 
     }
