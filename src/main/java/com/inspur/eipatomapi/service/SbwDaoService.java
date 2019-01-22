@@ -186,16 +186,16 @@ public class SbwDaoService {
 //        long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
         if (null == sbw) {
             log.error("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
-            data.put("httpCode", HttpStatus.SC_NOT_FOUND);
-            data.put("interCode", ReturnStatus.SC_NOT_FOUND);
+            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+            data.put(HsConstants.HTTP_CODE, HttpStatus.SC_NOT_FOUND);
+            data.put(HsConstants.INTER_CODE, ReturnStatus.SC_NOT_FOUND);
             return data;
         }
         if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
             log.error("User have no write to operate sbw:{}", sbwId);
-            data.put("reason", CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
-            data.put("httpCode", HttpStatus.SC_FORBIDDEN);
-            data.put("interCode", ReturnStatus.SC_FORBIDDEN);
+            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            data.put(HsConstants.HTTP_CODE, HttpStatus.SC_FORBIDDEN);
+            data.put(HsConstants.INTER_CODE, ReturnStatus.SC_FORBIDDEN);
             return data;
         }
         //Distinguish between EIP binding and IP unbinding when rename
@@ -228,9 +228,9 @@ public class SbwDaoService {
         sbw.setSharedbandwidthName(newSbwName);
         sbw.setUpdateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(sbw);
-        data.put("reason", "");
-        data.put("httpCode", HttpStatus.SC_OK);
-        data.put("interCode", ReturnStatus.SC_OK);
+        data.put(HsConstants.REASON, "");
+        data.put(HsConstants.HTTP_CODE, HttpStatus.SC_OK);
+        data.put(HsConstants.INTER_CODE, ReturnStatus.SC_OK);
         data.put("data", sbw);
         return data;
     }

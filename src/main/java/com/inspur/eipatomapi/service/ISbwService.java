@@ -8,7 +8,7 @@ public interface ISbwService {
 
     ResponseEntity atomDeleteSbw(String sbwId);
 
-    ResponseEntity listSbws(Integer pageIndex,Integer pageSize,String searchValue);
+    ResponseEntity listShareBandWidth(Integer pageIndex, Integer pageSize, String searchValue);
 
     ResponseEntity getSbwDetail(String sbwId);
 

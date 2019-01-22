@@ -164,9 +164,10 @@ public class EipController {
         String msg="";
         EipUpdateParam updateParam = param.getEipUpdateParam();
 
-        if (updateParam.getServerId() != null){
+        if (updateParam.getServerId() != null || updateParam.getPortId()!= null){
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-            if (updateParam.getServerId().trim().equals("")) {
+            if ((updateParam.getServerId() != null && updateParam.getServerId().trim().equals("")) ||
+                    (updateParam.getPortId() != null && updateParam.getPortId().trim().equals(""))) {
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
                 return eipService.unBindPort(eipId);
 
@@ -180,7 +181,10 @@ public class EipController {
                 }
             }
         } else {
-            if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
+            if(updateParam.getBillType()==null&&updateParam.getBandWidth()==0) {
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEipUpdateParam());
+                return eipService.unBindPort(eipId);
+            }else if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
                 if ( updateParam.getSharedBandWidthId() != null &&
                         updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
                     log.info("add eip to shared bandwidth:{}", updateParam.toString());
