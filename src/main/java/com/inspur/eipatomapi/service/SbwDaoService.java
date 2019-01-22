@@ -90,7 +90,7 @@ public class SbwDaoService {
      */
     @Transactional
     public ActionResponse deleteSbw(String sbwId) {
-        String msg;
+        String msg = "";
         long ipCount ;
         Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
         if (null == sbwEntity) {
@@ -123,14 +123,20 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
+        if (sbwEntity.getPipeId() ==null ||"".equals(sbwEntity.getPipeId())){
+            msg = "The sbw pipeId is null or  ''!" + sbwEntity.getPipeId();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
+        }
         boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), firewall.getId());
         if (delQos){
             sbwEntity.setIsDelete(1);
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
             sbwEntity.setPipeId(null);
             sbwRepository.saveAndFlush(sbwEntity);
+            ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionSuccess();
+        return ActionResponse.actionFailed(CodeInfo.SBW_DELETE_ERROR, HttpStatus.SC_FORBIDDEN);
     }
 
 
@@ -362,7 +368,7 @@ public class SbwDaoService {
         String newPipId = null;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+eipEntity.getFloatingIp()+" ShardBandId: "+ sbwId);
-            newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(sbw.getBandWidth()),
+            newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandWidth()),
                     eipEntity.getFirewallId());
             if(null != newPipId) {
                 removeStatus = firewallService.removeFloatingIpFromQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), eipEntity.getPipId(), sbwId);
@@ -379,10 +385,6 @@ public class SbwDaoService {
             eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
             eipRepository.saveAndFlush(eipEntity);
 
-            long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
-            if (count == 0){
-                sbw.setPipeId(null);
-            }
             sbw.setUpdateTime(new Date());
             sbwRepository.saveAndFlush(sbw);
             return ActionResponse.actionSuccess();
