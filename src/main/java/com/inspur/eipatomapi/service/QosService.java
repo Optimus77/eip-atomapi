@@ -293,14 +293,6 @@ public class QosService {
                     }
                 }
             }
-//            if (flag) {
-//                res.put("msg", "success");
-//                res.put(HsConstants.SUCCESS, "true");
-//            } else {
-//                res.put("msg", "no have this ip");
-//                res.put(HsConstants.SUCCESS, "false");
-//                return res;
-//            }
             //src addr
             ArrayList addrList = new ArrayList();
             addrList.add(new SrcAddr());
@@ -316,12 +308,7 @@ public class QosService {
             String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
             log.info(conditionStr);
             //add the ip to ip Array
-            String retr = "";
-            if (ipSet .size() != 1) {
-                retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
-            } else if (ipSet.size() == 1){
-                retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
-            }
+            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
             JSONObject jo = new JSONObject(retr);
             log.info("removeQosPipeBindEip  result:{}", jo);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
@@ -404,7 +391,7 @@ public class QosService {
 //        //qs.addRule("1508923278112971634", "2", "172.23.23.3", "any", "ethernet0/0", "ethernet0/1");
 //    }
 
-    //自定义Strig适配器
+    //Customize the Strig adapter
     private static final TypeAdapter STRING = new TypeAdapter() {
         @Override
         public void write(JsonWriter out, Object value) throws IOException {

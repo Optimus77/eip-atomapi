@@ -248,6 +248,8 @@ public class SbwServiceImpl implements ISbwService {
             for (Sbw sbw : sbwList) {
 
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
+                long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbw.getSbwId(), 0);
+                sbwReturnDetail.setIpCount((int)count);
                 BeanUtils.copyProperties(sbw, sbwReturnDetail);
                 sbws.add(sbwReturnDetail);
             }
