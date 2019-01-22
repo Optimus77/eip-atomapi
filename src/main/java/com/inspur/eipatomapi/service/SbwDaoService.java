@@ -370,6 +370,7 @@ public class SbwDaoService {
                 removeStatus = false;
             }
         }
+
         if (removeStatus || CommonUtil.qosDebug) {
             eipEntity.setUpdateTime(new Date());
             //update the eip table
@@ -377,6 +378,11 @@ public class SbwDaoService {
             eipEntity.setSharedBandWidthId(null);
             eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
             eipRepository.saveAndFlush(eipEntity);
+
+            long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
+            if (count == 0){
+                sbw.setPipeId(null);
+            }
             sbw.setUpdateTime(new Date());
             sbwRepository.saveAndFlush(sbw);
             return ActionResponse.actionSuccess();
