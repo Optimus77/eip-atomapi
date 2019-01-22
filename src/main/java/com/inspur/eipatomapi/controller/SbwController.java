@@ -1,13 +1,10 @@
 package com.inspur.eipatomapi.controller;
 
 import com.inspur.eipatomapi.config.ConstantClassField;
-import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParam;
 import com.inspur.eipatomapi.entity.sbw.SbwAllocateParamWrapper;
 import com.inspur.eipatomapi.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eipatomapi.service.impl.SbwServiceImpl;
-import com.inspur.eipatomapi.util.HsConstants;
-import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
@@ -42,7 +39,7 @@ public class SbwController {
     @ICPControllerLog
     @PostMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "atomAllocateSbw", notes = "list")
+    @ApiOperation(value = "atomAllocateSbw", notes = "allocateSbw")
     public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwAllocateParamWrapper sbwConfig, BindingResult result) {
         log.info("Allocate a sbws:{}.", sbwConfig.getSbwAllocateParam().toString());
         if (result.hasErrors()) {
@@ -82,7 +79,7 @@ public class SbwController {
                 pageSize = "0";
             }
         }
-        return sbwService.listSbws(Integer.parseInt(pageIndex), Integer.parseInt(pageSize), searchValue);
+        return sbwService.listShareBandWidth(Integer.parseInt(pageIndex), Integer.parseInt(pageSize), searchValue);
     }
 
 
@@ -161,7 +158,7 @@ public class SbwController {
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}/eips")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "sbwListEip", notes = "list")
+    @ApiOperation(value = "sbwListEip", notes = "listEip")
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
                                      @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
@@ -222,7 +219,6 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
-        // todo
         return sbwService.getOtherEips(sbwId);
     }
     @ICPControllerLog

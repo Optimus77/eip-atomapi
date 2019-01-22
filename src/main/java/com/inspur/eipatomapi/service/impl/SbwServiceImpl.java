@@ -69,14 +69,14 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity listSbws(Integer pageIndex, Integer pageSize, String searchValue) {
+    public ResponseEntity listShareBandWidth(Integer pageIndex, Integer pageSize, String searchValue) {
         try {
-            String MATCHE = "(\\w{8}(-\\w{4}){3}-\\w{12}?)";
+            String matche = "(\\w{8}(-\\w{4}){3}-\\w{12}?)";
             String projectid = CommonUtil.getUserId();
-            log.debug("listSbws  of user, userId:{}", projectid);
+            log.debug("listShareBandWidth  of user, userId:{}", projectid);
             if (projectid == null) {
                 return new ResponseEntity<>(SbwReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+                        "get project id error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
             JSONArray sbws = new JSONArray();
@@ -85,7 +85,7 @@ public class SbwServiceImpl implements ISbwService {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 if (searchValue != null) {
-                    if (searchValue.matches(MATCHE)) {
+                    if (searchValue.matches(matche)) {
                         page = sbwRepository.findBySbwIdAndProjectIdAndIsDelete(searchValue, projectid, 0, pageable);
                     } else {
                         page = sbwRepository.findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(projectid, 0, searchValue, pageable);
@@ -102,10 +102,10 @@ public class SbwServiceImpl implements ISbwService {
                     sbws.add(sbwReturnDetail);
                 }
                 data.put("sbws", sbws);
-                data.put("totalPages", page.getTotalPages());
-                data.put("totalElements", page.getTotalElements());
-                data.put("currentPage", pageIndex);
-                data.put("currentPagePer", pageSize);
+                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_ELEMENTS, page.getTotalElements());
+                data.put(HsConstants.CURRENT_PAGE, pageIndex);
+                data.put(HsConstants.CURRENT_PAGEPER, pageSize);
             } else {
                 List<Sbw> sbwList = sbwDaoService.findByProjectId(projectid);
                 log.info("sbwList size:{}", sbwList.size());
@@ -120,15 +120,15 @@ public class SbwServiceImpl implements ISbwService {
                     sbws.add(sbwReturnDetail);
                 }
                 data.put("sbws", sbws);
-                data.put("totalPages", 1);
-                data.put("totalElements", sbws.size());
-                data.put("currentPage", 1);
-                data.put("currentPagePer", sbws.size());
+                data.put(HsConstants.TOTAL_PAGES, 1);
+                data.put(HsConstants.TOTAL_ELEMENTS, sbws.size());
+                data.put(HsConstants.CURRENT_PAGE, 1);
+                data.put(HsConstants.CURRENT_PAGEPER, sbws.size());
             }
             log.info("data :{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("Exception in listSbws", e);
+            log.error("Exception in listShareBandWidth", e);
             return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -240,7 +240,7 @@ public class SbwServiceImpl implements ISbwService {
         try {
             if (projectId == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+                        "get project id error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
             JSONArray sbws = new JSONArray();
@@ -248,17 +248,19 @@ public class SbwServiceImpl implements ISbwService {
             for (Sbw sbw : sbwList) {
 
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
+                long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbw.getSbwId(), 0);
+                sbwReturnDetail.setIpCount((int)count);
                 BeanUtils.copyProperties(sbw, sbwReturnDetail);
                 sbws.add(sbwReturnDetail);
             }
             data.put("sbws", sbws);
-            data.put("totalPages", 1);
-            data.put("totalElements", sbws.size());
-            data.put("currentPage", 1);
-            data.put("currentPagePer", sbws.size());
+            data.put(HsConstants.TOTAL_PAGES, 1);
+            data.put(HsConstants.TOTAL_ELEMENTS, sbws.size());
+            data.put(HsConstants.CURRENT_PAGE, 1);
+            data.put(HsConstants.CURRENT_PAGEPER, sbws.size());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("Exception in listSbws", e);
+            log.error("Exception in listShareBandWidth", e);
             return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

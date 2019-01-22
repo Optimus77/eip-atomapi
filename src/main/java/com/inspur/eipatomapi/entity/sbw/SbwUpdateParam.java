@@ -1,12 +1,7 @@
 package com.inspur.eipatomapi.entity.sbw;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.inspur.eipatomapi.util.TypeConstraint;
 import lombok.Data;
-import org.hibernate.validator.constraints.Range;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
