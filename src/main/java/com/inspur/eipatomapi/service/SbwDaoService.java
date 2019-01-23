@@ -47,7 +47,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public Sbw allocateSbw(SbwAllocateParam sbwConfig) throws Exception{
+    public Sbw allocateSbw(SbwAllocateParam sbwConfig) throws KeycloakTokenException {
         String userId =  CommonUtil.getUserId();
 
         Sbw sbwMo = new Sbw();
@@ -102,19 +102,15 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        if (null != sbwEntity.getChargeMode()) {
-            if (!sbwEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
+        if (null != sbwEntity.getChargeMode()&&!sbwEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
                 msg = "Only Sharedbandwidth is allowed for chargeMode";
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
-            }
         }
-        if (null != sbwEntity.getBillType()) {
-            if (!sbwEntity.getBillType().equalsIgnoreCase(HsConstants.HOURLYSETTLEMENT)) {
+        if (null != sbwEntity.getBillType()&&!sbwEntity.getBillType().equalsIgnoreCase(HsConstants.HOURLYSETTLEMENT)) {
                 msg = "Only hourlysettlement is allowed for billType";
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
-            }
         }
         ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwEntity.getSharedbandwidthName(), 0);
         if (ipCount != 0 ) {
@@ -154,9 +150,6 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        /////////////////////////////////////////
-        //todo: get all the eip, and softdown eip
-        /////////////////////////////////////////
         sbw.setUpdateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(sbw);
         return ActionResponse.actionSuccess();
@@ -184,7 +177,6 @@ public class SbwDaoService {
         JSONObject data = new JSONObject();
         String newSbwName = wrapper.getSbwUpdateParam().getSbwName();
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
-//        long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
         if (null == sbw) {
             log.error("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
             data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
@@ -199,33 +191,6 @@ public class SbwDaoService {
             data.put(HsConstants.INTER_CODE, ReturnStatus.SC_FORBIDDEN);
             return data;
         }
-        //Distinguish between EIP binding and IP unbinding when rename
-//        if (count != 0 && count> 0) {
-//        //update qos
-//            Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
-//            if(firewall ==null){
-//                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.SBW_CHANGE_BANDWIDTH_ERROR));
-//                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-//                data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
-//               return data;
-//            }
-//            boolean updateResource = firewallService.updateQosBandWidth(firewall.getId(), sbw.getPipeId(), newSbwName, String.valueOf(sbw.getBandWidth()));
-//            if (updateResource ||CommonUtil.qosDebug) {
-//                sbw.setSharedbandwidthName(newSbwName);
-//                sbw.setUpdateTime(CommonUtil.getGmtDate());
-//                sbwRepository.saveAndFlush(sbw);
-//                data.put("reason","");
-//                data.put("httpCode", HttpStatus.SC_OK);
-//                data.put("interCode", ReturnStatus.SC_OK);
-//                data.put("data",sbw);
-//                return data;
-//            }else{
-//                data.put("reason",CodeInfo.getCodeMessage(CodeInfo.SBW_CHANGE_BANDWIDTH_ERROR));
-//                data.put("httpCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-//                data.put("interCode", ReturnStatus.SC_FIREWALL_SERVER_ERROR);
-//                return data;
-//            }
-//        }
         sbw.setSharedbandwidthName(newSbwName);
         sbw.setUpdateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(sbw);
@@ -251,12 +216,10 @@ public class SbwDaoService {
             return MethodReturnUtil.errorSbw(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
         }
-        if(param.getSbwUpdateParam().getBillType().equals(HsConstants.MONTHLY)){
-            if(param.getSbwUpdateParam().getBandwidth()< sbwEntity.getBandWidth()){
+        if(param.getSbwUpdateParam().getBillType().equals(HsConstants.MONTHLY)&&param.getSbwUpdateParam().getBandwidth()< sbwEntity.getBandWidth()){
                 //can’t  modify
-                return MethodReturnUtil.errorSbw(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
-                        CodeInfo.getCodeMessage(CodeInfo.SBW_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
-            }
+            return MethodReturnUtil.errorSbw(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.SBW_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
         }
         if (count ==0){
             sbwEntity.setBandWidth(param.getSbwUpdateParam().getBandwidth());

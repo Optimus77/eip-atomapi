@@ -212,6 +212,8 @@ public class HsConstants {
 	public static final String REASON = "reason";
 	public static final String HTTP_CODE = "httpCode";
 	public static final String INTER_CODE = "interCode";
+	public static final String REST_IQOS_ROOT = "/rest/iQos?target=root.rule";
+	public static final String FLOATIP = "floatIp: ";
 
 
 	// --- 1xx Informational ---

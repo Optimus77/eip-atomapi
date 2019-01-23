@@ -1,6 +1,5 @@
 package com.inspur.eipatomapi.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.eip.*;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,7 +55,7 @@ public class EipDaoService {
      * @return result
      */
     @Transactional
-    public  Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws Exception{
+    public  Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws KeycloakTokenException {
 
 
         if (!eip.getState().equals("0")) {
@@ -96,7 +94,6 @@ public class EipDaoService {
         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
         String userId = CommonUtil.getUserId();
         log.debug("get tenantid:{} from clientv3", userId);
-        //log.debug("get tenantid from token:{}", CommonUtil.getProjectId(eipConfig.getRegion()));
         eipMo.setProjectId(userId);
         eipMo.setIsDelete(0);
 
@@ -108,7 +105,7 @@ public class EipDaoService {
 
 
     @Transactional
-    public ActionResponse deleteEip(String  eipid) throws Exception {
+    public ActionResponse deleteEip(String  eipid) throws KeycloakTokenException {
         String msg;
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
@@ -129,13 +126,11 @@ public class EipDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
-        if(null != eipEntity.getFloatingIpId()) {
-            if(!neutronService.deleteFloatingIp(eipEntity.getRegion(),
-                    eipEntity.getFloatingIpId(),
-                    eipEntity.getInstanceId())){
+        if(null != eipEntity.getFloatingIpId()&&!neutronService.deleteFloatingIp(eipEntity.getRegion(),
+                eipEntity.getFloatingIpId(),
+                eipEntity.getInstanceId())) {
                 msg = "Failed to delete floating ip, floatingIpId:"+eipEntity.getFloatingIpId();
                 log.error(msg);
-            }
         }
         eipEntity.setIsDelete(1);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
@@ -190,8 +185,7 @@ public class EipDaoService {
      * @throws Exception   e
      */
     @Transactional
-    public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId)
-            throws Exception {
+    public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId) throws KeycloakTokenException {
         NetFloatingIP floatingIP ;
         String returnStat;
         String returnMsg ;
@@ -273,12 +267,12 @@ public class EipDaoService {
      * @throws Exception e
      */
     @Transactional
-    public ActionResponse disassociateInstanceWithEip(String eipid) throws Exception  {
+    public ActionResponse disassociateInstanceWithEip(String eipid) throws KeycloakTokenException {
 
         String msg = null;
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if(null == eipEntity){
-            log.error("In disassociate process,failed to find the eip by id:{} ",eipid);
+            log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip by id:{} ",eipid);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
         if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
@@ -328,10 +322,9 @@ public class EipDaoService {
     @Transactional
     public MethodReturn updateEipEntity(String eipid, EipUpdateParamWrapper param) {
 
-        JSONObject data=new JSONObject();
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
-            log.error("In disassociate process,failed to find the eip by id:{} ", eipid);
+            log.error("updateEipEntity In disassociate process,failed to find the eip by id:{} ", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
@@ -342,12 +335,10 @@ public class EipDaoService {
                     CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
 
         }
-        if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)){
+        if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)&&param.getEipUpdateParam().getBandWidth()<eipEntity.getBandWidth()){
             //can’t sub
-            if(param.getEipUpdateParam().getBandWidth()<eipEntity.getBandWidth()){
                 return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
                         CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
-            }
         }
         boolean updateStatus;
         if(null == eipEntity.getPipId() || eipEntity.getPipId().isEmpty()){
@@ -399,7 +390,7 @@ public class EipDaoService {
         return eipRepository.findByProjectIdAndIsDelete(projectId,0);
     }
 
-    public  Eip findByEipAddress(String eipAddr) throws Exception{
+    public  Eip findByEipAddress(String eipAddr) throws KeycloakTokenException {
         return eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipAddr, CommonUtil.getUserId(), 0);
     }
 
@@ -420,7 +411,6 @@ public class EipDaoService {
 
     public long getInstanceNum(String projectId){
 
-        //TODO  get table name and colum name by entityUtil
         String sql ="select count(1) as num from eip where project_id='"+projectId+"'"+ "and is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
@@ -457,7 +447,6 @@ public class EipDaoService {
 
     public Map<String, Object> getDuplicateEip(){
 
-        //TODO  get table name and colum name by entityUtil
         String sql ="select eip_address, count(*) as num from eip group by eip_address having num>1";
 
 
@@ -471,7 +460,6 @@ public class EipDaoService {
 
     public Map<String, Object> getDuplicateEipFromPool(){
 
-        //TODO  get table name and colum name by entityUtil
         String sql ="select ip, count(*) as num from eip_pool group by ip having num>1";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
@@ -492,10 +480,8 @@ public class EipDaoService {
      * @throws Exception   e
      */
     @Transactional
-    public MethodReturn cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr,String type)
-            throws Exception {
+    public MethodReturn cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr,String type) throws KeycloakTokenException {
 
-        JSONObject data = new JSONObject();
         Eip eip = eipRepository.findByEipId(eipId);
         String eipIp = eip.getEipAddress();
         if (!eip.getProjectId().equals( CommonUtil.getUserId())) {
@@ -537,13 +523,13 @@ public class EipDaoService {
      * @return             true or false
      * @throws Exception   e
      */
-    public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws Exception  {
+    public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws KeycloakTokenException {
 
         String msg ;
         Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(InstanceId, 0);
 
         if(null == eipEntity){
-            log.error("In disassociate process,failed to find the eip by id:{} ",InstanceId);
+            log.error("unCpcOrSlbBindEip In disassociate process,failed to find the eip by id:{} ",InstanceId);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
         if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){

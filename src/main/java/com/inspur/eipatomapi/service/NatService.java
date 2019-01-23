@@ -58,7 +58,7 @@ public class NatService  {
                     FwResponseException.class)));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(String.valueOf(e));
         }
 
         return body;
@@ -79,7 +79,7 @@ public class NatService  {
             body.setException(gson.fromJson(jo.getJSONObject(HsConstants.EXCEPTION).toString(),
                     FwResponseException.class));
         } catch (Exception var8) {
-            var8.printStackTrace();
+            log.error(String.valueOf(var8));
         }
 
         return body;

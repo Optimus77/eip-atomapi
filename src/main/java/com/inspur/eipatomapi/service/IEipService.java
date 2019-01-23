@@ -1,6 +1,5 @@
 package com.inspur.eipatomapi.service;
 
-import com.inspur.eipatomapi.entity.eip.EipShardBand;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParam;
 import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import org.springframework.http.ResponseEntity;
