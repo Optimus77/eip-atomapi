@@ -395,10 +395,10 @@ class FirewallService {
      * @param sbwId      bad id
      * @return ret
      */
-    public String addFloatingIPtoQos(String firewallId, String floatIp, String sbwPipeId, String sbwId, int ibandWidth) {
-
+    public String addFloatingIPtoQos(String firewallId, String floatIp, String sbwPipeId, String sbwId, int iWidth) {
+        log.info("Param : FirewallId:{}, floatIp:{}, sbwPipeId：{}，sbwId：{} ，iWidth:{}" ,firewallId, floatIp, sbwPipeId,  sbwId,  iWidth);
         Firewall fwBean = getFireWallById(firewallId);
-        String bandWidth = String.valueOf(ibandWidth);
+        String bandWidth = String.valueOf(iWidth);
         String retPipeId = null;
         if (fwBean != null) {
             qosService.setFwIp(fwBean.getIp());
@@ -437,6 +437,7 @@ class FirewallService {
      * @return ret
      */
     public boolean removeFloatingIpFromQos(String firewallId, String floatIp, String pipeId, String sbwId) {
+        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{}，sbwId：{} " ,firewallId, floatIp, pipeId,  sbwId,  sbwId);
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
             qosService.setFwIp(fwBean.getIp());
