@@ -164,9 +164,9 @@ public class EipController {
         String msg="";
         EipUpdateParam updateParam = param.getEipUpdateParam();
 
-        if (updateParam.getServerId() != null || updateParam.getPortId()!= null){
+        if (updateParam.getServerId() != null){
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-            if ((updateParam.getServerId() != null && updateParam.getServerId().trim().equals(""))){
+            if (updateParam.getServerId().trim().equals("")){
 
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
                 return eipService.unBindPort(eipId);
