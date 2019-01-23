@@ -147,10 +147,10 @@ class FirewallService {
     }
 
 
-    String addQos(String innerip, String name, String bandwidth, String equipid) {
+    String addQos(String innerip, String name, String bandwidth, String fireWallId) {
         String pipid = null;
 
-        Firewall fwBean = getFireWallById(equipid);
+        Firewall fwBean = getFireWallById(fireWallId);
         if (fwBean != null) {
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> map = new HashMap<>();

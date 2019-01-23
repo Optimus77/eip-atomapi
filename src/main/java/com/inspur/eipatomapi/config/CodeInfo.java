@@ -158,7 +158,7 @@ public  class CodeInfo {
         public static final String ELASTIC_IP_IN_SBW_CANNOT_BE_REMOVED = "elastic_ip_in_sbw_cannot_be_removed";
         public static final String SBW_BILLTYPE_NOT_HOURLYSETTLEMENT = "sbw_billtype_not_hourlysettlement";
         public static final String SBW_NOT_FOND_BY_ID = "404-Bad request: sbw_not_fond_by_id";
-
+        public static final String SBW_DELETE_NOT_FIND_QOS ="SBW_DELETE_NOT_FIND_QOS";
 
 
     }
