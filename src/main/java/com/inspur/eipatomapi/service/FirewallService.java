@@ -182,15 +182,14 @@ class FirewallService {
      * update the Qos bindWidth
      * @param firewallId firewall id
      * @param bindwidth  bind width
-     * @return result
      */
     boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth) {
 
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
-            HashMap<String, String> result = qs.updateQosPipe(pipId, pipNmae, bindwidth);
-            JSONObject resJson = (JSONObject) JSONObject.toJSON(result);
+            HashMap<String, String> map = qs.updateQosPipe(pipId, pipNmae, bindwidth);
+            JSONObject resJson = (JSONObject) JSONObject.toJSON(map);
             log.info("", resJson);
             if (resJson.getBoolean(HsConstants.SUCCESS)) {
                 log.info("updateQosBandWidth: " + firewallId + " --success==bindwidth：" + bindwidth);
@@ -417,12 +416,12 @@ class FirewallService {
                     }
                 }
             } else {
-                HashMap<String, String> result = qosService.addIpToQos(floatIp, sbwPipeId, sbwId);
-                log.info("addFloatingIPtoQos:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, result);
-                if (result.get(HsConstants.RESULT) != null && Boolean.valueOf(result.get(HsConstants.RESULT))) {
-                    log.info("addFloatingIPtoQos: " + firewallId + HsConstants.FLOATIP + floatIp + " --success==sbwId：" + sbwId);
-                    retPipeId = result.get("id");
-                } else {
+                HashMap<String, String> map = qosService.addIpToQos(floatIp, sbwPipeId, sbwId);
+                log.info("addFloatingIPtoQos:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, map);
+                if (map.get(HsConstants.SUCCESS) != null && Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
+                    log.info("addFloatingIPtoQos: " + firewallId + "floatIp: " + floatIp + " --success==sbwId：" + sbwId);
+                    retPipeId = map.get("id");
+                } else if (Boolean.valueOf(map.get(HsConstants.SUCCESS))){
                     log.warn("addFloatingIPtoQos: " + firewallId + HsConstants.FLOATIP + floatIp + " --fail==sbwId：" + sbwId);
                 }
             }
@@ -444,19 +443,12 @@ class FirewallService {
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
-            HashMap<String, String> result = qosService.removeIpFromQos(floatIp, pipeId, sbwId);
-            if (Boolean.valueOf(result.get(HsConstants.SUCCESS))) {
-                if (result.get(HsConstants.RESULT) != null && Boolean.valueOf(result.get(HsConstants.RESULT))) {
-                    log.info("removeFloatingIpFromQos: " + firewallId + HsConstants.FLOATIP + floatIp + " --success==pipeId：" + pipeId);
-                    return Boolean.parseBoolean(result.get(HsConstants.RESULT));
-                } else {
-                    log.warn("removeFloatingIpFromQos: " + firewallId + HsConstants.FLOATIP + floatIp + " --fail==pipeId：" + pipeId);
-                    return false;
-                }
-            } else {
-                log.warn("Failed removeFloatingIpFromQos:fip:{} pipeId:{} result:{} ", floatIp, pipeId, result);
+            HashMap<String, String> map = qosService.removeIpFromQos(floatIp, pipeId, sbwId);
+            if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
+                log.info("FirewallService : Success removeFloatingIpFromQos: " + firewallId + "floatIp: " + floatIp + " --success==pipeId：" + pipeId);
+                return Boolean.parseBoolean(map.get(HsConstants.SUCCESS));
             }
-            return Boolean.parseBoolean(result.get(HsConstants.SUCCESS));
+            log.warn("FirewallService : Failed removeFloatingIpFromQos :floatIp pipeId:{} map:{} ", floatIp, pipeId, map);
         }
         return Boolean.parseBoolean("False");
     }

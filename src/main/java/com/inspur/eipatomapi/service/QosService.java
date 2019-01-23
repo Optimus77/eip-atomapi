@@ -110,7 +110,7 @@ public class QosService {
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", body);
             JSONObject jo = new JSONObject(retr);
             log.info("Update: pipeId:{}, pipeName:{}, bandwidht:{}", pipeId, pipeName, bandWidth);
-            log.info("updateQosPipe result {}",jo);
+            log.info("updateQosPipe jo {}",jo);
             boolean success=jo.getBoolean(HsConstants.SUCCESS);
             res.put(HsConstants.SUCCESS, success);
             if (jo.getBoolean(HsConstants.SUCCESS)) {
@@ -185,14 +185,14 @@ public class QosService {
      * @param sbwId id
      * @return ret
      */
-    HashMap<String, String> addIpToQos(String fip, String pipId, String sbwId) {
+    HashMap<String, String> addIpToQos(String fip, String pipeId, String sbwId) {
         HashMap<String, String> res = new HashMap();
         String IP32 = IpUtil.ipToLong(fip);
         IpRange newIp = new IpRange(IP32, IP32);
         UpdateCondition condition = new UpdateCondition();
         condition.setName("first");
         RootConfig root = new RootConfig();
-        root.setId(pipId);
+        root.setId(pipeId);
         RuleConfig config = new RuleConfig();
         Set<IpRange> ipSet = new HashSet<>();
         ArrayList<RuleConfig> list = new ArrayList<>();
@@ -205,9 +205,8 @@ public class QosService {
                     Eip eip = eipList.get(i);
                     String floatingIp = eip.getFloatingIp();
                     if(floatingIp.equalsIgnoreCase(fip) && eip.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
-                        res.put("msg", "ip exist");
-                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                        res.put("id", pipId);
+                        res.put(HsConstants.SUCCESS, "This fip exist !");
+                        res.put("id", pipeId);
                         return res;
                     }
                     String longFloatIp = IpUtil.ipToLong(floatingIp);
@@ -239,19 +238,18 @@ public class QosService {
                 retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, HsConstants.REST_IQOS_ROOT, conditionStr);
             }
             JSONObject jo = new JSONObject(retr);
-            log.info("addQosPipeBindEip result:{}", jo);
+            log.info("addQosPipeBindEip http retr:{}", retr);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (Boolean.valueOf(success)) {
-                res.put(HsConstants.RESULT, "true");
-                res.put("id", pipId);
+                res.put(HsConstants.SUCCESS, HsConstants.TRUE);
+                res.put("id", pipeId);
+                log.info("QosService: add floating ip success in Qos，PipeId:{}",pipeId);
             } else {
-                res.put(HsConstants.RESULT, HsConstants.FALSE);
+                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                log.warn("QosService: add floating ip failed from Qos，PipeId:{}",pipeId);
             }
         } catch (Exception var8) {
-            log.error(var8.getMessage());
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            res.put("msg", var8.getMessage());
-            return res;
+            log.error("Update【add】 the floating ip in Qos Error! "+var8.getMessage());
         }
         return res;
     }
@@ -280,7 +278,6 @@ public class QosService {
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
                 return res;
             }
-
             for (Eip eip: eipList) {
                 String floatingIp = eip.getFloatingIp();
                 if (StringUtils.isNotBlank(floatingIp)&&!floatingIp.equals(floatIp)) {
@@ -306,20 +303,17 @@ public class QosService {
             //add the ip to ip Array
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
             JSONObject jo = new JSONObject(retr);
-            log.info("removeQosPipeBindEip  result:{}", jo);
+            log.info("removeQosPipeBindEip  HttpPut jo:{}", jo);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (Boolean.valueOf(success)) {
-                res.put(HsConstants.RESULT, "true");
-                res.put(HsConstants.SUCCESS, "true");
+                res.put(HsConstants.SUCCESS, HsConstants.TRUE);
+                log.info("QosService: remove floating ip success in Qos，PipeId:{}",pipeId);
             } else {
-                res.put(HsConstants.RESULT, HsConstants.FALSE);
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                log.warn("QosService: remove floating ip failed from Qos，PipeId:{}",pipeId);
             }
         } catch (Exception var8) {
-            log.error(var8.getMessage());
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            res.put("msg", var8.getMessage());
-            return res;
+            log.error("Update【remove】 the floating ip in Qos Error! "+var8.getMessage());
         }
         return res;
     }
