@@ -18,10 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -42,6 +39,17 @@ public class CommonUtil {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         return new Date();
     }
+
+    /*
+     *获取当天日期:yyyy-MM-dd
+     */
+    public static String getToday() {
+        Date currentTime = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        return formatter.format(currentTime);
+    }
+
+
     @Setter
     private static JSONObject KeyClockInfo;
     @Value("${openstackIp}")

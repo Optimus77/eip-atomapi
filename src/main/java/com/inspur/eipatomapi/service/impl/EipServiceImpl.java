@@ -627,22 +627,6 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public ResponseEntity setLogLevel(String debugLevel, String  packageName){
-        log.info("Set debug level to:{}", debugLevel);
-
-        if(null == debugLevel){
-            new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, "Need debug level."),
-                    HttpStatus.OK);
-        }
-        try{
-            Level level = Level.toLevel(debugLevel);
-            Logger logger = LogManager.getLogger(packageName);
-            logger.setLevel(level);
-        }catch (Exception e){
-            log.error("Set log level error", e);
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-    }
 
     @Override
     public ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam) {
