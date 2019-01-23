@@ -47,6 +47,7 @@ public  class CodeInfo {
     public static final String SBW_QUOTA_IS_FULL="SBW_QUOTA_IS_FULL";
     public static final String SBW_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="SBW_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR";
     public static final String SBW_BILLTYPE_NOT_HOURLYSETTLEMENT="SBW_BILLTYPE_NOT_HOURLYSETTLEMENT";
+    public static final String SBW_DELETE_ERROR ="SBW_DELETE_ERROR";
 
 
 
