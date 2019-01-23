@@ -7,7 +7,6 @@ import com.inspur.eipatomapi.service.impl.EipServiceImpl;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
-import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Level;
