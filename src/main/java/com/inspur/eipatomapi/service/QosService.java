@@ -427,4 +427,21 @@ public class QosService {
     public void setFwPwd(String fwPwd) {
         this.fwPwd = fwPwd;
     }
+
+
+    JSONArray getQosRuleId(String pipeId) {
+
+        try {
+            String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22"+pipeId+"%22%7D%5D%7D&target=root.rule";
+            String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
+//            String retr = HsHttpClient.hsHttpGet("10.110.29.206", "443", "hillstone", "hillstone", params);
+            JSONArray jo = new JSONArray(retr);
+            log.info("Get qos rule return:{} ",jo.toString());
+            return jo;
+        } catch (Exception var11) {
+            log.error(var11.getMessage());
+            return null;
+        }
+    }
+
 }

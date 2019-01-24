@@ -379,7 +379,7 @@ class FirewallService {
         }
         if (!removeRet) {
             returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
-            msg += "Failed to del qos, eipId:" + eipEntity.getEipId() + "pipId:" + eipEntity.getPipId() + "";
+            msg += "Failed to del qos, eipId:" + eipEntity.getEipId() + " pipId:" + eipEntity.getPipId() + "";
             log.error(msg);
         }
         if (msg == null) {
