@@ -32,10 +32,8 @@ class SlbService {
             HttpResponse response = HttpUtil.doGet(url, null, header);
             log.info("Slb return info:{}", response.toString());
             JSONObject returnInfo = JSONObject.parseObject(response.getResponseBody());
-            if((null != returnInfo) && (null != returnInfo.getString("message"))) {
-                if (!returnInfo.getString("message").equalsIgnoreCase("true")) {
+            if((null != returnInfo) && (null != returnInfo.getString("message"))&&!returnInfo.getString("message").equalsIgnoreCase("true")) {
                     return false;
-                }
             }
         }catch (Exception e){
             log.error("Exception Get fip status from slb error");

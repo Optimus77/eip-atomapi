@@ -110,7 +110,7 @@ public class QosService {
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", body);
             JSONObject jo = new JSONObject(retr);
             log.info("Update: pipeId:{}, pipeName:{}, bandwidht:{}", pipeId, pipeName, bandWidth);
-            log.info("updateQosPipe result {}",jo);
+            log.info("updateQosPipe jo {}",jo);
             boolean success=jo.getBoolean(HsConstants.SUCCESS);
             res.put(HsConstants.SUCCESS, success);
             if (jo.getBoolean(HsConstants.SUCCESS)) {
@@ -143,7 +143,6 @@ public class QosService {
     }
 
     private String getUpdateJson(String pipeId, String pipeName, String bandWidth) {
-        //return "{ \"name\": \"first\",\"root\": {\"id\": \"" + pipeId + "\",\"name\": \"" + pipeName + "\", \"desc\": \"\", \"qos_mode\": { \"name\": \"shape\"}, \"action\": [{\"dir\": \"1\",\"min\": \"" + bandWidth + "\", \"max\": \"" + bandWidth + "\", \"per_min\": \"\", \"per_max\": \"\", \"per_using\": \"\", \"priority\": 7, \"set_tos\": \"2\"," + "\"tos\": \"\", \"amask\": {\"action_dir\": true,\"action_bandwidth\": false,\"action_reserve_bandwidth\": false," + "\"action_min\": false,\"action_max\": false,\"action_per_ip_min\": false,\"action_per_ip_max\": false, \"action_per_user_min\": false," + "\"action_per_user_max\": false, \"action_per_ip_using\": false, \"action_average_using\": false, \"action_tos_mark\": false," + "\"action_tos_int\": true,\"action_tos_str\": false, \"action_priority\": true, \"action_bandwidth_mbps\": true," + "\"action_reserve_bandwidth_mbps\": false,\"action_min_mbps\": false,\"action_max_mbps\": false,\"action_per_ip_min_mbps\": false," + "\"action_per_ip_max_mbps\": false,\"action_per_user_min_mbps\": false,\"action_per_user_max_mbps\": false, \"action_reserve_bandwidth_percent\": false," + "\"action_min_percent\": false,\"action_max_percent\": false,\"action_bandwidth_gbps\": false, \"action_rserve_bandwidth_gbps\": false," + "\"action_min_gbps\": false,\"action_max_gbps\": false,\"action_mode\": false}},{\"dir\": \"2\",\"min\": \"" + bandWidth + "\",\"max\":\"" + bandWidth + "\",\"per_min\": \"\",\"per_max\": \"\",\"per_using\": \"\", \"priority\": 7,\"set_tos\": \"2\", \"tos\": \"\"," + "\"amask\": {\"action_dir\": true, \"action_bandwidth\": false,\"action_reserve_bandwidth\": false,\"action_min\": false," + "\"action_max\": false, \"action_per_ip_min\": false, \"action_per_ip_max\": false,\"action_per_user_min\": false," + "\"action_per_user_max\": false, \"action_per_ip_using\": false, \"action_average_using\": false,\"action_tos_mark\": false," + "\"action_tos_int\": true, \"action_tos_str\": false, \"action_priority\": true, \"action_bandwidth_mbps\": true," + "\"action_reserve_bandwidth_mbps\": false, \"action_min_mbps\": false,\"action_max_mbps\": false,\"action_per_ip_min_mbps\": false," + "\"action_per_ip_max_mbps\": false,\"action_per_user_min_mbps\": false,\"action_per_user_max_mbps\": false,\"action_reserve_bandwidth_percent\": false," + "\"action_min_percent\": false,\"action_max_percent\": false, \"action_bandwidth_gbps\": false, \"action_rserve_bandwidth_gbps\": false," + "\"action_min_gbps\": false, \"action_max_gbps\": false,\"action_mode\": false}}],\"schedule\": [ ]}}";
         String errorstr =  "{\"name\":\"first\",\"root\":{\"id\":\""+pipeId+"\",\"name\":\""+pipeName+"\",\"desc\":\"\",\"qos_mode\":{\"name\":\"shape\"},\"action\":[{\"dir\":\"1\",\"min\":\""+bandWidth+"\",\"max\":\""+bandWidth+"\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}},{\"dir\":\"2\",\"min\":\""+bandWidth+"\",\"max\":\""+bandWidth+"\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}}],\"schedule\":[]}}";
         log.debug(errorstr);
         return errorstr;
@@ -186,14 +185,14 @@ public class QosService {
      * @param sbwId id
      * @return ret
      */
-    HashMap<String, String> addIpToQos(String fip, String pipId, String sbwId) {
+    HashMap<String, String> addIpToQos(String fip, String pipeId, String sbwId) {
         HashMap<String, String> res = new HashMap();
         String IP32 = IpUtil.ipToLong(fip);
         IpRange newIp = new IpRange(IP32, IP32);
         UpdateCondition condition = new UpdateCondition();
         condition.setName("first");
         RootConfig root = new RootConfig();
-        root.setId(pipId);
+        root.setId(pipeId);
         RuleConfig config = new RuleConfig();
         Set<IpRange> ipSet = new HashSet<>();
         ArrayList<RuleConfig> list = new ArrayList<>();
@@ -206,9 +205,8 @@ public class QosService {
                     Eip eip = eipList.get(i);
                     String floatingIp = eip.getFloatingIp();
                     if(floatingIp.equalsIgnoreCase(fip) && eip.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
-                        res.put("msg", "ip exist");
-                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                        res.put("id", pipId);
+                        res.put(HsConstants.SUCCESS, "This fip exist !");
+                        res.put("id", pipeId);
                         return res;
                     }
                     String longFloatIp = IpUtil.ipToLong(floatingIp);
@@ -235,25 +233,23 @@ public class QosService {
             //add the ip to ip Array
             String retr ="";
             if (ipSet.size() != 1) {
-                retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+                retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, HsConstants.REST_IQOS_ROOT, conditionStr);
             } else if (ipSet.size() == 1 ){
-                retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
+                retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, HsConstants.REST_IQOS_ROOT, conditionStr);
             }
-//            String retr = HsHttpClient.hsHttpPut("10.110.29.206", "443", "hillstone", "hillstone", "/rest/iQos?target=root.rule", conditionStr);
             JSONObject jo = new JSONObject(retr);
-            log.info("addQosPipeBindEip result:{}", jo);
+            log.info("addQosPipeBindEip http retr:{}", retr);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (Boolean.valueOf(success)) {
-                res.put(HsConstants.RESULT, "true");
-                res.put("id", pipId);
+                res.put(HsConstants.SUCCESS, HsConstants.TRUE);
+                res.put("id", pipeId);
+                log.info("QosService: add floating ip success in Qos，PipeId:{}",pipeId);
             } else {
-                res.put(HsConstants.RESULT, HsConstants.FALSE);
+                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                log.warn("QosService: add floating ip failed from Qos，PipeId:{}",pipeId);
             }
         } catch (Exception var8) {
-            log.error(var8.getMessage());
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            res.put("msg", var8.getMessage());
-            return res;
+            log.error("Update【add】 the floating ip in Qos Error! "+var8.getMessage());
         }
         return res;
     }
@@ -282,15 +278,12 @@ public class QosService {
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
                 return res;
             }
-
             for (Eip eip: eipList) {
                 String floatingIp = eip.getFloatingIp();
-                if (StringUtils.isNotBlank(floatingIp)) {
-                    if (!floatingIp.equals(floatIp)){
+                if (StringUtils.isNotBlank(floatingIp)&&!floatingIp.equals(floatIp)) {
                         String longFloatIp = IpUtil.ipToLong(floatingIp);
                         IpRange range = new IpRange(longFloatIp, longFloatIp);
                         ipSet.add(range);
-                    }
                 }
             }
             //src addr
@@ -310,20 +303,17 @@ public class QosService {
             //add the ip to ip Array
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
             JSONObject jo = new JSONObject(retr);
-            log.info("removeQosPipeBindEip  result:{}", jo);
+            log.info("removeQosPipeBindEip  HttpPut jo:{}", jo);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (Boolean.valueOf(success)) {
-                res.put(HsConstants.RESULT, "true");
-                res.put(HsConstants.SUCCESS, "true");
+                res.put(HsConstants.SUCCESS, HsConstants.TRUE);
+                log.info("QosService: remove floating ip success in Qos，PipeId:{}",pipeId);
             } else {
-                res.put(HsConstants.RESULT, HsConstants.FALSE);
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                log.warn("QosService: remove floating ip failed from Qos，PipeId:{}",pipeId);
             }
         } catch (Exception var8) {
-            log.error(var8.getMessage());
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            res.put("msg", var8.getMessage());
-            return res;
+            log.error("Update【remove】 the floating ip in Qos Error! "+var8.getMessage());
         }
         return res;
     }
@@ -359,7 +349,7 @@ public class QosService {
         try {
             eipList = eipRepository.findBySharedBandWidthIdAndIsDelete(shareBandWidthId, isDelete);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(String.valueOf(e));
         }
         return eipList;
     }
@@ -368,28 +358,17 @@ public class QosService {
         String jsonStr = null;
         String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%221545234839113919447%22%7D%5D%7D&target=root.rule";
         try {
-            HashMap<String, String> test = getQosPipeId("test");
             jsonStr = HsHttpClient.HttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
             log.info("getQueryQosByDataBase:------------" + jsonStr);
             if (StringUtils.isBlank(jsonStr)) {
                 throw new IllegalArgumentException("IllegalArgument ：" + bandId + " cannot get the qos rule");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(String.valueOf(e));
         }
         return jsonStr;
     }
 
-//    public static void main(String[] args) {
-//        QosService qs = new QosService("172.23.12.222", "443", "InnetAdmin", "innetadmin");
-//        HashMap<String, String> map = new HashMap();
-//        map.put("pipeName", "CQS-JXWSHXXHC-0000000361");
-//        map.put("ip", "100.2.3.80");
-//        map.put("serviceNamne", "Any");
-//        map.put("serNetCardName", "ethernet0/1");
-//        map.put("bandWidth", "100");
-//        //qs.addRule("1508923278112971634", "2", "172.23.23.3", "any", "ethernet0/0", "ethernet0/1");
-//    }
 
     //Customize the Strig adapter
     private static final TypeAdapter STRING = new TypeAdapter() {

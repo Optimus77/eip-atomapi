@@ -123,7 +123,6 @@ public class EipServiceImpl implements IEipService {
             List<String > failedIds = new ArrayList<>();
             for (String eipId : eipIds) {
                 log.info("delete eip {}", eipId);
-                //deleteEip(eipId, null);
                 actionResponse = eipDaoService.deleteEip(eipId);
                 if(!actionResponse.isSuccess()){
                     failedIds.add(eipId);
@@ -627,22 +626,6 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public ResponseEntity setLogLevel(String debugLevel, String  packageName){
-        log.info("Set debug level to:{}", debugLevel);
-
-        if(null == debugLevel){
-            new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, "Need debug level."),
-                    HttpStatus.OK);
-        }
-        try{
-            Level level = Level.toLevel(debugLevel);
-            Logger logger = LogManager.getLogger(packageName);
-            logger.setLevel(level);
-        }catch (Exception e){
-            log.error("Set log level error", e);
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-    }
 
     @Override
     public ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam) {
@@ -671,35 +654,4 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-//    @ICPServiceLog
-//    public ResponseEntity listUnbindSbw(String eipId) {
-//        log.info("listServer start execute");
-//        try {
-//            String projcectid = CommonUtil.getUserId();
-//            if (projcectid == null) {
-//                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-//                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
-//            }
-//            List<Sbw> sbwList = null;
-//            if (eipId == null || "".equals(eipId)) {
-//                sbwList = sbwDaoService.findByProjectId(projcectid);
-//            }
-//            // todo :get sbwList
-//            Eip eip = eipDaoService.getEipById(eipId);
-//            if (eip != null) {
-//
-//            } else {
-//                log.warn("Failed to find eip by eip id, eipId:{}", eipId);
-//                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-//                        "can not find eip by this id:" + eipId + ""),
-//                        HttpStatus.NOT_FOUND);
-//            }
-//            return null;
-//        } catch (KeycloakTokenException e) {
-//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
-//        } catch (Exception e) {
-//            log.error("Exception in getOtherEips", e);
-//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
 }
