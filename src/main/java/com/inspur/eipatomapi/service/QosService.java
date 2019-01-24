@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.service;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
@@ -59,7 +61,7 @@ public class QosService {
             if (success) {
                 Map<String, String> map = this.getQosPipeId(info.get(HsConstants.PIPE_NAME));
                 if ((map.get(HsConstants.SUCCESS)).equals("true")) {
-                    res.put("id",map.get("id"));
+                    res.put("id", map.get("id"));
                 } else {
                     res.put("msg", "Create success,but id not found,please call find api by pip name.");
                 }
@@ -110,8 +112,8 @@ public class QosService {
             String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root", body);
             JSONObject jo = new JSONObject(retr);
             log.info("Update: pipeId:{}, pipeName:{}, bandwidht:{}", pipeId, pipeName, bandWidth);
-            log.info("updateQosPipe jo {}",jo);
-            boolean success=jo.getBoolean(HsConstants.SUCCESS);
+            log.info("updateQosPipe jo {}", jo);
+            boolean success = jo.getBoolean(HsConstants.SUCCESS);
             res.put(HsConstants.SUCCESS, success);
             if (jo.getBoolean(HsConstants.SUCCESS)) {
                 res.put("msg", jo.get(HsConstants.EXCEPTION));
@@ -126,13 +128,13 @@ public class QosService {
     }
 
 
-    private String getCreatePipeJson(HashMap<String, String> map)  {
+    private String getCreatePipeJson(HashMap<String, String> map) {
         try {
             String s;
-            if(map.containsKey("ip")) {
-                s = "{\"name\": \"first\",\"root\": {\"name\":\"" +  map.get("pipeName") + "\",\"desc\": \"\",\"qos_mode\": {\"name\": \"shape\"},\"rule\": [{ \"id\": [],\"src_addr\": [{\"name\": \"any\"}]," + "\"src_host\": [],\"src_subnet\": [],\"src_range\": [],\"dst_addr\": [],\"dst_host\": [],\"dst_subnet\": [{\"ip\":" + IpUtil.ipToLong( map.get("ip")) + ",\"netmask\":32" + "}],\"dst_range\": [],\"user\": [],\"usergroup\": [],\"service\": [{\"name\": \"" +  map.get("serviceNamne") + "\"}],\"application\": [],\"src_zone\": [],\"ingress_if\": [],\"dst_zone\": [],\"egress_if\": []" + ",\"vlan\": [],\"tos\": []}],\"action\": [{\"dir\": \"1\",\"min\": \"" + map.get(HsConstants.BAND_WIDTH) + "\", \"max\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\": \"\",\"per_max\": \"\",\"per_using\": \"\",\"priority\": 7,\"set_tos\": \"2\",\"tos\": \"\",\"amask\": {" + "\"action_dir\": true,\"action_bandwidth\": false,\"action_reserve_bandwidth\": false,\"action_min\": false,\"action_max\": false," + "\"action_per_ip_min\": false,\"action_per_ip_max\": false,\"action_per_user_min\": false,\"action_per_user_max\": false," + "\"action_per_ip_using\": false,\"action_average_using\": false,\"action_tos_mark\": false,\"action_tos_int\": true," + "\"action_tos_str\": false,\"action_priority\": true,\"action_bandwidth_mbps\": true,\"action_reserve_bandwidth_mbps\": false," + "\"action_min_mbps\": false,\"action_max_mbps\": false,\"action_per_ip_min_mbps\": false,\"action_per_ip_max_mbps\": false," + "\"action_per_user_min_mbps\": false,\"action_per_user_max_mbps\": false,\"action_reserve_bandwidth_percent\": false,\"action_min_percent\": false," + "\"action_max_percent\": false,\"action_bandwidth_gbps\": false,\"action_rserve_bandwidth_gbps\": false,\"action_min_gbps\": false," + "\"action_max_gbps\": false,\"action_mode\": false}},{\"dir\": \"2\",\"min\": \"" +map.get(HsConstants.BAND_WIDTH) + "\", \"max\":\"" +map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\": \"\",\"per_max\": \"\",\"per_using\": \"\",\"priority\": 7,\"set_tos\": \"2\",\"tos\": \"\",\"amask\": {" + "\"action_dir\": true,\"action_bandwidth\": false,\"action_reserve_bandwidth\": false,\"action_min\": false,\"action_max\": false," + "\"action_per_ip_min\": false,\"action_per_ip_max\": false,\"action_per_user_min\": false,\"action_per_user_max\": false,\"action_per_ip_using\": false," + "\"action_average_using\": false,\"action_tos_mark\": false,\"action_tos_int\": true,\"action_tos_str\": false,\"action_priority\": true," + "\"action_bandwidth_mbps\": true,\"action_reserve_bandwidth_mbps\": false,\"action_min_mbps\": false,\"action_max_mbps\": false,\"action_per_ip_min_mbps\": false," + "\"action_per_ip_max_mbps\": false,\"action_per_user_min_mbps\": false,\"action_per_user_max_mbps\": false,\"action_reserve_bandwidth_percent\": false," + "\"action_min_percent\": false,\"action_max_percent\": false,\"action_bandwidth_gbps\": false,\"action_rserve_bandwidth_gbps\": false," + "\"action_min_gbps\": false,\"action_max_gbps\": false,\"action_mode\": false}}],\"id\": 0}}";
-            }else{
-                s = "{\"name\": \"first\",\"root\":{\"name\":\"" + map.get("pipeName")  + "\",\"desc\":\"\",\"qos_mode\":{\"name\":\"shape\"},\"action\":[{\"dir\":\"1\",\"min\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"max\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}},{\"dir\":\"2\",\"min\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"max\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}}],\"id\":0}}";
+            if (map.containsKey("ip")) {
+                s = "{\"name\": \"first\",\"root\": {\"name\":\"" + map.get("pipeName") + "\",\"desc\": \"\",\"qos_mode\": {\"name\": \"shape\"},\"rule\": [{ \"id\": [],\"src_addr\": [{\"name\": \"any\"}]," + "\"src_host\": [],\"src_subnet\": [],\"src_range\": [],\"dst_addr\": [],\"dst_host\": [],\"dst_subnet\": [{\"ip\":" + IpUtil.ipToLong(map.get("ip")) + ",\"netmask\":32" + "}],\"dst_range\": [],\"user\": [],\"usergroup\": [],\"service\": [{\"name\": \"" + map.get("serviceNamne") + "\"}],\"application\": [],\"src_zone\": [],\"ingress_if\": [],\"dst_zone\": [],\"egress_if\": []" + ",\"vlan\": [],\"tos\": []}],\"action\": [{\"dir\": \"1\",\"min\": \"" + map.get(HsConstants.BAND_WIDTH) + "\", \"max\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\": \"\",\"per_max\": \"\",\"per_using\": \"\",\"priority\": 7,\"set_tos\": \"2\",\"tos\": \"\",\"amask\": {" + "\"action_dir\": true,\"action_bandwidth\": false,\"action_reserve_bandwidth\": false,\"action_min\": false,\"action_max\": false," + "\"action_per_ip_min\": false,\"action_per_ip_max\": false,\"action_per_user_min\": false,\"action_per_user_max\": false," + "\"action_per_ip_using\": false,\"action_average_using\": false,\"action_tos_mark\": false,\"action_tos_int\": true," + "\"action_tos_str\": false,\"action_priority\": true,\"action_bandwidth_mbps\": true,\"action_reserve_bandwidth_mbps\": false," + "\"action_min_mbps\": false,\"action_max_mbps\": false,\"action_per_ip_min_mbps\": false,\"action_per_ip_max_mbps\": false," + "\"action_per_user_min_mbps\": false,\"action_per_user_max_mbps\": false,\"action_reserve_bandwidth_percent\": false,\"action_min_percent\": false," + "\"action_max_percent\": false,\"action_bandwidth_gbps\": false,\"action_rserve_bandwidth_gbps\": false,\"action_min_gbps\": false," + "\"action_max_gbps\": false,\"action_mode\": false}},{\"dir\": \"2\",\"min\": \"" + map.get(HsConstants.BAND_WIDTH) + "\", \"max\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\": \"\",\"per_max\": \"\",\"per_using\": \"\",\"priority\": 7,\"set_tos\": \"2\",\"tos\": \"\",\"amask\": {" + "\"action_dir\": true,\"action_bandwidth\": false,\"action_reserve_bandwidth\": false,\"action_min\": false,\"action_max\": false," + "\"action_per_ip_min\": false,\"action_per_ip_max\": false,\"action_per_user_min\": false,\"action_per_user_max\": false,\"action_per_ip_using\": false," + "\"action_average_using\": false,\"action_tos_mark\": false,\"action_tos_int\": true,\"action_tos_str\": false,\"action_priority\": true," + "\"action_bandwidth_mbps\": true,\"action_reserve_bandwidth_mbps\": false,\"action_min_mbps\": false,\"action_max_mbps\": false,\"action_per_ip_min_mbps\": false," + "\"action_per_ip_max_mbps\": false,\"action_per_user_min_mbps\": false,\"action_per_user_max_mbps\": false,\"action_reserve_bandwidth_percent\": false," + "\"action_min_percent\": false,\"action_max_percent\": false,\"action_bandwidth_gbps\": false,\"action_rserve_bandwidth_gbps\": false," + "\"action_min_gbps\": false,\"action_max_gbps\": false,\"action_mode\": false}}],\"id\": 0}}";
+            } else {
+                s = "{\"name\": \"first\",\"root\":{\"name\":\"" + map.get("pipeName") + "\",\"desc\":\"\",\"qos_mode\":{\"name\":\"shape\"},\"action\":[{\"dir\":\"1\",\"min\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"max\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}},{\"dir\":\"2\",\"min\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"max\":\"" + map.get(HsConstants.BAND_WIDTH) + "\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}}],\"id\":0}}";
             }
 
             return s;
@@ -143,7 +145,7 @@ public class QosService {
     }
 
     private String getUpdateJson(String pipeId, String pipeName, String bandWidth) {
-        String errorstr =  "{\"name\":\"first\",\"root\":{\"id\":\""+pipeId+"\",\"name\":\""+pipeName+"\",\"desc\":\"\",\"qos_mode\":{\"name\":\"shape\"},\"action\":[{\"dir\":\"1\",\"min\":\""+bandWidth+"\",\"max\":\""+bandWidth+"\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}},{\"dir\":\"2\",\"min\":\""+bandWidth+"\",\"max\":\""+bandWidth+"\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}}],\"schedule\":[]}}";
+        String errorstr = "{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\",\"name\":\"" + pipeName + "\",\"desc\":\"\",\"qos_mode\":{\"name\":\"shape\"},\"action\":[{\"dir\":\"1\",\"min\":\"" + bandWidth + "\",\"max\":\"" + bandWidth + "\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}},{\"dir\":\"2\",\"min\":\"" + bandWidth + "\",\"max\":\"" + bandWidth + "\",\"per_min\":\"\",\"per_max\":\"\",\"per_using\":\"\",\"priority\":7,\"set_tos\":\"2\",\"tos\":\"\",\"amask\":{\"action_dir\":true,\"action_bandwidth\":false,\"action_reserve_bandwidth\":false,\"action_min\":false,\"action_max\":false,\"action_per_ip_min\":false,\"action_per_ip_max\":false,\"action_per_user_min\":false,\"action_per_user_max\":false,\"action_per_ip_using\":false,\"action_average_using\":false,\"action_tos_mark\":false,\"action_tos_int\":true,\"action_tos_str\":false,\"action_priority\":true,\"action_bandwidth_mbps\":true,\"action_reserve_bandwidth_mbps\":false,\"action_min_mbps\":false,\"action_max_mbps\":false,\"action_per_ip_min_mbps\":false,\"action_per_ip_max_mbps\":false,\"action_per_user_min_mbps\":false,\"action_per_user_max_mbps\":false,\"action_reserve_bandwidth_percent\":false,\"action_min_percent\":false,\"action_max_percent\":false,\"action_bandwidth_gbps\":false,\"action_rserve_bandwidth_gbps\":false,\"action_min_gbps\":false,\"action_max_gbps\":false,\"action_mode\":false}}],\"schedule\":[]}}";
         log.debug(errorstr);
         return errorstr;
     }
@@ -181,7 +183,7 @@ public class QosService {
     /**
      * add Qos Pipe bind eip
      *
-     * @param fip fip
+     * @param fip   fip
      * @param sbwId id
      * @return ret
      */
@@ -204,7 +206,7 @@ public class QosService {
                 for (int i = 0; i < eipList.size(); i++) {
                     Eip eip = eipList.get(i);
                     String floatingIp = eip.getFloatingIp();
-                    if(floatingIp.equalsIgnoreCase(fip) && eip.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
+                    if (floatingIp.equalsIgnoreCase(fip) && eip.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
                         res.put(HsConstants.SUCCESS, "This fip exist !");
                         res.put("id", pipeId);
                         return res;
@@ -231,25 +233,22 @@ public class QosService {
             String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
             log.info(conditionStr);
             //add the ip to ip Array
-            String retr ="";
-            if (ipSet.size() != 1) {
-                retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, HsConstants.REST_IQOS_ROOT, conditionStr);
-            } else if (ipSet.size() == 1 ){
-                retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, HsConstants.REST_IQOS_ROOT, conditionStr);
-            }
+            String retr = "";
+            log.info("conditionStr" + conditionStr, "ipSet.size:{}", ipSet.size());
+            retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, HsConstants.REST_IQOS_ROOT, conditionStr);
             JSONObject jo = new JSONObject(retr);
             log.info("addQosPipeBindEip http retr:{}", retr);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             if (Boolean.valueOf(success)) {
                 res.put(HsConstants.SUCCESS, HsConstants.TRUE);
                 res.put("id", pipeId);
-                log.info("QosService: add floating ip success in Qos，PipeId:{}",pipeId);
+                log.info("QosService: add floating ip 【success】 in Qos，PipeId:{}", retr);
             } else {
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                log.warn("QosService: add floating ip failed from Qos，PipeId:{}",pipeId);
+                log.warn("QosService: add floating ip 【failed】 from Qos，PipeId:{}", retr);
             }
         } catch (Exception var8) {
-            log.error("Update【add】 the floating ip in Qos Error! "+var8.getMessage());
+            log.error("Update【add】 the floating ip in Qos Error! ", var8);
         }
         return res;
     }
@@ -261,59 +260,43 @@ public class QosService {
      * @param pipeId
      * @return
      */
-    HashMap<String, String> removeIpFromQos(String floatIp, String pipeId, String sbwId) {
+    HashMap<String, String> removeIpFromQos(String floatIp, String pipeId) {
         HashMap<String, String> res = new HashMap();
-        UpdateCondition condition = new UpdateCondition();
-        condition.setName("first");
-        RootConfig root = new RootConfig();
-        root.setId(pipeId);
-        RuleConfig config = new RuleConfig();
-        Set<IpRange> ipSet = new HashSet<>();
-        ArrayList<RuleConfig> ruleList = new ArrayList<>();
+        if (StringUtils.isBlank(floatIp)) {
+            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+            return res;
+        }
+        String longIp = IpUtil.ipToLong(floatIp);
+        Gson gson = new Gson();
         try {
             //query qos pipe details by pipeId
-            List<Eip> eipList = getQueryQosByDataBase(sbwId);
-            if (eipList == null || eipList.isEmpty()) {
-                res.put("msg", "qos not exist");
-                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                return res;
-            }
-            for (Eip eip: eipList) {
-                String floatingIp = eip.getFloatingIp();
-                if (StringUtils.isNotBlank(floatingIp)&&!floatingIp.equals(floatIp)) {
-                        String longFloatIp = IpUtil.ipToLong(floatingIp);
-                        IpRange range = new IpRange(longFloatIp, longFloatIp);
-                        ipSet.add(range);
+            JSONArray ipContent = getQosRuleId(pipeId);
+            log.info("The pipe id information:{}", ipContent);
+            if (ipContent.length() > 0) {
+                ConcurrentHashMap<String, IpRange> map = new ConcurrentHashMap(2);
+                for (int i = 0; i < ipContent.length(); i++) {
+                    String json = ipContent.get(i).toString();
+                    IpContent content = gson.fromJson(json, IpContent.class);
+                    if (longIp.equals(content.getIpRange().getMin()) || longIp.equals(content.getIpRange().getMin())) {
+                        map.put(content.getId(), content.getIpRange());
+                    }
                 }
-            }
-            //src addr
-            ArrayList addrList = new ArrayList();
-            addrList.add(new SrcAddr());
-            config.setSrcAddr(addrList);
-            //dst range
-            config.setDstRange(ipSet);
-            ruleList.add(config);
-            root.setRule(ruleList);
-            condition.setRoot(root);
-            //register the customer adapter
-            GsonBuilder gsonBuilder = new GsonBuilder();
-            gsonBuilder.registerTypeAdapter(String.class, STRING);
-            String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
-            log.info(conditionStr);
-            //add the ip to ip Array
-            String retr = HsHttpClient.hsHttpPut(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", conditionStr);
-            JSONObject jo = new JSONObject(retr);
-            log.info("removeQosPipeBindEip  HttpPut jo:{}", jo);
-            boolean success = jo.getBoolean(HsConstants.SUCCESS);
-            if (Boolean.valueOf(success)) {
-                res.put(HsConstants.SUCCESS, HsConstants.TRUE);
-                log.info("QosService: remove floating ip success in Qos，PipeId:{}",pipeId);
-            } else {
+                for (String id : map.keySet()) {
+                    Boolean result = deleteIpFromPipe(pipeId, id);
+                    log.info("removeQosPipeBindEip  HttpPut jo:{}", result);
+                    if (result){
+                        log.info("QosService: remove floating ip success from Qos，PipeId:{}", result);
+                        res.put(HsConstants.SUCCESS, HsConstants.TRUE);
+                    }else {
+                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                        log.warn("QosService: remove floating ip failed from Qos，PipeId:{}", result);
+                    }
+                }
+            }else {
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                log.warn("QosService: remove floating ip failed from Qos，PipeId:{}",pipeId);
             }
         } catch (Exception var8) {
-            log.error("Update【remove】 the floating ip in Qos Error! "+var8.getMessage());
+            log.error("Update【remove】 the floating ip in Qos Error! " + var8.getMessage());
         }
         return res;
     }
@@ -349,19 +332,21 @@ public class QosService {
         try {
             eipList = eipRepository.findBySharedBandWidthIdAndIsDelete(shareBandWidthId, isDelete);
         } catch (Exception e) {
-            log.error(String.valueOf(e));
+            log.error("DB null:{}", e);
         }
         return eipList;
     }
 
-    String getQueryQosRuleByStone(String bandId) {
+    String getQueryQosRuleByRest(String pipeId) {
         String jsonStr = null;
-        String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%221545234839113919447%22%7D%5D%7D&target=root.rule";
         try {
+            String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%221548272721644159129%22%7D%5D%7D&target=root.rule";
             jsonStr = HsHttpClient.HttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
-            log.info("getQueryQosByDataBase:------------" + jsonStr);
+            log.info("getQueryQosRuleByRest:------------" + jsonStr + "++++END!");
             if (StringUtils.isBlank(jsonStr)) {
-                throw new IllegalArgumentException("IllegalArgument ：" + bandId + " cannot get the qos rule");
+                throw new IllegalArgumentException("IllegalArgument ：" + pipeId + " cannot get the qos rule");
+            } else if ("[]".equals(jsonStr.trim())) {
+                return "";
             }
         } catch (Exception e) {
             log.error(String.valueOf(e));
@@ -369,6 +354,26 @@ public class QosService {
         return jsonStr;
     }
 
+    /**
+     * @param pipeId   管道id
+     * @param sequence ip序号
+     * @return
+     */
+    public Boolean deleteIpFromPipe(String pipeId, String sequence) {
+        String param = "[{\"target\":\"root.rule\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\",\"rule\":[{\"id\":\"" + sequence + "\"}]}}}]";
+        try {
+            String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", param);
+            JSONObject jo = new JSONObject(retr);
+            log.info("hsHttpDelete  result{}", retr);
+            boolean success = jo.getBoolean(HsConstants.SUCCESS);
+            if (success) {
+                return true;
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return false;
+    }
 
     //Customize the Strig adapter
     private static final TypeAdapter STRING = new TypeAdapter() {
@@ -409,16 +414,18 @@ public class QosService {
 
 
     JSONArray getQosRuleId(String pipeId) {
-
+        String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22" + pipeId + "%22%7D%5D%7D&target=root.rule";
         try {
-            String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22"+pipeId+"%22%7D%5D%7D&target=root.rule";
             String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
 //            String retr = HsHttpClient.hsHttpGet("10.110.29.206", "443", "hillstone", "hillstone", params);
-            JSONArray jo = new JSONArray(retr);
-            log.info("Get qos rule return:{} ",jo.toString());
+            JSONArray jo = null;
+            if (retr != null) {
+                jo = new JSONArray(retr);
+            }
+            log.info("getQueryQosRuleByRest:------------" + retr + "++++END!");
             return jo;
-        } catch (Exception var11) {
-            log.error(var11.getMessage());
+        } catch (Exception e) {
+            log.error(String.valueOf(e));
             return null;
         }
     }

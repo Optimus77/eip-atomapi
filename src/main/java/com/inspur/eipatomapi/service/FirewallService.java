@@ -437,14 +437,14 @@ class FirewallService {
      * @return ret
      */
     public boolean removeFloatingIpFromQos(String firewallId, String floatIp, String pipeId, String sbwId) {
-        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{}，sbwId：{} " ,firewallId, floatIp, pipeId,  sbwId,  sbwId);
+        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{}，sbwId：{} " ,firewallId, floatIp, pipeId);
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
             qosService.setFwIp(fwBean.getIp());
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
-            HashMap<String, String> map = qosService.removeIpFromQos(floatIp, pipeId, sbwId);
+            HashMap<String, String> map = qosService.removeIpFromQos(floatIp, pipeId);
             if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
                 log.info("FirewallService : Success removeFloatingIpFromQos: " + firewallId + "floatIp: " + floatIp + " --success==pipeId：" + pipeId);
                 return Boolean.parseBoolean(map.get(HsConstants.SUCCESS));
