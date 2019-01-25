@@ -54,8 +54,8 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            if(null != eipConfig.getSharedBandWidthId()) {
-                String sbwId = eipConfig.getSharedBandWidthId();
+            String sbwId = eipConfig.getSharedBandWidthId();
+            if(null != sbwId) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
                 if (null != sbwEntity && (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))){
                     log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
