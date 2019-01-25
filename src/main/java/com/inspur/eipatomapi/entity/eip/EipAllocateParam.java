@@ -32,6 +32,5 @@ public class EipAllocateParam implements Serializable {
     @Range(min=1,max=2000,message = "value must be 1-2000.")
     private int bandwidth;
 
-    @JsonProperty("sharedbandwidthid")
     private String sharedBandWidthId;
 }
