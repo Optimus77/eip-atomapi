@@ -90,7 +90,7 @@ public class SbwDaoService {
      */
     @Transactional
     public ActionResponse deleteSbw(String sbwId) {
-        String msg = "";
+        String msg ;
         long ipCount ;
         Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
         if (null == sbwEntity) {
@@ -250,7 +250,7 @@ public class SbwDaoService {
 
         String sbwId = eipUpdateParam.getSharedBandWidthId();
         Eip eipEntity = eipRepository.findByEipId(eipid);
-        String pipeId = "";
+        String pipeId ;
         if (null == eipEntity) {
             log.error("In addEipIntoSbw process,failed to find the eip by id:{} ", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
@@ -319,6 +319,10 @@ public class SbwDaoService {
         String msg ;
         String sbwId = eipUpdateParam.getSharedBandWidthId();
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        if(null == sbw){
+            log.error("In removeEipFromSbw process,failed to find sbw by id:{} ", sbwId);
+            return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);
+        }
         if (null == eipEntity) {
             log.error("In removeEipFromSbw process,failed to find the eip by id:{} ", eipid);
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);

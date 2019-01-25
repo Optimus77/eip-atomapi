@@ -2,9 +2,11 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
+import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
@@ -52,6 +54,15 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
+            String sbwId = eipConfig.getSharedBandWidthId();
+            if(null != sbwId) {
+                Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
+                if (null != sbwEntity && (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))){
+                    log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+                    return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH,
+                            "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
+                }
+            }
             EipPool eip = eipDaoService.getOneEipFromPool();
             if(null == eip) {
                 msg = "Failed, no eip in eip pool.";
@@ -300,7 +311,7 @@ public class EipServiceImpl implements IEipService {
                         .resourcetype(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
-                log.warn("Failed to find eip by instance id, instanceId:{}", instanceId);
+                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "can not find instance by this id:" + instanceId+""),
                         HttpStatus.NOT_FOUND);

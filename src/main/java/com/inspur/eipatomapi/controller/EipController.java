@@ -123,10 +123,10 @@ public class EipController {
             return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
         }
         if(null != resourceid) {
-            log.info("EipController get eip by instance id:{} ", resourceid);
+            log.debug("EipController get eip by instance id:{} ", resourceid);
             return eipService.getEipByInstanceId(resourceid);
         } else if(null != eipaddress) {
-            log.info("EipController get eip by ip:{} ", eipaddress);
+            log.debug("EipController get eip by ip:{} ", eipaddress);
             return eipService.getEipByIpAddress(eipaddress);
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
@@ -166,10 +166,8 @@ public class EipController {
         if (updateParam.getServerId() != null){
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
             if (updateParam.getServerId().trim().equals("")){
-
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
                 return eipService.unBindPort(eipId);
-
             } else {
                 log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
                 if (updateParam.getType() != null) {
@@ -184,14 +182,14 @@ public class EipController {
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEipUpdateParam());
                 return eipService.unBindPort(eipId);
             }else if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
-                if ( updateParam.getSharedBandWidthId() != null &&
-                        updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
-                    log.info("add eip to shared bandwidth:{}", updateParam.toString());
-                    return eipService.addEipToSbw(eipId, updateParam);
-                } else if (updateParam.getChargemode().equalsIgnoreCase("Bandwidth") &&
-                        updateParam.getSharedBandWidthId() != null) {
-                    log.info("remove eip from shared bandwidth:{}", updateParam.toString());
-                    return eipService.removeEipFromSbw(eipId, updateParam);
+                if (updateParam.getSharedBandWidthId() != null) {
+                    if (updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
+                        log.info("add eip to shared bandwidth:{}", updateParam.toString());
+                        return eipService.addEipToSbw(eipId, updateParam);
+                    } else if (updateParam.getChargemode().equalsIgnoreCase("Bandwidth")) {
+                        log.info("remove eip from shared bandwidth:{}", updateParam.toString());
+                        return eipService.removeEipFromSbw(eipId, updateParam);
+                    }
                 }
 
                 boolean chargeTypeFlag = false;
