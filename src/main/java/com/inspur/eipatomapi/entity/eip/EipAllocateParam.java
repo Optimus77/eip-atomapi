@@ -29,7 +29,7 @@ public class EipAllocateParam implements Serializable {
     @TypeConstraint(allowedValues = {"Bandwidth","SharedBandwidth"}, message = "Only Bandwidth,SharedBandwidth is allowed. ")
     private String chargemode = "Bandwidth";
 
-    @Range(min=1,max=2000,message = "value must be 1-2000.")
+    @Range(min=1,max=200,message = "value must be 1-200.")
     private int bandwidth;
 
     @JsonProperty("sharedbandwidthid")
