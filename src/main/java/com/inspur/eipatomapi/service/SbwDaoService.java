@@ -298,7 +298,7 @@ public class SbwDaoService {
             eipEntity.setUpdateTime(new Date());
             eipEntity.setSharedBandWidthId(sbwId);
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
-            eipEntity.setChargeMode("SharedBandwidth");
+            eipEntity.setChargeMode(HsConstants.SHAREDBANDWIDTH);
             eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
             eipRepository.saveAndFlush(eipEntity);
 
@@ -332,7 +332,7 @@ public class SbwDaoService {
         String newPipId = null;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
             log.info("FirewallId: "+eipEntity.getFirewallId()+" FloatingIp: "+eipEntity.getFloatingIp()+" ShardBandId: "+ sbwId);
-            newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress()+"-"+CommonUtil.getToday(), String.valueOf(eipUpdateParam.getBandWidth()),
+            newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandWidth()),
                     eipEntity.getFirewallId());
             if(null != newPipId) {
                 removeStatus = firewallService.removeFloatingIpFromQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), eipEntity.getPipId(), sbwId);
