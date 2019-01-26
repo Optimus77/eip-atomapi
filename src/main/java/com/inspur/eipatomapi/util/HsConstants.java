@@ -208,10 +208,13 @@ public class HsConstants {
 	public static final String RESULT = "result";
 	public static final String PIPE_NAME= "pipeName";
 	public static final String FALSE = "false";
+	public static final String TRUE = "true";
 	public static final String BAND_WIDTH = "bandWidth";
 	public static final String REASON = "reason";
 	public static final String HTTP_CODE = "httpCode";
 	public static final String INTER_CODE = "interCode";
+	public static final String REST_IQOS_ROOT = "/rest/iQos?target=root.rule";
+	public static final String FLOATIP = "floatIp: ";
 
 
 	// --- 1xx Informational ---

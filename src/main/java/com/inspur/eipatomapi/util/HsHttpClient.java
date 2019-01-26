@@ -30,9 +30,8 @@ import org.json.JSONObject;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.net.ssl.SSLContext;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.servlet.http.HttpServletRequest;
+import java.io.*;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -75,26 +74,40 @@ public class HsHttpClient {
 		HttpEntity entity = response.getEntity();
 		if (entity != null) {
 			InputStream instream = entity.getContent();
-			try {
-				byte[] payload;
+            String ret = ConvertStreamToString(instream);
+            log.debug(ret);
+            return ret;
 
-                payload = readStream(instream);
-
-				if (0 == payload.length) {
-					return getJson(response.getStatusLine().getStatusCode());
-				}
-				JSONObject jo = new JSONObject(new String(payload));
-				return jo.toString();
-			} catch (Exception e) {
-                // TODO Auto-generated catch block
-                log.error("Exception.",e);
-                return "";
-            }
 		} else {
 			return getJson(response.getStatusLine().getStatusCode());
 		}
 
 	}
+
+
+    // Convert stream to string
+    public static String ConvertStreamToString(InputStream is) {
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            log.error("Error=" + e.toString());
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                log.error("Error=" + e.toString());
+            }
+        }
+        return sb.toString();
+
+    }
 
 	private static String getJson(int code) {
 		if (code == HsConstants.STATUS_CODE_200 || code == HsConstants.STATUS_CODE_204) {
@@ -363,6 +376,7 @@ public class HsHttpClient {
 		log.debug("request line:get-{}" , httpGet.getRequestLine());
 		try {
 			HttpResponse httpResponse = client.execute(httpGet);
+			//log.info(httpResponse.toString());
 			return getResponseString(httpResponse);
 
 		} catch (IOException e) {
