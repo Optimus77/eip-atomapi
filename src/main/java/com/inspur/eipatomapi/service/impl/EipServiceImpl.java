@@ -57,7 +57,7 @@ public class EipServiceImpl implements IEipService {
             String sbwId = eipConfig.getSharedBandWidthId();
             if(null != sbwId) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
-                if (null != sbwEntity && (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))){
+                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))){
                     log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
                     return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH,
                             "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
