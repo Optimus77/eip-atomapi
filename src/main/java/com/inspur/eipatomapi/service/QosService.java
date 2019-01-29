@@ -7,7 +7,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import com.inspur.eipatomapi.entity.Qos.*;
-import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.util.HsConstants;
 import com.inspur.eipatomapi.util.HsHttpClient;
@@ -195,6 +194,10 @@ public class QosService {
             return res;
         }
         String IP32 = IpUtil.ipToLong(floatIp);
+        if (StringUtils.isBlank(IP32)) {
+            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+            return res;
+        }
         IpRange longIp = new IpRange(IP32, IP32);
         UpdateCondition condition = new UpdateCondition();
         condition.setName("first");
@@ -208,10 +211,12 @@ public class QosService {
             for (int i = 0; i < ipContent.length(); i++) {
                 String json = ipContent.get(i).toString();
                 IpContent content = gson.fromJson(json, IpContent.class);
-                if (longIp.equals(content.getIpRange().getMin()) || longIp.equals(content.getIpRange().getMin())) {
-                    res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                    log.warn("Add ip to qos bug, this ip already exist this pipe:{}",pipeId);
-                    return res;
+                if (content != null) {
+                    if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin())) || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
+                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                        log.warn("Add ip to qos bug, this ip already exist this pipe:{}", pipeId);
+                        return res;
+                    }
                 }
             }
         }
@@ -260,7 +265,11 @@ public class QosService {
             res.put(HsConstants.SUCCESS, HsConstants.FALSE);
             return res;
         }
-        String longIp = IpUtil.ipToLong(floatIp);
+        String IP32 = IpUtil.ipToLong(floatIp);
+        if (StringUtils.isBlank(IP32)) {
+            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+            return res;
+        }
         Gson gson = new Gson();
         try {
             //query qos pipe details by pipeId
@@ -271,8 +280,10 @@ public class QosService {
                 for (int i = 0; i < ipContent.length(); i++) {
                     String json = ipContent.get(i).toString();
                     IpContent content = gson.fromJson(json, IpContent.class);
-                    if (longIp.equals(content.getIpRange().getMin()) || longIp.equals(content.getIpRange().getMin())) {
-                        map.put(content.getId(), content.getIpRange());
+                    if (content != null) {
+                        if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin())) || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
+                            map.put(content.getId(), content.getIpRange());
+                        }
                     }
                 }
                 for (String id : map.keySet()) {
