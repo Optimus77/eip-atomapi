@@ -45,7 +45,7 @@ public class FireWallCommondService {
         stderr = new BufferedReader(new InputStreamReader(new StreamGobbler(session.getStderr()), StandardCharsets.UTF_8));
         printWriter = new PrintWriter(session.getStdin());
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -87,12 +87,9 @@ public class FireWallCommondService {
 //        });
 //    }
 
-    public void execCustomCommand(String cmd) {
+    public String execCustomCommand(String cmd) {
 
         //System.out.print("ready to input:");
-        //String nextLine = scanner.nextLine();
-        printWriter.write("configure" + "\r\n");
-        printWriter.write("ip vrouter trust-vr"+"\r\n");
         printWriter.write(cmd + "\r\n");
         printWriter.flush();
 
@@ -100,11 +97,15 @@ public class FireWallCommondService {
         try {
             while ((line = stdout.readLine()) != null) {
                 System.out.println(line);
+                if(line.contains("Rule id ")){
+                    return line.split(" ")[3];
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         close();
+        return null;
     }
 
 
@@ -120,15 +121,22 @@ public class FireWallCommondService {
     }
 
     public static void main(String[] args) throws IOException {
-        long currentTimeMillis = System.currentTimeMillis();
+
         FireWallCommondService sshAgent = new FireWallCommondService();
-        sshAgent.initSession("10.110.29.206", "hillstone", "hillstone");
-        //sshAgent.execCommand();
-        sshAgent.execCustomCommand("snatrule from ipv6-any to 2003::2 service any trans-to eif-ip mode dynamicport");
-        sshAgent.execCustomCommand("dnatrule from ipv6-any to 2003::2 service any trans-to 192.168.1.2");
-        sshAgent.close();
+        long currentTimeMillis = System.currentTimeMillis();
+        sshAgent.initSession("10.110.17.250", "hillstone", "hillstone");
+        //sshAgent.execCustomCommand("configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"help");
+        String ret = sshAgent.execCustomCommand("configure\r"+"service my-service1\r"+"tcp dst-port 21 23\r"+"exit\r"+"policy-global\r"+"rule\r"+ "src-addr any\r"+"dst-ip 5.6.7.8/32\r"+ "service my-service1\r"+"action permit");
+        if(null != ret){
+            System.out.print(ret);
+        }
+        //sshAgent.execCustomCommand("configure" + "\r\n"+"policy-global"+"\r\n"+"rule from any to any service icmp permit");
+
+        //sshAgent.execCustomCommand(""configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"snatrule from ipv6-any to 2003::2 service any trans-to eif-ip mode dynamicport");
+        //sshAgent.execCustomCommand(""configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"dnatrule from ipv6-any to 2003::2 service any trans-to 192.168.1.2");
         long currentTimeMillis1 = System.currentTimeMillis();
-        System.out.println("ganymed-ssh2方式"+(currentTimeMillis1-currentTimeMillis));
+        System.out.println("\r\nganymed-ssh2 time:"+(currentTimeMillis1-currentTimeMillis));
+        //sshAgent.close();
     }
 }
 
