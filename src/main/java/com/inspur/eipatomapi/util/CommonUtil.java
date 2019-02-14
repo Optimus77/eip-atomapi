@@ -45,7 +45,7 @@ public class CommonUtil {
      */
     public static String getToday() {
         Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-ss");
         return formatter.format(currentTime);
     }
 
