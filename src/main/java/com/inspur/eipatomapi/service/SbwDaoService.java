@@ -192,14 +192,14 @@ public class SbwDaoService {
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
             log.error("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
-            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
             data.put(HsConstants.HTTP_CODE, HttpStatus.SC_NOT_FOUND);
             data.put(HsConstants.INTER_CODE, ReturnStatus.SC_NOT_FOUND);
             return data;
         }
         if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
             log.error("User have no write to operate sbw:{}", sbwId);
-            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
             data.put(HsConstants.HTTP_CODE, HttpStatus.SC_FORBIDDEN);
             data.put(HsConstants.INTER_CODE, ReturnStatus.SC_FORBIDDEN);
             return data;
