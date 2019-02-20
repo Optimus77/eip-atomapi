@@ -3,10 +3,7 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.eip.*;
-import com.inspur.eipatomapi.repository.EipPoolRepository;
-import com.inspur.eipatomapi.repository.EipRepository;
-import com.inspur.eipatomapi.repository.ExtNetRepository;
-import com.inspur.eipatomapi.repository.FirewallRepository;
+import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +44,7 @@ public class EipDaoService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
 
     /**
      * allocate eip
@@ -250,6 +248,7 @@ public class EipDaoService {
                 eipRepository.saveAndFlush(eip);
 
             }
+
         } catch (Exception e) {
             log.error("band server exception", e);
             returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
@@ -566,5 +565,6 @@ public class EipDaoService {
     public Eip get(String instanceId) {
         return eipRepository.findByInstanceIdAndIsDelete(instanceId,0);
     }
+
 
 }
