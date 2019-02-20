@@ -37,7 +37,7 @@ public class EipV6Controller {
     @Autowired
     private EipV6ServiceImpl eipV6Service;
 
-    @PostMapping(value = "/eipv6")
+    @PostMapping(value = "/eipv6/createnatwithouteip")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
         log.info("Allocate a eipv6:{}.", eipV6Config.getEipV6AllocateParam().toString());
