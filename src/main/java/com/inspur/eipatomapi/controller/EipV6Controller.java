@@ -2,8 +2,6 @@ package com.inspur.eipatomapi.controller;
 
 
 import com.inspur.eipatomapi.config.ConstantClassField;
-import com.inspur.eipatomapi.entity.eip.EipUpdateParam;
-import com.inspur.eipatomapi.entity.eip.EipUpdateParamWrapper;
 import com.inspur.eipatomapi.entity.eipv6.*;
 import com.inspur.eipatomapi.service.impl.EipV6ServiceImpl;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
@@ -111,7 +109,7 @@ public class EipV6Controller {
 
 
 
-    @PutMapping(value = "/eipv6/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/eipv6/{eip_v6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eipv6", notes = "put")
     @ApiImplicitParams({

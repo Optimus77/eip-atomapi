@@ -3,7 +3,6 @@ package com.inspur.eipatomapi.entity.eipv6;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.inspur.eipatomapi.entity.eip.Resourceset;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -14,7 +13,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipV6ReturnDetail implements Serializable {
 
-    @JsonProperty("eipv6id")
+    @JsonProperty("id")
     private String eipV6Id;
 
     @Column(name="ipv6")
@@ -39,7 +38,7 @@ public class EipV6ReturnDetail implements Serializable {
     private String eipChargeType;
 
 
-    @JsonProperty("eipid")
+    @JsonProperty("eip_id")
     private String eipId;
 
 
