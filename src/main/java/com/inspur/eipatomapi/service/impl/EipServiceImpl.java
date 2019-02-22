@@ -8,13 +8,11 @@ import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
+import com.inspur.eipatomapi.repository.EipV6Repository;
 import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
@@ -44,6 +42,8 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private SbwDaoService sbwDaoService;
+
+
     /**
      * create a eip
      * @param eipConfig          config
@@ -664,5 +664,48 @@ public class EipServiceImpl implements IEipService {
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+
+    /**
+     *   the eipV6
+     * @return       result
+     */
+    @Override
+    public ResponseEntity listEipsByBandWidth( String status){
+
+        try {
+            String projcectid=CommonUtil.getUserId();
+            log.debug("listEips  of user, userId:{}", projcectid);
+            if(projcectid==null){
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data=new JSONObject();
+            JSONArray eips=new JSONArray();
+
+            List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
+            for(Eip eip:eipList){
+                if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                    continue;
+                }
+                int bandWidth =eip.getBandWidth();
+                if(bandWidth<=10){
+                    EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eips.add(eipReturnDetail);
+                    data.put("eip",eips);
+                }
+            }
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        }catch(KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e){
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
 }
