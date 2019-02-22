@@ -74,7 +74,6 @@ public class FireWallCommondService {
 
     public String execCustomCommand(String cmd) {
         String expectStr = "ID=";
-        String retString = null;
         try {
             if(!bConnect){
 //                Firewall firewall = firewallService.getFireWallById(fireWallId);
