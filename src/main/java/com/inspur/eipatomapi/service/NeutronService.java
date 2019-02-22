@@ -84,6 +84,11 @@ public  class NeutronService {
             log.error("*******************************project id error,id in token:{}, id in port:{}",
                     CommonUtil.getProjectId(region, osClientV3),port.getTenantId());
         }
+        Server server = osClientV3.compute().servers().get(serverId);
+        if(null == server) {
+            log.error("Can not get server when associate with serverId:{}, eipId:{}", serverId, eip.getEipId());
+            return null;
+        }
 
         NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){

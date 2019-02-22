@@ -41,7 +41,7 @@ class FirewallService {
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
-    private Firewall getFireWallById(String id) {
+    public Firewall getFireWallById(String id) {
         if (!firewallConfigMap.containsKey(id)) {
 
             Optional<Firewall> firewall = firewallRepository.findById(id);
