@@ -276,10 +276,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 }
             }else{
                 //未完  待续
-                String[] split = dnatptId.split("=");
-                String[] splitt = snatptId.split("=");
-                dnatptId=split[1];
-                snatptId=splitt[1];
                 EipV6 eipV6Mo = new EipV6();
                 disconnectNat = fireWallCommondService.execCustomCommand("configure\r"
                         + "ip vrouter trust-vr\r"

@@ -97,8 +97,6 @@ public class FireWallCommondService {
                 if(null != expectStr && line.contains(expectStr)){
                     retString = line;
                 }else if(line.contains("end")){
-                    //String[] split = retString.split("=");
-                    //return split[1];
                     return retString;
                 }
             }
