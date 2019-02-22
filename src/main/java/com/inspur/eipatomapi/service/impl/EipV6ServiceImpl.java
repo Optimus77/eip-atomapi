@@ -2,11 +2,8 @@ package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.*;
-import com.inspur.eipatomapi.entity.sbw.Sbw;
-import com.inspur.eipatomapi.entity.sbw.SbwReturnDetail;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.EipV6Repository;
 import com.inspur.eipatomapi.service.*;
@@ -23,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Slf4j
@@ -41,13 +37,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
     private EipRepository eipRepository;
 
     @Autowired
-    private  EipDaoService eipDaoService;
-
-    @Autowired
-    private EipServiceImpl eipService;
-
-    @Autowired
     private FireWallCommondService fireWallCommondService;
+
 
 
     /**
@@ -131,11 +122,11 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     }
 
                 }
-                data.put("eipV6s",eipv6s);
-                data.put("totalPages",page.getTotalPages());
-                data.put("totalElements",page.getTotalElements());
+                data.put("totalCount",page.getTotalElements());
                 data.put("currentPage",currentPage);
-                data.put("currentPagePer",limit);
+                data.put("limit",limit);
+                data.put("totalPages",page.getTotalPages());
+                data.put("dataList",eipv6s);
             }else{
                 List<EipV6> eipV6List=eipV6DaoService.findEipV6ByProjectId(projcectid);
                 for(EipV6 eipV6:eipV6List){
@@ -158,11 +149,11 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     }
 
                 }
-                data.put("eipV6",eipv6s);
+                data.put("dataList",eipv6s);
                 data.put("totalPages",1);
-                data.put("totalElements",eipv6s.size());
+                data.put("totalCount",eipv6s.size());
                 data.put("currentPage",1);
-                data.put("currentPagePer",eipv6s.size());
+                data.put("limit",eipv6s.size());
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KeycloakTokenException e){
@@ -264,28 +255,38 @@ public class EipV6ServiceImpl implements IEipV6Service {
             EipV6 eipV6 = eipV6Repository.findByEipV6Id(eipV6Id);
             ipv6 = eipV6.getIpv6();
             oldIpv4 = eipV6.getIpv4();
-            if(null != eipV6){
+            String projectId = eipV6.getProjectId();
+            if(null == eipV6){
                 log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.",
                          eipV6.getEipV6Id());
                 return null;
             }
             dnatptId = eipV6.getDnatptId();
             snatptId = eipV6.getSnatptId();
+
             if(dnatptId==null && snatptId==null){
-                EipV6 newEipV6 = eipV6DaoService.updateIp(ipv4);
+                EipV6 newEipV6 = eipV6DaoService.updateIp(ipv4,eipV6);
                 if(newEipV6 != null){
-                    return new ResponseEntity<>(ReturnMsgUtil.success(newEipV6), HttpStatus.OK);
+                    code="200";
+                    msg="update success";
+                    newSnatptId="";
+                    disconnectNat = "";
+                    newDnatptId = "";
+                    return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                 }
             }else{
                 //未完  待续
+                String[] split = dnatptId.split("=");
+                String[] splitt = snatptId.split("=");
+                dnatptId=split[1];
+                snatptId=splitt[1];
                 EipV6 eipV6Mo = new EipV6();
-
                 disconnectNat = fireWallCommondService.execCustomCommand("configure\r"
                         + "ip vrouter trust-vr\r"
                         + "no snatrule id " +snatptId +"\r"
                         +"no dnatrule id "+dnatptId +"\r"
                         +"end");
-                if(disconnectNat !=null){
+                if(disconnectNat ==null){
                     newSnatptId = fireWallCommondService.execCustomCommand("configure\r"
                             + "ip vrouter trust-vr\r"
                             + "dnatrule from ipv6-any to " + ipv6
@@ -326,7 +327,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }finally {
-            if(newSnatptId == null && disconnectNat != null){
+            if(newSnatptId == null && disconnectNat == null){
                 fireWallCommondService.execCustomCommand("configure\r"
                         + "ip vrouter trust-vr\r"
                         + "dnatrule from ipv6-any to " + ipv6

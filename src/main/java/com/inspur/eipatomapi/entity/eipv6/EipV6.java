@@ -21,7 +21,6 @@ public class EipV6 {
 
     private String ipVersion="IPv6";
 
-    @NotBlank
     private String ipv6;
 
     private String ipv4;

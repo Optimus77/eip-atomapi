@@ -15,7 +15,6 @@ import java.util.List;
 @RepositoryRestResource(collectionResourceRel = "eipv6", path = "eipv6")
 public interface EipV6Repository extends JpaRepository<EipV6,String> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     EipV6 findByEipV6Id(String id);
 
     List<EipV6> findByProjectIdAndIsDelete(String projectId, int isDelete);

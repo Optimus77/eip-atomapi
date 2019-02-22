@@ -6,6 +6,7 @@ import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
+import com.inspur.eipatomapi.entity.eipv6.EipV6;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.EipV6Repository;
@@ -42,6 +43,9 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private SbwDaoService sbwDaoService;
+
+    @Autowired
+    private EipV6Repository eipV6Repository;
 
 
     /**
@@ -683,18 +687,30 @@ public class EipServiceImpl implements IEipService {
             }
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
-
+            ArrayList<Eip> newList = new ArrayList();
             List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
+            List<EipV6> eipV6List = eipV6Repository.findByProjectIdAndIsDelete(projcectid, 0);
+            int size=eipList.size();
+            for (int j = 0; j < size; j++) {
+                for (int i = 0; i < eipV6List.size(); i++) {
+                    if ((eipList.get(j).getEipAddress()).equals(eipV6List.get(i).getIpv4())) {
+                        eipList.remove(eipList.get(j));
+                        size --;
+                    }
+                }
+            }
             for(Eip eip:eipList){
                 if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                     continue;
                 }
-                int bandWidth =eip.getBandWidth();
-                if(bandWidth<=10){
+                if(eip.getBandWidth()<=10){
                     EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eips.add(eipReturnDetail);
                     data.put("eip",eips);
+                    newList.add(eip);
+                    data.put("totalElements",newList.size());
+
                 }
             }
             return new ResponseEntity<>(data, HttpStatus.OK);

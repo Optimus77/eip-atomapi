@@ -11,12 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,8 +22,6 @@ import java.util.Optional;
 @Service
 public class EipV6DaoService {
 
-    @Autowired
-    private NeutronService neutronService;
 
     @Autowired
     private EipPoolV6Repository eipPoolV6Repository;
@@ -78,7 +74,7 @@ public class EipV6DaoService {
         }
         EipV6 eipMo = new EipV6();
         String ipv6 = eipPoolv6.getIp();
-         String ipv4 = eip.getEipAddress();
+        String ipv4 = eip.getEipAddress();
         if(eip.getFloatingIp() != null && eip.getFloatingIp()!=""){
             eipMo.setFloatingIp(eip.getFloatingIp());
             String newSnatptId = fireWallCommondService.execCustomCommand("configure\r"
@@ -148,14 +144,28 @@ public class EipV6DaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-        if ((null != eipV6Entity.getDnatptId())
-                || (null != eipV6Entity.getSnatptId())) {
-            msg = "Failed to delete eipV6,please unbind eipV6 first."+eipV6Entity.toString();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        String dnatptId = eipV6Entity.getDnatptId();
+        String snatptId = eipV6Entity.getSnatptId();
+        String[] split = dnatptId.split("=");
+        String[] splitt = snatptId.split("=");
+        dnatptId=split[1];
+        snatptId=splitt[1];
+        if(dnatptId != null && snatptId !=null){
+            String disconnectNat = fireWallCommondService.execCustomCommand("configure\r"
+                    + "ip vrouter trust-vr\r"
+                    + "no snatrule id "+snatptId +"\r"
+                    + "no dnatrule id "+dnatptId +"\r"
+                    +"end");
+            log.info("disconnectNat:"+disconnectNat);
+            if(disconnectNat == null){
+                eipV6Entity.setDnatptId(null);
+                eipV6Entity.setSnatptId(null);
+                eipV6Entity.setFloatingIp(null);
+            }else{
+                log.error("Deletion mapping failed while deleting ipv6 ,dnatptid {},snatptid {}",
+                        eipV6Entity.getDnatptId(),eipV6Entity.getSnatptId());
+            }
         }
-
-
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
@@ -189,11 +199,10 @@ public class EipV6DaoService {
     }
 
     @Transactional(isolation= Isolation.SERIALIZABLE)
-    public EipV6 updateIp(String newIpv4){
+    public EipV6 updateIp(String newIpv4 ,EipV6 eipV6){
 
-        EipV6 eipV6 = new EipV6();
         eipV6.setIpv4(newIpv4);
-        eipV6.setCreateTime(CommonUtil.getGmtDate());
+        eipV6.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6);
         return eipV6;
     }

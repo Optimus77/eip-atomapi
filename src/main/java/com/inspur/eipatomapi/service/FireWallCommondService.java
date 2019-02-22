@@ -97,6 +97,8 @@ public class FireWallCommondService {
                 if(null != expectStr && line.contains(expectStr)){
                     retString = line;
                 }else if(line.contains("end")){
+                    //String[] split = retString.split("=");
+                    //return split[1];
                     return retString;
                 }
             }
@@ -124,16 +126,21 @@ public class FireWallCommondService {
         long currentTimeMillis = System.currentTimeMillis();
         //sshAgent.initConnection("10.110.17.250", "hillstone", "hillstone");
         //sshAgent.execCustomCommand("configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"help", "config");
+//        String ret = sshAgent.execCustomCommand("configure\r"
+//                +"service my-service1\r"
+//                +"tcp dst-port 21 23\r"
+//                +"exit\r"
+//                +"policy-global\r"
+//                +"rule\r"
+//                +"src-addr any\r"
+//                +"dst-ip 5.6.7.9/32\r"
+//                +"service my-service1\r"
+//                +"action permit\r"
+//                +"end");
         String ret = sshAgent.execCustomCommand("configure\r"
-                +"service my-service1\r"
-                +"tcp dst-port 21 23\r"
-                +"exit\r"
-                +"policy-global\r"
-                +"rule\r"
-                +"src-addr any\r"
-                +"dst-ip 5.6.7.9/32\r"
-                +"service my-service1\r"
-                +"action permit\r"
+                + "ip vrouter trust-vr\r"
+                + "no snatrule id " + 1 +"\r"
+                +"no dnatrule id "+ 4 +"\r"
                 +"end");
         if(null != ret){
             System.out.print(ret);
