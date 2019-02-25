@@ -4,12 +4,8 @@ import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.ConnectionMonitor;
 import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
-import com.inspur.eipatomapi.entity.fw.Firewall;
-import com.inspur.eipatomapi.repository.FirewallRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +14,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -54,7 +47,7 @@ public class FireWallCommondService {
             @Override
             public void connectionLost(Throwable reason) {
                 bConnect = false;
-                System.out.print("Connection  lost ");
+                log.info("Connection to fireWall lost, reason:{}", reason.getCause());
             }
         };
         bConnect = true;
@@ -81,7 +74,6 @@ public class FireWallCommondService {
 
     public String execCustomCommand(String cmd) {
         String expectStr = "ID=";
-        String retString = null;
         try {
             if(!bConnect){
 //                Firewall firewall = firewallService.getFireWallById(fireWallId);
@@ -92,12 +84,13 @@ public class FireWallCommondService {
             printWriter.flush();
 
             String line;
+            String retStr = null;
             while ((line = stdout.readLine()) != null) {
                 System.out.println(line);
                 if(null != expectStr && line.contains(expectStr)){
-                    retString = line;
-                }else if(line.contains("end")){
-                    return retString;
+                    retStr = line;
+                }else if(line.contains("end")) {
+                    return retStr;
                 }
             }
         } catch (IOException e) {
@@ -113,9 +106,8 @@ public class FireWallCommondService {
         IOUtils.closeQuietly(stdout);
         IOUtils.closeQuietly(stderr);
         IOUtils.closeQuietly(printWriter);
-//        IOUtils.closeQuietly(scanner);
         session.close();
-//        connection.close();
+        connection.close();
     }
 
     public static void main(String[] args) throws IOException {
@@ -124,21 +116,16 @@ public class FireWallCommondService {
         long currentTimeMillis = System.currentTimeMillis();
         //sshAgent.initConnection("10.110.17.250", "hillstone", "hillstone");
         //sshAgent.execCustomCommand("configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"help", "config");
-//        String ret = sshAgent.execCustomCommand("configure\r"
-//                +"service my-service1\r"
-//                +"tcp dst-port 21 23\r"
-//                +"exit\r"
-//                +"policy-global\r"
-//                +"rule\r"
-//                +"src-addr any\r"
-//                +"dst-ip 5.6.7.9/32\r"
-//                +"service my-service1\r"
-//                +"action permit\r"
-//                +"end");
         String ret = sshAgent.execCustomCommand("configure\r"
-                + "ip vrouter trust-vr\r"
-                + "no snatrule id " + 1 +"\r"
-                +"no dnatrule id "+ 4 +"\r"
+                +"service my-service1\r"
+                +"tcp dst-port 21 23\r"
+                +"exit\r"
+                +"policy-global\r"
+                +"rule\r"
+                +"src-addr any\r"
+                +"dst-ip 5.6.7.9/32\r"
+                +"service my-service1\r"
+                +"action permit\r"
                 +"end");
         if(null != ret){
             System.out.print(ret);
