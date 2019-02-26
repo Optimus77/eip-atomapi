@@ -101,7 +101,6 @@ public class FireWallCommondService {
 
 
 
-
     public void close() {
         IOUtils.closeQuietly(stdout);
         IOUtils.closeQuietly(stderr);
