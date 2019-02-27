@@ -17,6 +17,7 @@ public class ReturnStatus {
     public static final String SC_FIREWALL_DNAT_UNAVAILABLE  = "106.202404";
     public static final String SC_FIREWALL_QOS_UNAVAILABLE   = "106.203404";
     public static final String SC_NOT_SUPPORT                = "106.999405";
+    public static final String SC_FIREWALL_NAT_UNAVAILABLE   = "106.202404";
 
 
     public static final String SC_FORBIDDEN="106.001403" ;
