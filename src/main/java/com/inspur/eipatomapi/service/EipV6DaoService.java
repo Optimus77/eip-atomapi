@@ -78,7 +78,7 @@ public class EipV6DaoService {
         EipV6 eipMo = new EipV6();
         String ipv6 = eipPoolv6.getIp();
         String ipv4 = eip.getEipAddress();
-        NatPtV6 natPtV6 = null;
+        NatPtV6 natPtV6;
         try {
 
             if (eip.getFloatingIp() != null && eip.getFloatingIp() != "") {
@@ -88,7 +88,7 @@ public class EipV6DaoService {
                     eipMo.setDnatptId(natPtV6.getNewDnatPtId());
                     eipMo.setFloatingIp(eip.getFloatingIp());
                 } else {
-                    log.error("Failed to add natPtId" + natPtV6.getNewDnatPtId(), natPtV6.getNewSnatPtId());
+                    log.error("Failed to add natPtId");
                 }
             }
         } catch (Exception e) {

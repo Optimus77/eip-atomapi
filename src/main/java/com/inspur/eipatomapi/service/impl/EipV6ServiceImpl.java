@@ -293,7 +293,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         code = ReturnStatus.SC_OK;
                         msg = "Ipv4 was replaced successfully";
                     } else {
-                        log.error("Failed to add natPtId" + natPtV6.getNewDnatPtId(), natPtV6.getNewSnatPtId());
+                        log.error("Failed to add natPtId");
                         code = ReturnStatus.SC_FIREWALL_NAT_UNAVAILABLE;
                         msg = "Failed to add natPtId";
                     }
