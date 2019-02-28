@@ -307,4 +307,13 @@ public class EipController {
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
+
+
+    @GetMapping(value = "/eipv6/availableeips")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="listeip",notes="list")
+    public ResponseEntity listEipByBandWidth(@RequestParam(required = false )String status) {
+        return  eipService.listEipsByBandWidth(status);
+    }
+
     }
