@@ -6,7 +6,6 @@ import com.inspur.eipatomapi.entity.eipv6.*;
 import com.inspur.eipatomapi.service.impl.EipV6ServiceImpl;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
-import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -96,7 +95,6 @@ public class EipV6Controller {
      * @param eipV6Id the id of eipV6
      * @return retrun
      */
-    @ICPControllerLog
     @GetMapping(value = "/eipv6/{eip_v6_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "geteipv6Detail", notes = "get")

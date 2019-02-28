@@ -105,7 +105,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 for(EipV6 eipV6:page.getContent()){
                     String eipV4Address = eipV6.getIpv4();
                     String projectId = eipV6.getProjectId();
-                    if(eipV4Address==null || eipV4Address==""){
+                    if(eipV4Address==null || eipV4Address.equals("")){
                         log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                     }else{
@@ -132,7 +132,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 for(EipV6 eipV6:eipV6List){
                     String eipV4Address = eipV6.getIpv4();
                     String projectId = eipV6.getProjectId();
-                    if(eipV4Address==null || eipV4Address==""){
+                    if(eipV4Address==null || eipV4Address.equals("")){
                         log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                     }else{
@@ -206,7 +206,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
             if (null != eipV6Entity) {
                 String eipV4Address = eipV6Entity.getIpv4();
                 String projectId = eipV6Entity.getProjectId();
-                if(eipV4Address==null || eipV4Address==""){
+                if(eipV4Address==null || eipV4Address.equals("")){
                     log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                     return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                 }else {
@@ -247,20 +247,19 @@ public class EipV6ServiceImpl implements IEipV6Service {
         String newSnatptId=null;
         String disconnectNat = null;
         String newDnatptId = null;
-        String ipv6 =null;
-        String oldIpv4 = null;
+        String ipv6 ;
+        String oldIpv4 ;
         String snatptId = null;
-        String dnatptId = null;
+        String dnatptId ;
+        EipV6 eipV6 = eipV6Repository.findByEipV6Id(eipV6Id);
+        if(null == eipV6){
+            log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.",eipV6Id);
+            return null;
+        }
+        ipv6 = eipV6.getIpv6();
+        oldIpv4 = eipV6.getIpv4();
+        String projectId = eipV6.getProjectId();
         try {
-            EipV6 eipV6 = eipV6Repository.findByEipV6Id(eipV6Id);
-            ipv6 = eipV6.getIpv6();
-            oldIpv4 = eipV6.getIpv4();
-            String projectId = eipV6.getProjectId();
-            if(null == eipV6){
-                log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.",
-                         eipV6.getEipV6Id());
-                return null;
-            }
             dnatptId = eipV6.getDnatptId();
             snatptId = eipV6.getSnatptId();
 
@@ -277,19 +276,22 @@ public class EipV6ServiceImpl implements IEipV6Service {
             }else{
                 //未完  待续
                 EipV6 eipV6Mo = new EipV6();
-                disconnectNat = fireWallCommondService.execCustomCommand("configure\r"
+                disconnectNat = fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                        "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "no snatrule id " +snatptId +"\r"
                         +"no dnatrule id "+dnatptId +"\r"
                         +"end");
                 if(disconnectNat ==null){
-                    newSnatptId = fireWallCommondService.execCustomCommand("configure\r"
+                    newSnatptId = fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                            "configure\r"
                             + "ip vrouter trust-vr\r"
                             + "dnatrule from ipv6-any to " + ipv6
                             + "service any trans-to "  + ipv4 +"\r"
                             +"end");
                     if(newSnatptId != null){
-                        newDnatptId = fireWallCommondService.execCustomCommand("configure\r"
+                        newDnatptId = fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                                "configure\r"
                                 + "ip vrouter trust-vr\r"
                                 + "snatrule from ipv6-any to "  + ipv6
                                 + "service any trans-to "  + ipv4
@@ -324,12 +326,14 @@ public class EipV6ServiceImpl implements IEipV6Service {
             msg = e.getMessage()+"";
         }finally {
             if(newSnatptId == null && disconnectNat == null){
-                fireWallCommondService.execCustomCommand("configure\r"
+                fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                        "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "dnatrule from ipv6-any to " + ipv6
                         + "service any trans-to "  + oldIpv4 +"\r"
                         +"end");
-                fireWallCommondService.execCustomCommand("configure\r"
+                fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                        "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "snatrule from ipv6-any to "  + ipv6
                         + "service any trans-to "  + oldIpv4
@@ -338,17 +342,20 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
             }
             if(newDnatptId == null){
-                fireWallCommondService.execCustomCommand("configure\r"
+                fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                        "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "no snatrule id " +snatptId +"\r"
                         +"end");
 
-                fireWallCommondService.execCustomCommand("configure\r"
+                fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                        "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "dnatrule from ipv6-any to " + ipv6
                         + "service any trans-to "  + oldIpv4 +"\r"
                         +"end");
-                fireWallCommondService.execCustomCommand("configure\r"
+                fireWallCommondService.execCustomCommand(eipV6.getFirewallId(),
+                        "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "snatrule from ipv6-any to "  + ipv6
                         + "service any trans-to "  + oldIpv4

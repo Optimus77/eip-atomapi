@@ -74,9 +74,10 @@ public class EipV6DaoService {
         EipV6 eipMo = new EipV6();
         String ipv6 = eipPoolv6.getIp();
         String ipv4 = eip.getEipAddress();
-        if(eip.getFloatingIp() != null && eip.getFloatingIp()!=""){
+        if(eip.getFloatingIp() != null && !eip.getFloatingIp().equals("")){
             eipMo.setFloatingIp(eip.getFloatingIp());
-            String newSnatptId = fireWallCommondService.execCustomCommand("configure\r"
+            String newSnatptId = fireWallCommondService.execCustomCommand(eip.getFirewallId(),
+                    "configure\r"
                     + "ip vrouter trust-vr\r"
                     + "dnatrule from ipv6-any to " + ipv6
                     + " service any trans-to "  + ipv4 +"\r"
@@ -86,7 +87,8 @@ public class EipV6DaoService {
             String[] split = trim.split("=");
             newSnatptId = split[1];
             if(newSnatptId != null){
-                String newDnatptId = fireWallCommondService.execCustomCommand("configure\r"
+                String newDnatptId = fireWallCommondService.execCustomCommand(eip.getFirewallId(),
+                        "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "snatrule from ipv6-any to "  + ipv6
                         + " service any trans-to "  + ipv4
@@ -106,18 +108,19 @@ public class EipV6DaoService {
                 eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
                 return null;
             }
-            if (newSnatptId == null) {
-                fireWallCommondService.execCustomCommand("configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "no snatrule id " + newSnatptId + "\r"
-                        + "end");
-                EipPoolV6 eipPoolV6Mo = new EipPoolV6();
-                eipPoolV6Mo.setFireWallId(eipPoolv6.getFireWallId());
-                eipPoolV6Mo.setIp(eipPoolv6.getIp());
-                eipPoolV6Mo.setState("0");
-                eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
-                return null;
-            }
+//            if (newSnatptId == null) {
+//                fireWallCommondService.execCustomCommand(eip.getFirewallId(),
+//                        "configure\r"
+//                        + "ip vrouter trust-vr\r"
+//                        + "no snatrule id " + newSnatptId + "\r"
+//                        + "end");
+//                EipPoolV6 eipPoolV6Mo = new EipPoolV6();
+//                eipPoolV6Mo.setFireWallId(eipPoolv6.getFireWallId());
+//                eipPoolV6Mo.setIp(eipPoolv6.getIp());
+//                eipPoolV6Mo.setState("0");
+//                eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
+//                return null;
+//            }
         }
 
         eipMo.setIpv6(eipPoolv6.getIp());
@@ -155,7 +158,7 @@ public class EipV6DaoService {
 
 
     @Transactional
-    public ActionResponse deleteEipV6(String  eipv6id) throws KeycloakTokenException {
+    public ActionResponse deleteEipV6(String  eipv6id)  {
         String msg;
         EipV6 eipV6Entity = eipV6Repository.findByEipV6Id(eipv6id);
         if (null == eipV6Entity) {
@@ -171,7 +174,8 @@ public class EipV6DaoService {
         String dnatptId = eipV6Entity.getDnatptId();
         String snatptId = eipV6Entity.getSnatptId();
         if(dnatptId != null && snatptId !=null){
-            String disconnectNat = fireWallCommondService.execCustomCommand("configure\r"
+            String disconnectNat = fireWallCommondService.execCustomCommand(eipV6Entity.getFirewallId(),
+                    "configure\r"
                     + "ip vrouter trust-vr\r"
                     + "no snatrule id "+snatptId +"\r"
                     + "no dnatrule id "+dnatptId +"\r"
