@@ -6,10 +6,8 @@ import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
-import com.inspur.eipatomapi.entity.eipv6.EipV6;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
-import com.inspur.eipatomapi.repository.EipV6Repository;
 import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
@@ -45,8 +43,7 @@ public class EipServiceImpl implements IEipService {
     private SbwDaoService sbwDaoService;
 
     @Autowired
-    private EipV6Repository eipV6Repository;
-
+    private FireWallCommondService fireWallCommondService;
 
     /**
      * create a eip
@@ -679,6 +676,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEipsByBandWidth( String status){
 
         try {
+            fireWallCommondService.execCustomCommand("48c79596-3fb9-414b-ad69-8902de6d047e", "config");
             String projcectid=CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if(projcectid==null){
@@ -689,16 +687,7 @@ public class EipServiceImpl implements IEipService {
             JSONArray eips=new JSONArray();
             ArrayList<Eip> newList = new ArrayList();
             List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
-            List<EipV6> eipV6List = eipV6Repository.findByProjectIdAndIsDelete(projcectid, 0);
-            int size=eipList.size();
-            for (int j = 0; j < size; j++) {
-                for (int i = 0; i < eipV6List.size(); i++) {
-                    if ((eipList.get(j).getEipAddress()).equals(eipV6List.get(i).getIpv4())) {
-                        eipList.remove(eipList.get(j));
-                        size --;
-                    }
-                }
-            }
+
             for(Eip eip:eipList){
                 if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                     continue;
@@ -713,6 +702,7 @@ public class EipServiceImpl implements IEipService {
 
                 }
             }
+
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
