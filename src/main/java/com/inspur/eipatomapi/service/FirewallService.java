@@ -41,7 +41,7 @@ class FirewallService {
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
-    private Firewall getFireWallById(String id) {
+    public Firewall getFireWallById(String id) {
         if (!firewallConfigMap.containsKey(id)) {
 
             Optional<Firewall> firewall = firewallRepository.findById(id);
@@ -216,12 +216,13 @@ class FirewallService {
                 HashMap<String, String> map = qs.delQosPipe(pipid);
                 if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
                     return true;
-                } else {
-                    return false;
                 }
             } else {
-                log.info("Failed to del qos:" + "dev【" + devId + "】,pipid【" + pipid + "】");
+                log.info("Failed to get fireWall by id when del qos,dev:{}, pipId:{}",devId,pipid);
             }
+        }else {
+            log.info("qos id is empty, no need to del qos.");
+            return true;
         }
         return false;
     }

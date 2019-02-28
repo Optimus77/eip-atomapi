@@ -82,5 +82,11 @@ public interface IEipService {
 
     ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam);
 
+    /**
+     *   the eipV6
+     * @return       result
+     */
+    ResponseEntity listEipsByBandWidth(String status);
+
 
 }

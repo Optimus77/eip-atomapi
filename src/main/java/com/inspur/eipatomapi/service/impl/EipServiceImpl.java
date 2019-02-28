@@ -12,9 +12,6 @@ import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
@@ -44,6 +41,10 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private SbwDaoService sbwDaoService;
+
+    @Autowired
+    private FireWallCommondService fireWallCommondService;
+
     /**
      * create a eip
      * @param eipConfig          config
@@ -57,7 +58,7 @@ public class EipServiceImpl implements IEipService {
             String sbwId = eipConfig.getSharedBandWidthId();
             if(null != sbwId) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
-                if (null != sbwEntity && (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))){
+                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))){
                     log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
                     return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH,
                             "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
@@ -664,5 +665,53 @@ public class EipServiceImpl implements IEipService {
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+
+    /**
+     *   the eipV6
+     * @return       result
+     */
+    @Override
+    public ResponseEntity listEipsByBandWidth( String status){
+
+        try {
+            fireWallCommondService.execCustomCommand("48c79596-3fb9-414b-ad69-8902de6d047e", "config");
+            String projcectid=CommonUtil.getUserId();
+            log.debug("listEips  of user, userId:{}", projcectid);
+            if(projcectid==null){
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data=new JSONObject();
+            JSONArray eips=new JSONArray();
+            ArrayList<Eip> newList = new ArrayList();
+            List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
+
+            for(Eip eip:eipList){
+                if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+                    continue;
+                }
+                if(eip.getBandWidth()<=10){
+                    EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eips.add(eipReturnDetail);
+                    data.put("eip",eips);
+                    newList.add(eip);
+                    data.put("totalElements",newList.size());
+
+                }
+            }
+
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        }catch(KeycloakTokenException e){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e){
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
 }
