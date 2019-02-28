@@ -308,8 +308,7 @@ public class EipController {
     }
 
 
-
-    @GetMapping(value = "/eipv6/availableeips")
+    @GetMapping(value = "/eipv6/availableEips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
     public ResponseEntity listEipByBandWidth(@RequestParam(required = false )String status) {
