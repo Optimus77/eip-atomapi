@@ -69,6 +69,8 @@ public class Eip implements Serializable {
 
     private String projectId;
 
+    private String userId;
+
     private String region;
 
     @Column(name="create_time" ,nullable = false)

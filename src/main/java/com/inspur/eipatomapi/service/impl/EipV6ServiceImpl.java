@@ -39,6 +39,9 @@ public class EipV6ServiceImpl implements IEipV6Service {
     @Autowired
     private FireWallCommondService fireWallCommondService;
 
+    @Autowired
+    private NatPtService natPtService;
+
 
 
     /**
@@ -105,7 +108,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 for(EipV6 eipV6:page.getContent()){
                     String eipV4Address = eipV6.getIpv4();
                     String projectId = eipV6.getProjectId();
-                    if(eipV4Address==null || eipV4Address==""){
+                    if (eipV4Address == null || eipV4Address.equals("")) {
                         log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                     }else{
@@ -132,7 +135,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 for(EipV6 eipV6:eipV6List){
                     String eipV4Address = eipV6.getIpv4();
                     String projectId = eipV6.getProjectId();
-                    if(eipV4Address==null || eipV4Address==""){
+                    if (eipV4Address == null || eipV4Address.equals("")) {
                         log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                     }else{
@@ -206,7 +209,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
             if (null != eipV6Entity) {
                 String eipV4Address = eipV6Entity.getIpv4();
                 String projectId = eipV6Entity.getProjectId();
-                if(eipV4Address==null || eipV4Address==""){
+                if (eipV4Address == null || eipV4Address.equals("")) {
                     log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                     return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                 }else {
@@ -245,21 +248,23 @@ public class EipV6ServiceImpl implements IEipV6Service {
         String code=null;
         String msg=null;
         String newSnatptId=null;
-        String disconnectNat = null;
         String newDnatptId = null;
-        String ipv6 =null;
-        String oldIpv4 = null;
+        String ipv6;
         String snatptId = null;
         String dnatptId = null;
+        EipV6 eipV6 = eipV6Repository.findByEipV6Id(eipV6Id);
+        if (null == eipV6) {
+            log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.", eipV6Id);
+            return null;
+        }
+        ipv6 = eipV6.getIpv6();
+        String projectId = eipV6.getProjectId();
         try {
-            EipV6 eipV6 = eipV6Repository.findByEipV6Id(eipV6Id);
-            ipv6 = eipV6.getIpv6();
-            oldIpv4 = eipV6.getIpv4();
-            String projectId = eipV6.getProjectId();
-            if(null == eipV6){
-                log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.",
-                         eipV6.getEipV6Id());
-                return null;
+            Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(ipv4, projectId, 0);
+            if (eip == null) {
+                code = ReturnStatus.SC_NOT_FOUND;
+                msg = "Query eip failed";
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
             }
             dnatptId = eipV6.getDnatptId();
             snatptId = eipV6.getSnatptId();
@@ -269,52 +274,34 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 if(newEipV6 != null){
                     code="200";
                     msg="update success";
-                    newSnatptId="";
-                    disconnectNat = "";
-                    newDnatptId = "";
                     return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                 }
             }else{
                 //未完  待续
-                EipV6 eipV6Mo = new EipV6();
-                disconnectNat = fireWallCommondService.execCustomCommand("configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "no snatrule id " +snatptId +"\r"
-                        +"no dnatrule id "+dnatptId +"\r"
-                        +"end");
-                if(disconnectNat ==null){
-                    newSnatptId = fireWallCommondService.execCustomCommand("configure\r"
-                            + "ip vrouter trust-vr\r"
-                            + "dnatrule from ipv6-any to " + ipv6
-                            + "service any trans-to "  + ipv4 +"\r"
-                            +"end");
-                    if(newSnatptId != null){
-                        newDnatptId = fireWallCommondService.execCustomCommand("configure\r"
-                                + "ip vrouter trust-vr\r"
-                                + "snatrule from ipv6-any to "  + ipv6
-                                + "service any trans-to "  + ipv4
-                                + "mode dynamicport" +"\r"
-                                +"end");
-                        if(newDnatptId != null){
-                            eipV6Mo.setSnatptId(newSnatptId);
-                            eipV6Mo.setDnatptId(newDnatptId);
-                            eipV6Mo.setIpv4(ipv4);
-                            eipV6Mo.setUpdateTime(CommonUtil.getGmtDate());
-                            eipV6Repository.saveAndFlush(eipV6Mo);
-                            log.info("add nat successfully. snat:{}, dnat:{},",
-                                    newSnatptId, newDnatptId);
-
-                        }else{
-                            code = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
-                            msg = "Mapping dnat failed";
-                        }
-                    }else{
-                        code = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
-                        msg = "Mapping snat failed";
+                Boolean flag = natPtService.delNatPt(snatptId, dnatptId, eipV6.getFirewallId());
+                if (flag == true) {
+                    NatPtV6 natPtV6 = natPtService.addNatPt(ipv6, ipv4, eipV6.getFirewallId());
+                    if (natPtV6 != null) {
+                        eipV6.setSnatptId(natPtV6.getNewSnatPtId());
+                        eipV6.setDnatptId(natPtV6.getNewDnatPtId());
+                        eipV6.setFloatingIp(eip.getFloatingIp());
+                        eipV6.setIpv4(ipv4);
+                        eipV6.setUpdateTime(CommonUtil.getGmtDate());
+                        eipV6Repository.saveAndFlush(eipV6);
+                        log.info("add nat successfully. snat:{}, dnat:{},",
+                                newSnatptId, newDnatptId);
+                        code = ReturnStatus.SC_OK;
+                        msg = "Ipv4 was replaced successfully";
+                    } else {
+                        log.error("Failed to add natPtId" + natPtV6.getNewDnatPtId(), natPtV6.getNewSnatPtId());
+                        code = ReturnStatus.SC_FIREWALL_NAT_UNAVAILABLE;
+                        msg = "Failed to add natPtId";
                     }
                 }else{
+                    log.error("Failed to del natPtId" + snatptId, dnatptId);
                     code = ReturnStatus.SC_FIREWALL_NAT_UNAVAILABLE;
-                    msg = "Failed to disconnect nat";
+                    msg = "Failed to del natPtId";
+
                 }
             }
         } catch (Exception e) {
@@ -322,41 +309,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
-        }finally {
-            if(newSnatptId == null && disconnectNat == null){
-                fireWallCommondService.execCustomCommand("configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "dnatrule from ipv6-any to " + ipv6
-                        + "service any trans-to "  + oldIpv4 +"\r"
-                        +"end");
-                fireWallCommondService.execCustomCommand("configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "snatrule from ipv6-any to "  + ipv6
-                        + "service any trans-to "  + oldIpv4
-                        + "mode dynamicport" +"\r"
-                        +"end");
-
-            }
-            if(newDnatptId == null){
-                fireWallCommondService.execCustomCommand("configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "no snatrule id " +snatptId +"\r"
-                        +"end");
-
-                fireWallCommondService.execCustomCommand("configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "dnatrule from ipv6-any to " + ipv6
-                        + "service any trans-to "  + oldIpv4 +"\r"
-                        +"end");
-                fireWallCommondService.execCustomCommand("configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "snatrule from ipv6-any to "  + ipv6
-                        + "service any trans-to "  + oldIpv4
-                        + "mode dynamicport" +"\r"
-                        +"end");
-
-
-            }
         }
         log.info("Error when bind port，code:{}, msg:{}.", code, msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);

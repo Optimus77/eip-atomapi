@@ -80,16 +80,18 @@ public  class NeutronService {
             log.error("Can not get port by id:{} in associate with server:{}, eipId:{}",portId, serverId, eip.getEipId());
             return null;
         }
-        if(!CommonUtil.getProjectId(region, osClientV3).equalsIgnoreCase(port.getTenantId())){
-            log.error("*******************************project id error,id in token:{}, id in port:{}",
-                    CommonUtil.getProjectId(region, osClientV3),port.getTenantId());
-        }
+
         Server server = osClientV3.compute().servers().get(serverId);
         if(null == server) {
             log.error("Can not get server when associate with serverId:{}, eipId:{}", serverId, eip.getEipId());
             return null;
         }
-
+        String projectId = CommonUtil.getProjectId(region, osClientV3);
+        if (!(projectId.equalsIgnoreCase(port.getTenantId())) || !(projectId.equalsIgnoreCase(server.getTenantId()))) {
+            log.error("Port eip and server is not in the same project.UserPorjectId:{}, id in port:{}, id in server:{}",
+                    projectId, port.getTenantId(), server.getTenantId());
+            return null;
+        }
         NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){
             Set<? extends IP> fixedIps = port.getFixedIps();

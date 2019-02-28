@@ -82,38 +82,7 @@ public class EipV6DaoService {
         try {
 
             if (eip.getFloatingIp() != null && eip.getFloatingIp() != "") {
-
-                natPtV6 = natPtService.addNatPt(ipv6, ipv4);
-//            String newSnatptId = fireWallCommondService.execCustomCommand("configure\r"
-//                    + "ip vrouter trust-vr\r"
-//                    + "snatrule from ipv6-any to " + ipv6
-//                    + " service any trans-to "  + ipv4 +"\r"
-//                    +"end");
-//            log.info("create ret:{}",newSnatptId);
-//            String trim = newSnatptId.trim();
-//            String[] split = trim.split("=");
-//            newSnatptId = split[1];
-//            if(newSnatptId != null){
-//                newDnatptId = fireWallCommondService.execCustomCommand("configure\r"
-//                        + "ip vrouter trust-vr\r"
-//                        + "dnatrule from ipv6-any to "  + ipv6
-//                        + " service any trans-to "  + ipv4
-//                        + " mode dynamicport" +"\r"
-//                        +"end");
-//                String trimp = newDnatptId.trim();
-//                String[] splitp = trimp.split("=");
-//                newDnatptId = splitp[1];
-//                eipMo.setSnatptId(newSnatptId);
-//                eipMo.setDnatptId(newDnatptId);
-//
-//            }
-//            if (newDnatptId == null) {
-//                fireWallCommondService.execCustomCommand("configure\r"
-//                        + "ip vrouter trust-vr\r"
-//                        + "no snatrule id " + newSnatptId + "\r"
-//                        + "end");
-//                return null;
-//            }
+                natPtV6 = natPtService.addNatPt(ipv6, ipv4, eipPoolv6.getFireWallId());
                 if (natPtV6 != null) {
                     eipMo.setSnatptId(natPtV6.getNewSnatPtId());
                     eipMo.setDnatptId(natPtV6.getNewDnatPtId());
@@ -126,7 +95,6 @@ public class EipV6DaoService {
             log.error("add natPtId exception", e);
         }
 
-
         eipMo.setIpv6(eipPoolv6.getIp());
         eipMo.setStatus(HsConstants.DOWN);
         eipMo.setFirewallId(eipPoolv6.getFireWallId());
@@ -137,7 +105,6 @@ public class EipV6DaoService {
         log.debug("get tenantid:{} from clientv3", userId);
         eipMo.setProjectId(userId);
         eipMo.setIsDelete(0);
-
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
 
@@ -177,22 +144,22 @@ public class EipV6DaoService {
 
         String dnatptId = eipV6Entity.getDnatptId();
         String snatptId = eipV6Entity.getSnatptId();
-        if(dnatptId != null && snatptId !=null){
-            String disconnectNat = fireWallCommondService.execCustomCommand("configure\r"
-                    + "ip vrouter trust-vr\r"
-                    + "no snatrule id "+snatptId +"\r"
-                    + "no dnatrule id "+dnatptId +"\r"
-                    +"end");
-            log.info("disconnectNat:"+disconnectNat);
-            if(disconnectNat == null){
-                eipV6Entity.setDnatptId(null);
-                eipV6Entity.setSnatptId(null);
-                eipV6Entity.setFloatingIp(null);
-            }else{
-                log.error("Deletion mapping failed while deleting ipv6 ,dnatptid {},snatptid {}",
-                        eipV6Entity.getDnatptId(),eipV6Entity.getSnatptId());
+        String fireWallId = eipV6Entity.getFirewallId();
+        try {
+            if (dnatptId != null && snatptId != null) {
+                Boolean flag = natPtService.delNatPt(dnatptId, snatptId, fireWallId);
+                if (flag == true) {
+                    log.info("delete natPt success");
+                } else {
+                    log.error("Failed to delete natPtId");
+                }
             }
+        } catch (Exception e) {
+            log.error("delete natPtId exception", e);
         }
+        eipV6Entity.setFloatingIp(null);
+        eipV6Entity.setDnatptId(null);
+        eipV6Entity.setSnatptId(null);
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
