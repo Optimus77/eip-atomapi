@@ -73,7 +73,7 @@ public class FireWallCommondService {
         }
     }
 
-    public String execCustomCommand(String fireWallId,String cmd) {
+    public String execCustomCommand(String fireWallId, String cmd) {
         String expectStr = "ID=";
         try {
             if(!bConnect){
@@ -110,13 +110,13 @@ public class FireWallCommondService {
         connection.close();
     }
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) {
 
         FireWallCommondService sshAgent = new FireWallCommondService();
         long currentTimeMillis = System.currentTimeMillis();
         //sshAgent.initConnection("10.110.17.250", "hillstone", "hillstone");
         //sshAgent.execCustomCommand("configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"help", "config");
-        String ret = sshAgent.execCustomCommand("id","configure\r"
+        String ret = sshAgent.execCustomCommand("id", "configure\r"
                 +"service my-service1\r"
                 +"tcp dst-port 21 23\r"
                 +"exit\r"
