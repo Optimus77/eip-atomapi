@@ -250,8 +250,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
         String newSnatptId=null;
         String newDnatptId = null;
         String ipv6;
-        String snatptId = null;
-        String dnatptId = null;
+        String snatptId ;
+        String dnatptId ;
         EipV6 eipV6 = eipV6Repository.findByEipV6Id(eipV6Id);
         if (null == eipV6) {
             log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.", eipV6Id);
@@ -279,7 +279,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
             }else{
                 //未完  待续
                 Boolean flag = natPtService.delNatPt(snatptId, dnatptId, eipV6.getFirewallId());
-                if (flag == true) {
+                if (flag) {
                     NatPtV6 natPtV6 = natPtService.addNatPt(ipv6, ipv4, eipV6.getFirewallId());
                     if (natPtV6 != null) {
                         eipV6.setSnatptId(natPtV6.getNewSnatPtId());
