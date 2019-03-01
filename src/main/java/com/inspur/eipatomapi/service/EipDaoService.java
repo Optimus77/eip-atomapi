@@ -180,7 +180,7 @@ public class EipDaoService {
      * @param serverId     server id
      * @param instanceType instance type
      * @return             true or false
-     * @throws Exception   e
+     * @throws KeycloakTokenException   e
      */
     @Transactional
     public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId) throws KeycloakTokenException {
@@ -263,7 +263,7 @@ public class EipDaoService {
      *
      * @param eipid eip id
      * @return reuslt, true or false
-     * @throws Exception e
+     * @throws KeycloakTokenException e
      */
     @Transactional
     public ActionResponse disassociateInstanceWithEip(String eipid) throws KeycloakTokenException {
@@ -299,13 +299,13 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-            eipEntity.setInstanceId(null);
-            eipEntity.setInstanceType(null);
-            eipEntity.setPrivateIpAddress(null);
-            eipEntity.setPortId(null);
-            eipEntity.setFloatingIp(null);
-            eipEntity.setFloatingIpId(null);
         }
+        eipEntity.setInstanceId(null);
+        eipEntity.setInstanceType(null);
+        eipEntity.setPrivateIpAddress(null);
+        eipEntity.setPortId(null);
+        eipEntity.setFloatingIp(null);
+        eipEntity.setFloatingIpId(null);
 
         eipEntity.setStatus(HsConstants.DOWN);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
@@ -476,7 +476,7 @@ public class EipDaoService {
      * @param InstanceId     slb id
      * @param ipAddr    ip
      * @return             true or false
-     * @throws Exception   e
+     * @throws KeycloakTokenException   e
      */
     @Transactional
     public MethodReturn cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr,String type) throws KeycloakTokenException {
@@ -520,7 +520,7 @@ public class EipDaoService {
      * associate port with eip
      * @param InstanceId          slbid
      * @return             true or false
-     * @throws Exception   e
+     * @throws KeycloakTokenException   e
      */
     public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws KeycloakTokenException {
 
