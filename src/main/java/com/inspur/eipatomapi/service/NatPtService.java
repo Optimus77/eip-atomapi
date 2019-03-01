@@ -2,7 +2,6 @@ package com.inspur.eipatomapi.service;
 
 import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
 import com.inspur.eipatomapi.entity.fw.FwNatV6Excvption;
-import com.inspur.eipatomapi.entity.fw.FwResponseBody;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,9 +13,10 @@ public class NatPtService {
     @Autowired
     private FireWallCommondService fireWallCommondService;
 
+    private Boolean flag = false;
+
 
     public Boolean delSnatPt(String snatPtId, String fireWallId) throws Exception {
-        boolean flag;
         String disconnectSnat = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
@@ -25,7 +25,6 @@ public class NatPtService {
         if (disconnectSnat == null) {
             flag = true;
         } else {
-            flag = false;
             log.error("Failed to delete dnatPtId", snatPtId);
             throw new FwNatV6Excvption("Failed to delete snatPtId" + snatPtId);
         }
@@ -34,7 +33,6 @@ public class NatPtService {
 
 
     public Boolean delDnatPt(String dnatPtId, String fireWallId) throws Exception {
-        boolean flag;
         String disconnectDnat = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
@@ -43,7 +41,6 @@ public class NatPtService {
         if (disconnectDnat == null) {
             flag = true;
         } else {
-            flag = false;
             log.error("Failed to delete dnatPtId", dnatPtId);
             throw new FwNatV6Excvption("Failed to delete dnatPtId" + dnatPtId);
         }
@@ -52,7 +49,6 @@ public class NatPtService {
 
 
     public Boolean delNatPt(String snatPtId, String dnatPtId, String fireWallId) throws Exception {
-        boolean flag;
         String disconnectSnat = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
@@ -67,13 +63,11 @@ public class NatPtService {
             if (disconnectDnat == null) {
                 flag = true;
             } else {
-                flag = false;
                 addSnatPt(snatPtId, dnatPtId, fireWallId);
                 log.error("Failed to delete dnatPtId", dnatPtId);
                 throw new FwNatV6Excvption("Failed to delete dnatPtId" + dnatPtId);
             }
         } else {
-            flag = false;
             log.error("Failed to delete snatPtId", snatPtId);
             throw new FwNatV6Excvption("Failed to delete snatPtId" + snatPtId);
         }
