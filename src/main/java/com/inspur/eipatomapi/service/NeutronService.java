@@ -5,7 +5,6 @@ import com.inspur.eipatomapi.util.CommonUtil;
 import com.inspur.eipatomapi.util.KeycloakTokenException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.openstack4j.api.Builders;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.options.PortListOptions;
@@ -29,7 +28,7 @@ public  class NeutronService {
     @Autowired
     private  SlbService slbService;
 
-    public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws Exception {
+    public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
@@ -57,7 +56,7 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
-    synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws Exception{
+    synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws KeycloakTokenException {
 
         if (slbService.isFipInUse(instanceId)) {
             return true;
@@ -68,7 +67,7 @@ public  class NeutronService {
     }
 
     synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
-                                                          Eip eip, String serverId) throws  Exception{
+                                                          Eip eip, String serverId) throws KeycloakTokenException {
 
         if(portId.isEmpty()){
             log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getEipId());
@@ -82,6 +81,17 @@ public  class NeutronService {
             return null;
         }
 
+        Server server = osClientV3.compute().servers().get(serverId);
+        if(null == server) {
+            log.error("Can not get server when associate with serverId:{}, eipId:{}", serverId, eip.getEipId());
+            return null;
+        }
+        String projectId = CommonUtil.getProjectId(region, osClientV3);
+        if (!(projectId.equalsIgnoreCase(port.getTenantId())) || !(projectId.equalsIgnoreCase(server.getTenantId()))) {
+            log.error("Port eip and server is not in the same project.UserPorjectId:{}, id in port:{}, id in server:{}",
+                    projectId, port.getTenantId(), server.getTenantId());
+            return null;
+        }
         NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
         if(null != netFloatingIP){
             Set<? extends IP> fixedIps = port.getFixedIps();
@@ -97,7 +107,7 @@ public  class NeutronService {
 
         netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
         if (netFloatingIP != null) {
-            log.info("Allocated Floating ip: {}",netFloatingIP.getId());
+            log.info("Allocated Floating ip: {}, id:{}",netFloatingIP.getFixedIpAddress(), netFloatingIP.getId());
         } else {
             String message = String.format(
                     "Cannot create floating ip under network: %s in region: %s",
@@ -112,8 +122,8 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
-    public synchronized ActionResponse associaInstanceWithFloatingIp(Eip eip, String serverId, String networkId,
-                                                                     String portId, String region) throws Exception  {
+    public synchronized ActionResponse associaInstanceWithFloatingIp(Eip eip, String serverId,
+                                                                     String portId) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(eip.getRegion());
         NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
@@ -149,7 +159,7 @@ public  class NeutronService {
     }
 
     public synchronized ActionResponse disassociateInstanceWithFloatingIp(String floatingIp, String serverId,
-                                                                          String region) throws Exception {
+                                                                          String region) throws KeycloakTokenException {
 
         if(slbService.isFipInUse(serverId)){
             return ActionResponse.actionSuccess();
@@ -164,7 +174,7 @@ public  class NeutronService {
     }
 
     synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
-                                                                String region) throws Exception {
+                                                                String region) throws KeycloakTokenException {
 
         if(null == serverId || slbService.isFipInUse(serverId)){
             return ActionResponse.actionSuccess();
@@ -186,7 +196,7 @@ public  class NeutronService {
         return  ActionResponse.actionSuccess();
     }
 
-    public List<? extends Server> listServer(String region) throws Exception {
+    public List<? extends Server> listServer(String region) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Map<String, String> filteringParams = new HashMap<>();
@@ -194,15 +204,14 @@ public  class NeutronService {
         return osClientV3.compute().servers().list(filteringParams);
     }
 
-    public synchronized NetFloatingIP associaPortWithFloatingIp(String floatingIpId, String portId, String region)
-            throws Exception {
+    public synchronized NetFloatingIP associaPortWithFloatingIp(String floatingIpId, String portId, String region) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
         return osClientV3.networking().floatingip().associateToPort(floatingIpId, portId);
     }
 
-    public NetFloatingIP getFloatingIpAddrByPortId(String serverPortId,String region ) throws Exception {
+    public NetFloatingIP getFloatingIpAddrByPortId(String serverPortId,String region ) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Map<String, String> filteringParams = new HashMap<>(4);
@@ -215,7 +224,7 @@ public  class NeutronService {
         }
     }
 
-    public synchronized String getserverIpByServerId(Eip eip, String serverId) throws Exception {
+    public synchronized String getserverIpByServerId(Eip eip, String serverId) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(eip.getRegion());
         Server server = osClientV3.compute().servers().get(serverId);

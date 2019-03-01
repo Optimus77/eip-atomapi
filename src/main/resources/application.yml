@@ -77,7 +77,8 @@ logging:
 slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/
 
 #administrator rights
-openstackIp: https://10.110.25.117:5000/v3
+openstackIp: 10.110.25.117
+openstackUrl: https://10.110.25.117:5000/v3
 userNameS: admin
 passwordS: 89rqdHLMN5rm0x1P
 projectIdS: 140785795de64945b02363661eb9e769

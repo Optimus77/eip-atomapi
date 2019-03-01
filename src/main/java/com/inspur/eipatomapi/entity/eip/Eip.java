@@ -49,7 +49,7 @@ public class Eip implements Serializable {
 
     private int bandWidth;
 
-    private int oldBandWidth;
+    private int oldBandWidth =1;
 
     private String ipType;
 
@@ -68,6 +68,8 @@ public class Eip implements Serializable {
     private String status ="DOWN";
 
     private String projectId;
+
+    private String userId;
 
     private String region;
 

@@ -18,10 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -42,10 +39,23 @@ public class CommonUtil {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         return new Date();
     }
+
+    /*
+     *获取当天日期:yyyy-MM-dd
+     */
+    public static String getToday() {
+        Date currentTime = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-ss");
+        return formatter.format(currentTime);
+    }
+
+
     @Setter
     private static JSONObject KeyClockInfo;
     @Value("${openstackIp}")
     private String openstackIp;
+    @Value("${openstackUrl}")
+    private String openstackUrl;
     @Value("${userNameS}")
     private String userNameS;
     @Value("${passwordS}")
@@ -67,6 +77,7 @@ public class CommonUtil {
         userConfig.put("projectIdS",projectIdS);
         userConfig.put("userDomainIdS",userDomainIdS);
         userConfig.put("debugRegionS",debugRegionS);
+        userConfig.put("openstackUrl",openstackUrl);
     }
 
 //    private static OSClientV3 getOsClientV3(){
@@ -83,7 +94,7 @@ public class CommonUtil {
     private static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
         return OSFactory.builderV3()
-                .endpoint(userConfig.get("openstackIp"))
+                .endpoint(userConfig.get("openstackUrl"))
                 .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
                         Identifier.byId(userConfig.get("userDomainIdS")))
                 .withConfig(config)
@@ -219,7 +230,10 @@ public class CommonUtil {
             if(userId.equals(projectId)){
                 return true;
             }
-            String clientId = jsonObject.getString("clientId");
+            String clientId = null;
+            if(jsonObject.has("clientId")) {
+                clientId = jsonObject.getString("clientId");
+            }
             if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
                 log.info("Client token, User has right to operation, client:{}", clientId);
             }else{

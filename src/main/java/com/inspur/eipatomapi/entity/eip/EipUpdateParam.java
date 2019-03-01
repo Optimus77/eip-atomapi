@@ -8,16 +8,13 @@ import org.springframework.lang.NonNull;
 
 @Data
 public class EipUpdateParam {
+    //@TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
+    private String billType;
 
-    //@Range(min=1,max=2000)
+    //@Range(min=1,max=200)
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-
-//    @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
-    private String billType;
-
-    @NonNull
     @JsonProperty("serverid")
     private String serverId;
 
@@ -32,4 +29,10 @@ public class EipUpdateParam {
     @JsonProperty("slbip")
     private String slbIp;
 
+    @JsonProperty("privateip")
+    private String privateIp;
+
+    private String chargemode;
+
+    private String sharedBandWidthId;
 }
