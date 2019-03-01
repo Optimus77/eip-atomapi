@@ -9,6 +9,7 @@ import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,7 @@ public class EipV6DaoService {
         NatPtV6 natPtV6;
         try {
 
-            if (eip.getFloatingIp() != null && eip.getFloatingIp() != "") {
+            if (StringUtils.isNotEmpty(eip.getFloatingIp())) {
                 natPtV6 = natPtService.addNatPt(ipv6, ipv4, eipPoolv6.getFireWallId());
                 if (natPtV6 != null) {
                     eipMo.setSnatptId(natPtV6.getNewSnatPtId());
