@@ -12,6 +12,7 @@ public interface EipPoolV6Repository extends JpaRepository<EipPoolV6,Integer> {
 
     EipPoolV6 findByIp(String ip);
 
-    @Query(value="SELECT * FROM eip_poolv6 AS t1 JOIN (SELECT ROUND(RAND() * (SELECT MAX(id) FROM eip_poolv6)) AS id) AS t2 WHERE t1.id >= t2.id ORDER BY t1.id ASC LIMIT 1", nativeQuery = true)
+//    @Query(value="SELECT * FROM eip_poolv6 AS t1 JOIN (SELECT ROUND(RAND() * (SELECT MAX(id) FROM eip_poolv6)) AS id) AS t2 WHERE t1.id >= t2.id ORDER BY t1.id ASC LIMIT 1", nativeQuery = true)
+    @Query(value="SELECT * FROM eip_poolv6 WHERE id >= ((SELECT MAX(id) FROM eip_poolv6) - (SELECT MIN(id) FROM eip_poolv6)) * RAND() + (SELECT MIN(id) FROM eip_poolv6) LIMIT 1", nativeQuery = true)
     EipPoolV6 getEipV6ByRandom();
 }
