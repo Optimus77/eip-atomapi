@@ -6,7 +6,6 @@ import com.inspur.eipatomapi.entity.eipv6.*;
 import com.inspur.eipatomapi.service.impl.EipV6ServiceImpl;
 import com.inspur.eipatomapi.util.ReturnMsgUtil;
 import com.inspur.eipatomapi.util.ReturnStatus;
-import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -35,10 +34,11 @@ public class EipV6Controller {
     @Autowired
     private EipV6ServiceImpl eipV6Service;
 
-    @PostMapping(value = "/eipv6/createnatwithouteip")
+    @PostMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity atomAllocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
+    public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
         log.info("Allocate a eipv6:{}.", eipV6Config.getEipV6AllocateParam().toString());
+        long currentTimeMillis = System.currentTimeMillis();
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -48,7 +48,10 @@ public class EipV6Controller {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam());
+        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam());
+        long currentTimeMillis1 = System.currentTimeMillis();
+        log.info("\r\nganymed-ssh2 time:" + (currentTimeMillis1 - currentTimeMillis));
+        return responseEntity;
     }
 
 
@@ -78,10 +81,10 @@ public class EipV6Controller {
         return  eipV6Service.listEipV6s(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
 
-    @DeleteMapping(value = "/eipv6/{eip_v6_id}")
+    @DeleteMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-                                        @PathVariable("eip_v6_id") String eipV6Id) {
+    public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+                                        @PathVariable("eipv6_id") String eipV6Id) {
         //Check the parameters
         log.info("Atom delete the Eip:{} ",eipV6Id);
         return eipV6Service.atomDeleteEipV6(eipV6Id);
@@ -96,26 +99,24 @@ public class EipV6Controller {
      * @param eipV6Id the id of eipV6
      * @return retrun
      */
-    @ICPControllerLog
-    @GetMapping(value = "/eipv6/{eip_v6_id}")
+    @GetMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "geteipv6Detail", notes = "get")
     @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip_v6_id", value = "the id of eipv6", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "path", name = "eipv6_id", value = "the id of eipv6", required = true, dataType = "String"),
     })
-    public ResponseEntity geteipV6Detail(@PathVariable("eip_v6_id") String eipV6Id) {
+    public ResponseEntity geteipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
         return eipV6Service.getEipV6Detail(eipV6Id);
     }
 
 
-
-    @PutMapping(value = "/eipv6/{eip_v6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/eipv6/{eipv6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eipv6", notes = "put")
     @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip_v6_id", value = "the id of eipv6", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "path", name = "eipv6_id", value = "the id of eipv6", required = true, dataType = "String"),
     })
-    public ResponseEntity updateEip(@PathVariable("eip_v6_id") String eipV6Id, @Valid @RequestBody EipV6UpdateParamWrapper param , BindingResult result) {
+    public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id, @Valid @RequestBody EipV6UpdateParamWrapper param, BindingResult result) {
 
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();

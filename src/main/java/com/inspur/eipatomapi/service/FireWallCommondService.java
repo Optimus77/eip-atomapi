@@ -4,6 +4,7 @@ import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.ConnectionMonitor;
 import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
+import com.inspur.eipatomapi.entity.fw.Firewall;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,13 +73,13 @@ public class FireWallCommondService {
         }
     }
 
-    public String execCustomCommand(String cmd) {
+    public String execCustomCommand(String fireWallId, String cmd) {
         String expectStr = "ID=";
         try {
             if(!bConnect){
-//                Firewall firewall = firewallService.getFireWallById(fireWallId);
-                initConnection("10.110.17.250", "hillstone", "hillstone");
-//                initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
+                Firewall firewall = firewallService.getFireWallById(fireWallId);
+//                initConnection("10.110.17.250", "hillstone", "hillstone");
+                initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
             }
             printWriter.write(cmd + "\r\n");
             printWriter.flush();
@@ -86,7 +87,6 @@ public class FireWallCommondService {
             String line;
             String retStr = null;
             while ((line = stdout.readLine()) != null) {
-                System.out.println(line);
                 if(null != expectStr && line.contains(expectStr)){
                     retStr = line;
                 }else if(line.contains("end")) {
@@ -109,13 +109,13 @@ public class FireWallCommondService {
         connection.close();
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
         FireWallCommondService sshAgent = new FireWallCommondService();
         long currentTimeMillis = System.currentTimeMillis();
         //sshAgent.initConnection("10.110.17.250", "hillstone", "hillstone");
         //sshAgent.execCustomCommand("configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"help", "config");
-        String ret = sshAgent.execCustomCommand("configure\r"
+        String ret = sshAgent.execCustomCommand("id", "configure\r"
                 +"service my-service1\r"
                 +"tcp dst-port 21 23\r"
                 +"exit\r"
@@ -130,8 +130,14 @@ public class FireWallCommondService {
             System.out.print(ret);
         }
 
-        //sshAgent.execCustomCommand(""configure\r"+"ip vrouter trust-vr\r"+"snatrule from ipv6-any to 2003::2 service any trans-to eif-ip mode dynamicport\r"+"end");
-        //sshAgent.execCustomCommand(""configure\r"+"ip vrouter trust-vr\r"+"dnatrule from ipv6-any to 2003::2 service any trans-to 192.168.1.2\r"+"end");
+//        sshAgent.execCustomCommand("configure\r"
+//                +"ip vrouter trust-vr\r"
+//                +"snatrule from ipv6-any to 2003::2 service any trans-to eif-ip mode dynamicport\r"
+//                +"end");
+//        sshAgent.execCustomCommand("configure\r"
+//                +"ip vrouter trust-vr\r"
+//                +"dnatrule from ipv6-any to 2003::2 service any trans-to 192.168.1.2\r"
+//                +"end");
         long currentTimeMillis1 = System.currentTimeMillis();
         System.out.println("\r\nganymed-ssh2 time:"+(currentTimeMillis1-currentTimeMillis));
         //sshAgent.close();

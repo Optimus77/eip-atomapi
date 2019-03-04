@@ -63,12 +63,6 @@ dependencies {
     runtime('mysql:mysql-connector-java')
 
     compile group: 'ch.ethz.ganymed', name: 'ganymed-ssh2', version: '262'
-//    compile group: 'ch.ethz.ganymed', name: 'ganymed-ssh2', version: 'build250'
-    compile group: 'com.jcabi', name: 'jcabi-ssh', version: '1.6.1'
-
-    compile group: 'com.jcraft', name: 'jsch', version: '0.1.53'
-
-
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')

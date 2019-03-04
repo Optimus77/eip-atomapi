@@ -87,9 +87,9 @@ public  class NeutronService {
             return null;
         }
         String projectId = CommonUtil.getProjectId(region, osClientV3);
-        if(!(projectId.equalsIgnoreCase(port.getTenantId())) || !(projectId.equalsIgnoreCase(server.getTenantId()))){
-            log.error("Project id error,user has no write.UserPorjectId:{}, id in port:{}, id in server:{}",
-                    projectId,port.getTenantId(), server.getTenantId());
+        if (!(projectId.equalsIgnoreCase(port.getTenantId())) || !(projectId.equalsIgnoreCase(server.getTenantId()))) {
+            log.error("Port eip and server is not in the same project.UserPorjectId:{}, id in port:{}, id in server:{}",
+                    projectId, port.getTenantId(), server.getTenantId());
             return null;
         }
         NetFloatingIP netFloatingIP = getFloatingIpAddrByPortId(osClientV3, portId);
