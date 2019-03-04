@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotBlank;
 import java.util.*;
 
 @Slf4j
@@ -688,18 +689,16 @@ public class EipServiceImpl implements IEipService {
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
             ArrayList<Eip> newList = new ArrayList();
+            ArrayList<Eip> newEipList = new ArrayList();
             List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
-            List<EipV6> eipV6List = eipV6Repository.findByProjectIdAndIsDelete(projcectid, 0);
-            int size=eipList.size();
-            for (int j = 0; j < size; j++) {
-                for (int i = 0; i < eipV6List.size(); i++) {
-                    if ((eipList.get(j).getEipAddress()).equals(eipV6List.get(i).getIpv4())) {
-                        eipList.remove(eipList.get(j));
-                        size --;
-                    }
+            for (Eip eip : eipList) {
+                String eipAddress = eip.getEipAddress();
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, projcectid, 0);
+                if (eipV6 == null) {
+                    newEipList.add(eip);
                 }
             }
-            for(Eip eip:eipList){
+            for (Eip eip : newEipList) {
                 if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                     continue;
                 }
@@ -713,6 +712,20 @@ public class EipServiceImpl implements IEipService {
 
                 }
             }
+//            for(Eip eip:eipIterator){
+//                if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
+//                    continue;
+//                }
+//                if(eip.getBandWidth()<=10){
+//                    EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
+//                    BeanUtils.copyProperties(eip, eipReturnDetail);
+//                    eips.add(eipReturnDetail);
+//                    data.put("eip",eips);
+//                    newList.add(eip);
+//                    data.put("totalElements",newList.size());
+//
+//                }
+//            }
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);

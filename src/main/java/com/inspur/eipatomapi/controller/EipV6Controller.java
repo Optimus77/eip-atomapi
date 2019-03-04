@@ -38,6 +38,7 @@ public class EipV6Controller {
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
         log.info("Allocate a eipv6:{}.", eipV6Config.getEipV6AllocateParam().toString());
+        long currentTimeMillis = System.currentTimeMillis();
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -47,7 +48,10 @@ public class EipV6Controller {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam());
+        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam());
+        long currentTimeMillis1 = System.currentTimeMillis();
+        log.info("\r\nganymed-ssh2 time:" + (currentTimeMillis1 - currentTimeMillis));
+        return responseEntity;
     }
 
 
