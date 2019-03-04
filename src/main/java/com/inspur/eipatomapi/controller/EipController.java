@@ -72,7 +72,8 @@ public class EipController {
     @ApiOperation(value="listeip",notes="list")
     public ResponseEntity listEip(@RequestParam(required = false) String currentPage ,
                                   @RequestParam(required = false )String limit,
-                                  @RequestParam(required = false )String status) {
+                                  @RequestParam(required = false )String status,
+                                  @RequestParam(required = false )String bandWidth) {
         log.debug("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
         if(currentPage==null||limit==null){
             currentPage="0";
@@ -89,6 +90,9 @@ public class EipController {
                 currentPage="0";
                 limit="0";
             }
+        }
+        if(null !=bandWidth){
+            return  eipService.listEipsByBandWidth(status);
         }
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
@@ -307,12 +311,5 @@ public class EipController {
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
-
-    @GetMapping(value = "/eipv6/availableEips")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="listeip",notes="list")
-    public ResponseEntity listEipByBandWidth(@RequestParam(required = false )String status) {
-        return  eipService.listEipsByBandWidth(status);
-    }
 
     }
