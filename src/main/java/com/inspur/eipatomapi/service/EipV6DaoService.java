@@ -90,6 +90,7 @@ public class EipV6DaoService {
                     eipMo.setFloatingIp(eip.getFloatingIp());
                 } else {
                     log.error("Failed to add natPtId");
+                    eip.setStatus(HsConstants.ERROE);
                 }
             }
         } catch (Exception e) {
@@ -97,7 +98,6 @@ public class EipV6DaoService {
         }
 
         eipMo.setIpv6(eipPoolv6.getIp());
-        eipMo.setStatus(HsConstants.DOWN);
         eipMo.setFirewallId(eipPoolv6.getFireWallId());
 
         eipMo.setRegion(eip.getRegion());
@@ -201,5 +201,6 @@ public class EipV6DaoService {
         eipV6Repository.saveAndFlush(eipV6);
         return eipV6;
     }
+
 
 }

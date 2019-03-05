@@ -712,20 +712,6 @@ public class EipServiceImpl implements IEipService {
 
                 }
             }
-//            for(Eip eip:eipIterator){
-//                if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
-//                    continue;
-//                }
-//                if(eip.getBandWidth()<=10){
-//                    EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
-//                    BeanUtils.copyProperties(eip, eipReturnDetail);
-//                    eips.add(eipReturnDetail);
-//                    data.put("eip",eips);
-//                    newList.add(eip);
-//                    data.put("totalElements",newList.size());
-//
-//                }
-//            }
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
