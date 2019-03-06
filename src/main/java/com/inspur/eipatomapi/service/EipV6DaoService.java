@@ -149,7 +149,7 @@ public class EipV6DaoService {
         try {
             if (dnatptId != null && snatptId != null) {
                 Boolean flag = natPtService.delNatPt(dnatptId, snatptId, fireWallId);
-                if (flag == true) {
+                if (flag) {
                     log.info("delete natPt success");
                 } else {
                     log.error("Failed to delete natPtId");
