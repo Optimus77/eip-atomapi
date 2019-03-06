@@ -122,12 +122,12 @@ public class EipDaoService {
     public ActionResponse deleteEip(String eipid) throws KeycloakTokenException {
         String msg;
         Eip eipEntity = eipRepository.findByEipId(eipid);
-        String eipAddress = eipEntity.getEipAddress();
         if (null == eipEntity) {
             msg = "Faild to find eip by id:" + eipid;
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
+
         if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
@@ -147,6 +147,7 @@ public class EipDaoService {
             msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
             log.error(msg);
         }
+        String eipAddress = eipEntity.getEipAddress();
         EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
         if (eipV6 != null) {
             eipV6.setIsDelete(1);
@@ -165,26 +166,26 @@ public class EipDaoService {
                 eipPoolV6Mo.setState("0");
                 eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
                 log.info("Success delete eipV6:{}", eipV6.getIpv6());
-                eipEntity.setIsDelete(1);
-                eipEntity.setUpdateTime(CommonUtil.getGmtDate());
-                eipRepository.saveAndFlush(eipEntity);
-                EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
-                if (null != eipPool) {
-                    log.error("******************************************************************************");
-                    log.error("Fatal error, eip has already exist in eip pool. can not add to eip pool.{}",
-                            eipEntity.getEipAddress());
-                    log.error("******************************************************************************");
-                } else {
-                    EipPool eipPoolMo = new EipPool();
-                    eipPoolMo.setFireWallId(eipEntity.getFirewallId());
-                    eipPoolMo.setIp(eipEntity.getEipAddress());
-                    eipPoolMo.setState("0");
-                    eipPoolRepository.saveAndFlush(eipPoolMo);
-                    log.info("Success delete eip:{}", eipEntity.getEipAddress());
-                }
-                log.info("Atom delete eipv6 successfully, eipv6Id:{}", eipV6.getEipV6Id());
             }
         }
+        eipEntity.setIsDelete(1);
+        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+        eipRepository.saveAndFlush(eipEntity);
+        EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
+        if (null != eipPool) {
+            log.error("******************************************************************************");
+            log.error("Fatal error, eip has already exist in eip pool. can not add to eip pool.{}",
+                    eipEntity.getEipAddress());
+            log.error("******************************************************************************");
+        } else {
+            EipPool eipPoolMo = new EipPool();
+            eipPoolMo.setFireWallId(eipEntity.getFirewallId());
+            eipPoolMo.setIp(eipEntity.getEipAddress());
+            eipPoolMo.setState("0");
+            eipPoolRepository.saveAndFlush(eipPoolMo);
+            log.info("Success delete eip:{}", eipEntity.getEipAddress());
+        }
+        log.info("Atom delete eipv6 successfully, eipv6Id:{}", eipV6.getEipV6Id());
         return ActionResponse.actionSuccess();
     }
 
@@ -285,6 +286,7 @@ public class EipDaoService {
                 eip.setFloatingIp(null);
                 eip.setFloatingIpId(null);
                 eipRepository.saveAndFlush(eip);
+                return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
 
             }
 
@@ -328,7 +330,7 @@ public class EipDaoService {
      * @throws KeycloakTokenException e
      */
     @Transactional
-    public ActionResponse disassociateInstanceWithEip(String eipid) throws KeycloakTokenException {
+    public ActionResponse disassociateInstanceWithEip(String eipid) throws Exception {
 
         String msg = null;
         Eip eipEntity = eipRepository.findByEipId(eipid);
@@ -362,33 +364,26 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
-        try {
-            String eipAddress = eipEntity.getEipAddress();
-            EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
-            if (eipV6 != null) {
-                Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
-                if (!flag) {
-                    neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
-                    firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
-                            eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
-                    msg = "Failed to disassociate  with natPt:" + eipV6.getSnatptId() + "--" + eipV6.getDnatptId();
-                    log.error(msg);
-                    return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                } else {
-                    eipV6.setSnatptId(null);
-                    eipV6.setDnatptId(null);
-                    eipV6.setFloatingIp(null);
-                    eipV6.setUpdateTime(CommonUtil.getGmtDate());
-                    eipV6Repository.saveAndFlush(eipV6);
-                }
+
+        String eipAddress = eipEntity.getEipAddress();
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
+        if (eipV6 != null) {
+            Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
+            if (!flag) {
+                neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
+                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                        eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
+                msg = "Failed to disassociate  with natPt:" + eipV6.getSnatptId() + "--" + eipV6.getDnatptId();
+                log.error(msg);
+                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            } else {
+                eipV6.setSnatptId(null);
+                eipV6.setDnatptId(null);
+                eipV6.setFloatingIp(null);
+                eipV6.setUpdateTime(CommonUtil.getGmtDate());
+                eipV6Repository.saveAndFlush(eipV6);
             }
-
-        } catch (Exception e) {
-            msg = "Failed to disassociate  with natPt";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-
         eipEntity.setInstanceId(null);
         eipEntity.setInstanceType(null);
         eipEntity.setPrivateIpAddress(null);
@@ -568,7 +563,7 @@ public class EipDaoService {
      * @throws KeycloakTokenException   e
      */
     @Transactional
-    public MethodReturn cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr,String type) throws KeycloakTokenException {
+    public MethodReturn cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr, String type) throws Exception {
 
         Eip eip = eipRepository.findByEipId(eipId);
         String eipIp = eip.getEipAddress();
@@ -590,37 +585,26 @@ public class EipDaoService {
         EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipIp, eip.getProjectId(), 0);
         MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, ipAddr, eipIp, eip.getBandWidth(), eip.getFirewallId());
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
-            eip.setInstanceId(InstanceId);
-            eip.setInstanceType(type);
-            eip.setStatus(HsConstants.ACTIVE);
-            eip.setPrivateIpAddress(ipAddr);
-            eip.setFloatingIp(ipAddr);
-            eip.setUpdateTime(CommonUtil.getGmtDate());
-            eipRepository.saveAndFlush(eip);
-            try {
-                if (eipV6 != null) {
-                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
-                    if (natPtV6 != null) {
-                        eipV6.setFloatingIp(eip.getFloatingIp());
-                        eipV6.setDnatptId(natPtV6.getNewDnatPtId());
-                        eipV6.setSnatptId(natPtV6.getNewSnatPtId());
-                        eipV6.setUpdateTime(CommonUtil.getGmtDate());
-                        eipV6Repository.saveAndFlush(eipV6);
-                    } else {
-                        firewallService.delNatAndQos(eip);
-                        eip.setInstanceId(null);
-                        eip.setInstanceType(null);
-                        eip.setStatus(HsConstants.DOWN);
-                        eip.setPrivateIpAddress(null);
-                        eip.setFloatingIp(null);
-                        eip.setUpdateTime(CommonUtil.getGmtDate());
-                        eipRepository.saveAndFlush(eip);
-                    }
+            if (eipV6 != null) {
+                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
+                if (natPtV6 != null) {
+                    eipV6.setFloatingIp(eip.getFloatingIp());
+                    eipV6.setDnatptId(natPtV6.getNewDnatPtId());
+                    eipV6.setSnatptId(natPtV6.getNewSnatPtId());
+                    eipV6.setUpdateTime(CommonUtil.getGmtDate());
+                    eipV6Repository.saveAndFlush(eipV6);
+                    eip.setInstanceId(InstanceId);
+                    eip.setInstanceType(type);
+                    eip.setStatus(HsConstants.ACTIVE);
+                    eip.setPrivateIpAddress(ipAddr);
+                    eip.setFloatingIp(ipAddr);
+                    eip.setUpdateTime(CommonUtil.getGmtDate());
+                    eipRepository.saveAndFlush(eip);
+                } else {
+                    firewallService.delNatAndQos(eip);
+                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE,
+                            CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
                 }
-            } catch (Exception e) {
-                log.error("eipV6 bing failed", e);
-                return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE,
-                        CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
             }
         }else{
             return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
@@ -636,7 +620,7 @@ public class EipDaoService {
      * @return             true or false
      * @throws KeycloakTokenException   e
      */
-    public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws KeycloakTokenException {
+    public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws Exception {
 
         String msg ;
         Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(InstanceId, 0);
@@ -660,31 +644,23 @@ public class EipDaoService {
 
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
 
-        try {
-            String eipAddress = eipEntity.getEipAddress();
-            EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
-            if (eipV6 != null) {
-                Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
-                if (flag) {
-                    firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(), eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
-                    msg = "Failed to disassociate  with natPt:" + eipV6.getSnatptId() + eipV6.getDnatptId();
-                    log.error(msg);
-                    return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                } else {
-                    eipV6.setSnatptId(null);
-                    eipV6.setDnatptId(null);
-                    eipV6.setFloatingIp(null);
-                    eipV6.setUpdateTime(CommonUtil.getGmtDate());
-                    eipV6Repository.saveAndFlush(eipV6);
-                }
+        String eipAddress = eipEntity.getEipAddress();
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
+        if (eipV6 != null) {
+            Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
+            if (!flag) {
+                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(), eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
+                msg = "Failed to disassociate  with natPt:" + eipV6.getSnatptId() + eipV6.getDnatptId();
+                log.error(msg);
+                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            } else {
+                eipV6.setSnatptId(null);
+                eipV6.setDnatptId(null);
+                eipV6.setFloatingIp(null);
+                eipV6.setUpdateTime(CommonUtil.getGmtDate());
+                eipV6Repository.saveAndFlush(eipV6);
             }
-        } catch (Exception e) {
-            msg = "Failed to disassociate  with natPt";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-
-
         eipEntity.setInstanceId(null);
         eipEntity.setPrivateIpAddress(null);
         eipEntity.setInstanceType(null);
