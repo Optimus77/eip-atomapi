@@ -277,7 +277,6 @@ public class EipDaoService {
 
                 log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}",
                         eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
-                //return MethodReturnUtil.success(eip);
             }else{
                 returnMsg = fireWallReturn.getMessage();
                 returnStat = fireWallReturn.getInnerCode();
@@ -593,19 +592,19 @@ public class EipDaoService {
                     eipV6.setSnatptId(natPtV6.getNewSnatPtId());
                     eipV6.setUpdateTime(CommonUtil.getGmtDate());
                     eipV6Repository.saveAndFlush(eipV6);
-                    eip.setInstanceId(InstanceId);
-                    eip.setInstanceType(type);
-                    eip.setStatus(HsConstants.ACTIVE);
-                    eip.setPrivateIpAddress(ipAddr);
-                    eip.setFloatingIp(ipAddr);
-                    eip.setUpdateTime(CommonUtil.getGmtDate());
-                    eipRepository.saveAndFlush(eip);
                 } else {
                     firewallService.delNatAndQos(eip);
                     return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE,
                             CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
                 }
             }
+            eip.setInstanceId(InstanceId);
+            eip.setInstanceType(type);
+            eip.setStatus(HsConstants.ACTIVE);
+            eip.setPrivateIpAddress(ipAddr);
+            eip.setFloatingIp(ipAddr);
+            eip.setUpdateTime(CommonUtil.getGmtDate());
+            eipRepository.saveAndFlush(eip);
         }else{
             return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_ERROR));
