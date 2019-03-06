@@ -27,7 +27,4 @@ public class SbwAllocateParam implements Serializable {
     private int bandwidth;
 
     private String sbwName;
-
-    private String method;
-
 }
