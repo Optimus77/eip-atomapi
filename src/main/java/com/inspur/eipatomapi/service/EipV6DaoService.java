@@ -90,7 +90,13 @@ public class EipV6DaoService {
                     eipMo.setFloatingIp(eip.getFloatingIp());
                 } else {
                     log.error("Failed to add natPtId");
-                    eip.setStatus(HsConstants.ERROE);
+                    EipPoolV6 eipPoolV6Mo = new EipPoolV6();
+                    eipPoolV6Mo.setFireWallId(eipPoolv6.getFireWallId());
+                    eipPoolV6Mo.setIp(eipPoolv6.getIp());
+                    eipPoolV6Mo.setState("0");
+                    eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
+                    return null;
+
                 }
             }
         } catch (Exception e) {
@@ -130,7 +136,7 @@ public class EipV6DaoService {
 
 
     @Transactional
-    public ActionResponse deleteEipV6(String  eipv6id) throws KeycloakTokenException {
+    public ActionResponse deleteEipV6(String eipv6id) throws Exception {
         String msg;
         EipV6 eipV6Entity = eipV6Repository.findByEipV6Id(eipv6id);
         if (null == eipV6Entity) {
@@ -152,11 +158,15 @@ public class EipV6DaoService {
                 if (flag) {
                     log.info("delete natPt success");
                 } else {
-                    log.error("Failed to delete natPtId");
+                    msg = "Failed to delete natPtId";
+                    log.error(msg);
+                    return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
                 }
             }
         } catch (Exception e) {
-            log.error("delete natPtId exception", e);
+            msg = "delete natPtId exception";
+            log.error(msg, e);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
         eipV6Entity.setFloatingIp(null);
         eipV6Entity.setDnatptId(null);
