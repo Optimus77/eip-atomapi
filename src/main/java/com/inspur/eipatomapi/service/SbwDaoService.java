@@ -58,9 +58,6 @@ public class SbwDaoService {
             sbwMo.setSharedbandwidthName(sbwConfig.getSbwName());
             sbwMo.setBandWidth(sbwConfig.getBandwidth());
             sbwMo.setBillType(sbwConfig.getBillType());
-            sbwMo.setChargeMode(sbwConfig.getChargemode());
-            sbwMo.setDuration(sbwConfig.getDuration());
-            sbwMo.setDurationUnit(sbwConfig.getDurationUnit());
             sbwMo.setProjectId(userId);
             sbwMo.setIsDelete(0);
             sbwMo.setCreateTime(CommonUtil.getGmtDate());

@@ -14,6 +14,7 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -183,7 +184,7 @@ public class EipDaoService {
             eipPoolRepository.saveAndFlush(eipPoolMo);
             log.info("Success delete eip:{}", eipEntity.getEipAddress());
         }
-        log.info("Atom delete eipv6 successfully");
+
         return ActionResponse.actionSuccess();
     }
 
