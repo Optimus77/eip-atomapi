@@ -56,7 +56,7 @@ public class FireWallCommondService {
         initSession();
     }
 
-    public void initSession() throws Exception{
+    public void initSession() throws Exception {
 
         session = connection.openSession();
         session.requestPTY("vt100", 80, 24, 640, 480, null);
@@ -86,8 +86,8 @@ public class FireWallCommondService {
             String retStr = null;
             while ((line = stdout.readLine()) != null) {
                 System.out.println(line);
-                if((null != expectStr && line.contains(expectStr)) ||
-                        (line.contains("Error"))){
+                if ((null != expectStr && line.contains(expectStr)) ||
+                        (line.contains("Error"))) {
                     retStr = line;
                 }else if(line.contains("end")) {
                     return retStr;
