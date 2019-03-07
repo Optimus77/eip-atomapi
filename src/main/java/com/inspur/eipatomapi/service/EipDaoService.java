@@ -225,8 +225,8 @@ public class EipDaoService {
     @Transactional
     public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId) throws KeycloakTokenException {
         NetFloatingIP floatingIP ;
-        String returnStat = null;
-        String returnMsg = null;
+        String returnStat ;
+        String returnMsg ;
         Eip eip = eipRepository.findByEipId(eipid);
         if (null == eip) {
             log.error("In associate process, failed to find the eip by id:{} ", eipid);
@@ -268,15 +268,36 @@ public class EipDaoService {
             MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                                                     eip.getBandWidth(), eip.getFirewallId());
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
-                eip.setInstanceId(serverId);
-                eip.setInstanceType(instanceType);
-                eip.setPortId(portId);
-                eip.setStatus(HsConstants.ACTIVE);
-                eip.setUpdateTime(CommonUtil.getGmtDate());
-                eipRepository.saveAndFlush(eip);
-
-                log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}",
-                        eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
+                String eipAddress = eip.getEipAddress();
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eip.getProjectId(), 0);
+                if (eipV6 != null) {
+                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
+                    if (natPtV6 == null) {
+                        returnMsg = fireWallReturn.getMessage();
+                        returnStat = fireWallReturn.getInnerCode();
+                        neutronService.disassociateAndDeleteFloatingIp(floatingIP.getFloatingIpAddress(),
+                                floatingIP.getId(), serverId, eip.getRegion());
+                        eip.setFloatingIp(null);
+                        eip.setFloatingIpId(null);
+                        firewallService.delNatAndQos(eip);
+                        eipRepository.saveAndFlush(eip);
+                        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
+                    }
+                    eipV6.setFloatingIp(eip.getFloatingIp());
+                    eipV6.setDnatptId(natPtV6.getNewDnatPtId());
+                    eipV6.setSnatptId(natPtV6.getNewSnatPtId());
+                    eipV6.setUpdateTime(CommonUtil.getGmtDate());
+                    eipV6Repository.saveAndFlush(eipV6);
+                    eip.setInstanceId(serverId);
+                    eip.setInstanceType(instanceType);
+                    eip.setPortId(portId);
+                    eip.setStatus(HsConstants.ACTIVE);
+                    eip.setUpdateTime(CommonUtil.getGmtDate());
+                    eipRepository.saveAndFlush(eip);
+                    log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}",
+                            eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
+                }
+                return MethodReturnUtil.success(eip);
             }else{
                 returnMsg = fireWallReturn.getMessage();
                 returnStat = fireWallReturn.getInnerCode();
@@ -285,33 +306,7 @@ public class EipDaoService {
                 eip.setFloatingIp(null);
                 eip.setFloatingIpId(null);
                 eipRepository.saveAndFlush(eip);
-                return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
-
             }
-
-            String eipAddress = eip.getEipAddress();
-            EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eip.getProjectId(), 0);
-            if (eipV6 != null) {
-                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
-                if (natPtV6 != null) {
-                    eipV6.setFloatingIp(eip.getFloatingIp());
-                    eipV6.setDnatptId(natPtV6.getNewDnatPtId());
-                    eipV6.setSnatptId(natPtV6.getNewSnatPtId());
-                    eipV6.setUpdateTime(CommonUtil.getGmtDate());
-                    eipV6Repository.saveAndFlush(eipV6);
-                    return MethodReturnUtil.success(eip);
-                }
-            } else {
-                returnMsg = fireWallReturn.getMessage();
-                returnStat = fireWallReturn.getInnerCode();
-                neutronService.disassociateAndDeleteFloatingIp(floatingIP.getFloatingIpAddress(),
-                        floatingIP.getId(), serverId, eip.getRegion());
-                eip.setFloatingIp(null);
-                eip.setFloatingIpId(null);
-                firewallService.delNatAndQos(eip);
-                eipRepository.saveAndFlush(eip);
-            }
-
         } catch (Exception e) {
             log.error("band server exception", e);
             returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
