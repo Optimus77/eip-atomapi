@@ -14,13 +14,11 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -185,7 +183,7 @@ public class EipDaoService {
             eipPoolRepository.saveAndFlush(eipPoolMo);
             log.info("Success delete eip:{}", eipEntity.getEipAddress());
         }
-        log.info("Atom delete eipv6 successfully, eipv6Id:{}", eipV6.getEipV6Id());
+        log.info("Atom delete eipv6 successfully");
         return ActionResponse.actionSuccess();
     }
 
@@ -280,8 +278,8 @@ public class EipDaoService {
                         eipV6Repository.saveAndFlush(eipV6);
 
                     } else {
-                        returnMsg = fireWallReturn.getMessage();
-                        returnStat = fireWallReturn.getInnerCode();
+                        returnMsg = "natpt add failed";
+                        returnStat = ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE;
                         neutronService.disassociateAndDeleteFloatingIp(floatingIP.getFloatingIpAddress(),
                                 floatingIP.getId(), serverId, eip.getRegion());
                         eip.setFloatingIp(null);
@@ -558,13 +556,13 @@ public class EipDaoService {
     /**
      * associate port with eip
      * @param eipId          eip
-     * @param InstanceId     slb id
+     * @param instanceId     slb id
      * @param ipAddr    ip
      * @return             true or false
      * @throws KeycloakTokenException   e
      */
     @Transactional
-    public MethodReturn cpsOrSlbBindEip(String eipId, String InstanceId, String ipAddr, String type) throws Exception {
+    public MethodReturn cpsOrSlbBindEip(String eipId, String instanceId, String ipAddr, String type) throws Exception {
 
         Eip eip = eipRepository.findByEipId(eipId);
         String eipIp = eip.getEipAddress();
@@ -579,7 +577,7 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
-        if (InstanceId == null) {
+        if (instanceId == null) {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
         }
@@ -600,7 +598,7 @@ public class EipDaoService {
                             CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
                 }
             }
-            eip.setInstanceId(InstanceId);
+            eip.setInstanceId(instanceId);
             eip.setInstanceType(type);
             eip.setStatus(HsConstants.ACTIVE);
             eip.setPrivateIpAddress(ipAddr);
@@ -617,27 +615,27 @@ public class EipDaoService {
 
     /**
      * associate port with eip
-     * @param InstanceId          slbid
+     * @param instanceId          slbid
      * @return             true or false
      * @throws KeycloakTokenException   e
      */
-    public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws Exception {
+    public ActionResponse unCpcOrSlbBindEip(String instanceId) throws Exception {
 
         String msg ;
-        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(InstanceId, 0);
+        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
 
         if(null == eipEntity){
-            log.error("unCpcOrSlbBindEip In disassociate process,failed to find the eip by id:{} ",InstanceId);
+            log.error("unCpcOrSlbBindEip In disassociate process,failed to find the eip by id:{} ", instanceId);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
         if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
-            log.error("User have no write to delete eip:{}", InstanceId);
+            log.error("User have no write to delete eip:{}", instanceId);
             return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
         }
 
         if(!(eipEntity.getStatus().equals("ACTIVE")) || (null == eipEntity.getSnatId())
                 || (null == eipEntity.getDnatId()) ){
-            msg = "Error status when disassociate eip , InstanceId: "+InstanceId+ " status : "+eipEntity.getStatus()+
+            msg = "Error status when disassociate eip , InstanceId: " + instanceId + " status : " + eipEntity.getStatus() +
                     " snatId : "+eipEntity.getSnatId()+" dnatId : "+eipEntity.getDnatId();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);

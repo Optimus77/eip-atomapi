@@ -286,9 +286,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipV6.setUpdateTime(CommonUtil.getGmtDate());
                         eipV6Repository.saveAndFlush(eipV6);
                         log.info("add nat successfully. snat:{}, dnat:{},",
-                                newSnatptId, newDnatptId);
+                                natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId());
                         code = ReturnStatus.SC_OK;
                         msg = "Ipv4 was replaced successfully";
+                        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                     } else {
                         code = ReturnStatus.SC_FIREWALL_NAT_UNAVAILABLE;
                         msg = "Failed to add natPtId";
@@ -299,7 +300,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
             }else{
                 if (eip.getFloatingIp() == null) {
                     Boolean flag = natPtService.delNatPt(snatptId, dnatptId, eipV6.getFirewallId());
-                    if (flag == true) {
+                    if (flag) {
                         eipV6.setSnatptId(null);
                         eipV6.setDnatptId(null);
                         eipV6.setFloatingIp(null);
@@ -307,9 +308,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipV6.setUpdateTime(CommonUtil.getGmtDate());
                         eipV6Repository.saveAndFlush(eipV6);
                         log.info("del nat successfully. snat:{}, dnat:{},",
-                                newSnatptId, newDnatptId);
+                                snatptId, dnatptId);
                         code = ReturnStatus.SC_OK;
                         msg = "Ipv4 was replaced successfully";
+                        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                     } else {
                         eip.setStatus(HsConstants.ERROE);
                         log.error("Failed to del natPtId" + snatptId, dnatptId);
@@ -319,7 +321,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 } else {
                     //未完  待续
                     Boolean flag = natPtService.delNatPt(snatptId, dnatptId, eipV6.getFirewallId());
-                    if (flag == true) {
+                    if (flag) {
                         NatPtV6 natPtV6 = natPtService.addNatPt(ipv6, ipv4, eipV6.getFirewallId());
                         if (natPtV6 != null) {
                             eipV6.setSnatptId(natPtV6.getNewSnatPtId());
@@ -332,6 +334,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                                     newSnatptId, newDnatptId);
                             code = ReturnStatus.SC_OK;
                             msg = "Ipv4 was replaced successfully";
+                            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                         } else {
                             log.error("Failed to add natPtId");
                             code = ReturnStatus.SC_FIREWALL_NAT_UNAVAILABLE;
@@ -352,7 +355,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        log.info("Error when bind port，code:{}, msg:{}.", code, msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
