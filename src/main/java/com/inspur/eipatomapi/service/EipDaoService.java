@@ -185,7 +185,7 @@ public class EipDaoService {
             eipPoolRepository.saveAndFlush(eipPoolMo);
             log.info("Success delete eip:{}", eipEntity.getEipAddress());
         }
-        log.info("Atom delete eipv6 successfully, eipv6Id:{}", eipV6.getEipV6Id());
+
         return ActionResponse.actionSuccess();
     }
 
