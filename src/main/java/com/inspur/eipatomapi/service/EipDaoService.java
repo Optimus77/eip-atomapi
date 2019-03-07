@@ -289,7 +289,6 @@ public class EipDaoService {
                     eipV6.setUpdateTime(CommonUtil.getGmtDate());
                     eipV6Repository.saveAndFlush(eipV6);
                     log.info("Bind eipv6 with instance successfully. eip:{}");
-                    return MethodReturnUtil.success(eip);
 
                 }
                 eip.setInstanceId(serverId);
