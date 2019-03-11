@@ -36,7 +36,7 @@ public class FireWallCommondService {
     private ExecutorService service = Executors.newFixedThreadPool(3);
 
 
-    public void initConnection(String hostName, String userName, String passwd) throws IOException {
+    public void initConnection(String hostName, String userName, String passwd) throws Exception {
         connection = new Connection(hostName);
         connection.connect();
 
@@ -56,7 +56,7 @@ public class FireWallCommondService {
         initSession();
     }
 
-    public void initSession() throws IOException{
+    public void initSession() throws Exception {
 
         session = connection.openSession();
         session.requestPTY("vt100", 80, 24, 640, 480, null);
@@ -66,11 +66,9 @@ public class FireWallCommondService {
         stdout = new BufferedReader(new InputStreamReader(new StreamGobbler(session.getStdout()), StandardCharsets.UTF_8));
         stderr = new BufferedReader(new InputStreamReader(new StreamGobbler(session.getStderr()), StandardCharsets.UTF_8));
         printWriter = new PrintWriter(session.getStdin());
-        try {
-            TimeUnit.MILLISECONDS.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
+        TimeUnit.MILLISECONDS.sleep(500);
+
     }
 
     public String execCustomCommand(String fireWallId, String cmd) {
@@ -88,14 +86,15 @@ public class FireWallCommondService {
             String retStr = null;
             while ((line = stdout.readLine()) != null) {
                 System.out.println(line);
-                if(null != expectStr && line.contains(expectStr)){
+                if ((null != expectStr && line.contains(expectStr)) ||
+                        (line.contains("Error"))) {
                     retStr = line;
                 }else if(line.contains("end")) {
                     return retStr;
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("Error when init :", e);
         }
         return null;
     }

@@ -7,6 +7,7 @@ import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
+import com.inspur.eipatomapi.entity.eipv6.EipV6AllocateParam;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.EipV6Repository;
@@ -48,6 +49,9 @@ public class EipServiceImpl implements IEipService {
     @Autowired
     private EipV6Repository eipV6Repository;
 
+    @Autowired
+    private EipV6ServiceImpl eipV6Service;
+
 
     /**
      * create a eip
@@ -81,6 +85,11 @@ public class EipServiceImpl implements IEipService {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
+                if(eipConfig.getIpv6().equalsIgnoreCase("yes")){
+                    EipV6AllocateParam eipV6AllocateParam = new EipV6AllocateParam();
+                    eipV6AllocateParam.setEipId(eipMo.getEipId());
+                    eipV6Service.atomCreateEipV6(eipV6AllocateParam);
+                }
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;

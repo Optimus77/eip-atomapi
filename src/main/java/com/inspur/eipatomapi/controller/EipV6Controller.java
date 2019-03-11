@@ -114,7 +114,7 @@ public class EipV6Controller {
             @ApiImplicitParam(paramType = "path", name = "eipv6_id", value = "the id of eipv6", required = true, dataType = "String"),
     })
     public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id, @Valid @RequestBody EipV6UpdateParamWrapper param, BindingResult result) {
-
+        log.info("update ipv6 ");
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
