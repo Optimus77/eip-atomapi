@@ -117,11 +117,6 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        if (null != sbwEntity.getChargeMode() && !sbwEntity.getChargeMode().equalsIgnoreCase(HsConstants.BAND_WIDTH)) {
-            msg = "Only Bandwidth is allowed for chargeMode";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
-        }
         if (null != sbwEntity.getBillType() && !sbwEntity.getBillType().equalsIgnoreCase(HsConstants.HOURLYSETTLEMENT)) {
             msg = "Only hourlysettlement is allowed for billType";
             log.error(msg);
