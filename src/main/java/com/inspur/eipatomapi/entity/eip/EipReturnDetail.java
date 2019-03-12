@@ -57,4 +57,7 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("region")
     private String region;
 
+    @JsonProperty("eipv6id")
+    private String eipV6Id;
+
 }

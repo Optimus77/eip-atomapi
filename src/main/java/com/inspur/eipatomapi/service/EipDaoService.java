@@ -170,6 +170,7 @@ public class EipDaoService {
         }
         eipEntity.setIsDelete(1);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+        eipEntity.setEipV6Id(null);
         eipRepository.saveAndFlush(eipEntity);
         EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
         if (null != eipPool) {
