@@ -37,6 +37,9 @@ public class EipV6ReturnDetail implements Serializable {
     @JsonProperty("eipbillType")
     private String eipChargeType;
 
+    @JsonProperty("eipv6bandwidth")
+    private int eipV6BandWidth;
+
 
     @JsonProperty("eip_id")
     private String eipId;

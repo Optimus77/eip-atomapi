@@ -114,6 +114,8 @@ public class EipV6DaoService {
         eipMo.setIsDelete(0);
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
+        eip.setEipV6Id(eipMo.getEipV6Id());
+        eipRepository.saveAndFlush(eip);
 
         log.info("User:{} success allocate eipv6:{}",userId, eipMo.getEipV6Id());
         return eipMo;
@@ -152,6 +154,8 @@ public class EipV6DaoService {
         String dnatptId = eipV6Entity.getDnatptId();
         String snatptId = eipV6Entity.getSnatptId();
         String fireWallId = eipV6Entity.getFirewallId();
+        String ipv4 = eipV6Entity.getIpv4();
+        String projectId = eipV6Entity.getProjectId();
         try {
             if (dnatptId != null && snatptId != null) {
                 Boolean flag = natPtService.delNatPt(dnatptId, snatptId, fireWallId);
@@ -174,6 +178,9 @@ public class EipV6DaoService {
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
+        Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(ipv4, projectId, 0);
+        eip.setEipV6Id(null);
+        eipRepository.saveAndFlush(eip);
         EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6Entity.getIpv6());
         if(null != eipV6Pool){
             log.error("******************************************************************************");

@@ -118,6 +118,12 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         }
                         EipV6ReturnDetail eipV6ReturnDetail = new EipV6ReturnDetail();
                         BeanUtils.copyProperties(eipV6, eipV6ReturnDetail);
+                        if (eip.getBandWidth() > 10) {
+                            eipV6ReturnDetail.setEipV6BandWidth(10);
+
+                        } else {
+                            eipV6ReturnDetail.setEipV6BandWidth(eip.getBandWidth());
+                        }
                         eipV6ReturnDetail.setEipBandWidth(eip.getBandWidth());
                         eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                         eipV6ReturnDetail.setEipId(eip.getEipId());
@@ -145,6 +151,11 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         }
                         EipV6ReturnDetail eipV6ReturnDetail = new EipV6ReturnDetail();
                         BeanUtils.copyProperties(eipV6, eipV6ReturnDetail);
+                        if (eip.getBandWidth() > 10) {
+                            eipV6ReturnDetail.setEipV6BandWidth(10);
+                        } else {
+                            eipV6ReturnDetail.setEipV6BandWidth(eip.getBandWidth());
+                        }
                         eipV6ReturnDetail.setEipBandWidth(eip.getBandWidth());
                         eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                         eipV6ReturnDetail.setEipId(eip.getEipId());
