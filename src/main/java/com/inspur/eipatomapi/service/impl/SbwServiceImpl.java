@@ -86,14 +86,13 @@ public class SbwServiceImpl implements ISbwService {
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 if (searchValue != null) {
                     if (searchValue.matches(matche)) {
-                        page = sbwRepository.findBySbwIdAndProjectIdAndIsDelete(searchValue, projectid, 0, pageable);
+                        page = sbwDaoService.findByIdAndIsDelete(searchValue, projectid, 0, pageable);
                     } else {
-                        page = sbwRepository.findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(projectid, 0, searchValue, pageable);
+                        page = sbwDaoService.findByIsDeleteAndSbwName(projectid, 0, searchValue, pageable);
                     }
                 } else {
-                    page = sbwRepository.findByProjectIdAndIsDelete(projectid, 0, pageable);
+                    page = sbwDaoService.findByIsDelete(projectid, 0, pageable);
                 }
-                log.info("page projectId:", page);
                 for (Sbw sbw : page.getContent()) {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
@@ -207,11 +206,6 @@ public class SbwServiceImpl implements ISbwService {
         return new ResponseEntity<>(SbwReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @Override
-    @ICPServiceLog
-    public ResponseEntity getSbwByInstanceId(String instanceId) {
-        return null;
-    }
 
     @Override
     @ICPServiceLog

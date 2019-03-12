@@ -141,7 +141,6 @@ public class SbwController {
     @ICPControllerLog
     @PostMapping(value = "/sbws/{sbw_id}/renew")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "renewSbw", notes = "post")
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwAllocateParam param) {
         log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.toString());
@@ -211,6 +210,8 @@ public class SbwController {
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }
+
+
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}/othereips")
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -221,6 +222,8 @@ public class SbwController {
     public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
         return sbwService.getOtherEips(sbwId);
     }
+
+
     @ICPControllerLog
     @PutMapping(value = "/sbws/{sbw_id}/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "updateSBWconfig", notes = "post")

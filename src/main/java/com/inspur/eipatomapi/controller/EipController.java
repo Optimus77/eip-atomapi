@@ -38,8 +38,6 @@ public class EipController {
     @Autowired
     private EipServiceImpl eipService;
 
-
-
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
