@@ -19,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +60,9 @@ public class SbwDaoService {
             sbwMo.setSharedbandwidthName(sbwConfig.getSbwName());
             sbwMo.setBandWidth(sbwConfig.getBandwidth());
             sbwMo.setBillType(sbwConfig.getBillType());
+            sbwMo.setChargeMode(sbwConfig.getChargemode());
+            sbwMo.setDuration(sbwConfig.getDuration());
+            sbwMo.setDurationUnit(sbwConfig.getDurationUnit());
             sbwMo.setProjectId(userId);
             sbwMo.setIsDelete(0);
             sbwMo.setCreateTime(CommonUtil.getGmtDate());
@@ -71,7 +76,7 @@ public class SbwDaoService {
                 sbwRepository.saveAndFlush(sbwMo);
             } else {
                 sbwRepository.deleteById(sbw.getSbwId());
-                log.info("Failed to CreateQos in FireWall,there is no pipeId");
+                log.info("Failed to CreateQos in FireWall,pipe create failure");
             }
             log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
         } catch (KeycloakTokenException e) {
@@ -112,17 +117,12 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDEN_WITH_ID), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        if (null != sbwEntity.getChargeMode() && !sbwEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-            msg = "Only Sharedbandwidth is allowed for chargeMode";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
-        }
         if (null != sbwEntity.getBillType() && !sbwEntity.getBillType().equalsIgnoreCase(HsConstants.HOURLYSETTLEMENT)) {
             msg = "Only hourlysettlement is allowed for billType";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
-        ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwEntity.getSharedbandwidthName(), 0);
+        ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwEntity.getSbwId(), 0);
         if (ipCount != 0) {
             msg = "EIP in sbw so that sbw cannot be removed ，please remove first !,ipCount:{}" + ipCount;
             log.error(msg);
@@ -189,14 +189,14 @@ public class SbwDaoService {
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
             log.error("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
-            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
             data.put(HsConstants.HTTP_CODE, HttpStatus.SC_NOT_FOUND);
             data.put(HsConstants.INTER_CODE, ReturnStatus.SC_NOT_FOUND);
             return data;
         }
         if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
             log.error("User have no write to operate sbw:{}", sbwId);
-            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
             data.put(HsConstants.HTTP_CODE, HttpStatus.SC_FORBIDDEN);
             data.put(HsConstants.INTER_CODE, ReturnStatus.SC_FORBIDDEN);
             return data;
@@ -373,6 +373,19 @@ public class SbwDaoService {
         log.error(msg);
         return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
+    }
+    @Transactional
+    public Page<Sbw> findByIdAndIsDelete(String sbwId, String userId, int isDelete, Pageable pageable){
+        return sbwRepository.findBySbwIdAndProjectIdAndIsDelete(sbwId, userId, 0, pageable );
+    }
+
+    @Transactional
+    public Page<Sbw> findByIsDeleteAndSbwName(String userId, int isDelete, String name, Pageable pageable){
+        return sbwRepository.findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(userId, 0, name, pageable);
+    }
+    @Transactional
+    public Page<Sbw> findByIsDelete(String userId, int isDelte, Pageable pageable){
+        return sbwRepository.findByProjectIdAndIsDelete(userId ,0, pageable);
     }
 
 

@@ -14,8 +14,6 @@ public interface ISbwService {
 
     ResponseEntity updateSbwBandWidth(String id, SbwUpdateParamWrapper param);
 
-    ResponseEntity getSbwByInstanceId(String instanceId);
-
     ResponseEntity getSbwCount();
 
     ResponseEntity getSbwByProjectId(String projectId);
