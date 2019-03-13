@@ -311,5 +311,4 @@ public class EipController {
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
-
-    }
+}
