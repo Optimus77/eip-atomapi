@@ -15,6 +15,7 @@ import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
@@ -712,13 +713,14 @@ public class EipServiceImpl implements IEipService {
                     continue;
                 }
                 if(eip.getBandWidth()<=10){
-                    EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
-                    BeanUtils.copyProperties(eip, eipReturnDetail);
-                    eips.add(eipReturnDetail);
-                    data.put("eip",eips);
-                    newList.add(eip);
-                    data.put("totalElements",newList.size());
-
+                    if(!StringUtils.isNotEmpty(eip.getSharedBandWidthId())){
+                        EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
+                        BeanUtils.copyProperties(eip, eipReturnDetail);
+                        eips.add(eipReturnDetail);
+                        data.put("eip",eips);
+                        newList.add(eip);
+                        data.put("totalElements",newList.size());
+                    }
                 }
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
@@ -729,7 +731,4 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
 }
