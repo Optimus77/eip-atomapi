@@ -186,10 +186,10 @@ public class EipController {
             }else if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
                 if (updateParam.getSharedBandWidthId() != null) {
                     if (updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
-                        log.info("add eip to shared bandwidth:{}", updateParam.toString());
+                        log.info("add eip to shared bandWidth:{}", updateParam.toString());
                         return eipService.addEipToSbw(eipId, updateParam);
                     } else if (updateParam.getChargemode().equalsIgnoreCase("Bandwidth")) {
-                        log.info("remove eip from shared bandwidth:{}", updateParam.toString());
+                        log.info("remove eip from shared bandWidth:{}", updateParam.toString());
                         return eipService.removeEipFromSbw(eipId, updateParam);
                     }
                 }
@@ -202,14 +202,14 @@ public class EipController {
                     msg = "chargetype must be [monthly |hourlySettlement]";
                 }
                 if (chargeTypeFlag) {
-                    log.info("update bandwidth, eipid:{}, param:{} ", eipId, updateParam);
+                    log.info("update bandWidth, eipid:{}, param:{} ", eipId, updateParam);
                     return eipService.updateEipBandWidth(eipId, param);
                 }
             } else {
                 msg = "param not correct. " +
                         "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
                         "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
-                        "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
+                        "to change bindwidht,body param like {\"eip\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}" +
                         "";
             }
         }
