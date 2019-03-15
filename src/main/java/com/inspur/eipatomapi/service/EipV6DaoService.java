@@ -115,6 +115,7 @@ public class EipV6DaoService {
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
         eip.setEipV6Id(eipMo.getEipV6Id());
+        eip.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
 
         log.info("User:{} success allocate eipv6:{}",userId, eipMo.getEipV6Id());
@@ -179,7 +180,13 @@ public class EipV6DaoService {
         eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
         Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(ipv4, projectId, 0);
+        if(eip == null){
+            msg = "Failed to fetch eip based on ipv4";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
+        }
         eip.setEipV6Id(null);
+        eip.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
         EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6Entity.getIpv6());
         if(null != eipV6Pool){
