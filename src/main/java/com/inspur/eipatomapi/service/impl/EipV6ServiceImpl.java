@@ -280,8 +280,15 @@ public class EipV6ServiceImpl implements IEipV6Service {
             return null;
         }
         ipv6 = eipV6.getIpv6();
+        String oldIpv4 = eipV6.getIpv4();
         String projectId = eipV6.getProjectId();
         try {
+            Eip eipEntity = eipRepository.findByEipAddressAndProjectIdAndIsDelete(oldIpv4, projectId, 0);
+            if (eipEntity == null) {
+                code = ReturnStatus.SC_NOT_FOUND;
+                msg = "Query eip failed";
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(ipv4, projectId, 0);
             if (eip == null) {
                 code = ReturnStatus.SC_NOT_FOUND;
@@ -294,10 +301,16 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 if (eip.getFloatingIp() == null) {
                     EipV6 newEipV6 = eipV6DaoService.updateIp(ipv4, eipV6);
                     if (newEipV6 != null) {
+                        eip.setEipV6Id(eipV6Id);
+                        eipRepository.saveAndFlush(eip);
+                        eipEntity.setEipV6Id(null);
+                        eipRepository.saveAndFlush(eipEntity);
                         code = "200";
                         msg = "update success";
+
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                     }
+
                 } else {
                     NatPtV6 natPtV6 = natPtService.addNatPt(ipv6, ipv4, eipV6.getFirewallId());
                     if (natPtV6 != null) {
@@ -307,6 +320,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipV6.setIpv4(ipv4);
                         eipV6.setUpdateTime(CommonUtil.getGmtDate());
                         eipV6Repository.saveAndFlush(eipV6);
+                        eip.setEipV6Id(eipV6Id);
+                        eipRepository.saveAndFlush(eip);
+                        eipEntity.setEipV6Id(null);
+                        eipRepository.saveAndFlush(eipEntity);
                         log.info("add nat successfully. snat:{}, dnat:{},",
                                 natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId());
                         code = ReturnStatus.SC_OK;
@@ -329,6 +346,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipV6.setIpv4(ipv4);
                         eipV6.setUpdateTime(CommonUtil.getGmtDate());
                         eipV6Repository.saveAndFlush(eipV6);
+                        eip.setEipV6Id(eipV6Id);
+                        eipRepository.saveAndFlush(eip);
+                        eipEntity.setEipV6Id(null);
+                        eipRepository.saveAndFlush(eipEntity);
                         log.info("del nat successfully. snat:{}, dnat:{},",
                                 snatptId, dnatptId);
                         code = ReturnStatus.SC_OK;
@@ -354,6 +375,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
                             eipV6.setIpv4(ipv4);
                             eipV6.setUpdateTime(CommonUtil.getGmtDate());
                             eipV6Repository.saveAndFlush(eipV6);
+                            eip.setEipV6Id(eipV6Id);
+                            eipRepository.saveAndFlush(eip);
+                            eipEntity.setEipV6Id(null);
+                            eipRepository.saveAndFlush(eipEntity);
                             log.info("add nat successfully. snat:{}, dnat:{},",
                                     newSnatptId, newDnatptId);
                             code = ReturnStatus.SC_OK;
@@ -373,6 +398,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     }
                 }
             }
+
         } catch (Exception e) {
             log.error("eipbindPort exception", e);
 
