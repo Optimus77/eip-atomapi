@@ -80,4 +80,6 @@ public class Eip implements Serializable {
 
     private int isDelete=0;
 
+    private String eipV6Id;
+
 }

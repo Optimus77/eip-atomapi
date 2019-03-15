@@ -23,6 +23,8 @@ public interface EipV6Repository extends JpaRepository<EipV6,String> {
 
     Page<EipV6> findByProjectIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 
+    EipV6 findByIpv4AndProjectIdAndIsDelete(String eipAddress, String projcectid, int isDelete);
+
 
 
 

@@ -1,5 +1,7 @@
 package com.inspur.eipatomapi.entity.fw;
 
+import lombok.Data;
+
 
 public class FwNatV6Excvption extends Exception {
 

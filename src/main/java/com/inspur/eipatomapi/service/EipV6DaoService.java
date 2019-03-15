@@ -9,6 +9,7 @@ import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,7 @@ public class EipV6DaoService {
         NatPtV6 natPtV6;
         try {
 
-            if (eip.getFloatingIp() != null && eip.getFloatingIp() != "") {
+            if (StringUtils.isNotEmpty(eip.getFloatingIp())) {
                 natPtV6 = natPtService.addNatPt(ipv6, ipv4, eipPoolv6.getFireWallId());
                 if (natPtV6 != null) {
                     eipMo.setSnatptId(natPtV6.getNewSnatPtId());
@@ -89,6 +90,13 @@ public class EipV6DaoService {
                     eipMo.setFloatingIp(eip.getFloatingIp());
                 } else {
                     log.error("Failed to add natPtId");
+                    EipPoolV6 eipPoolV6Mo = new EipPoolV6();
+                    eipPoolV6Mo.setFireWallId(eipPoolv6.getFireWallId());
+                    eipPoolV6Mo.setIp(eipPoolv6.getIp());
+                    eipPoolV6Mo.setState("0");
+                    eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
+                    return null;
+
                 }
             }
         } catch (Exception e) {
@@ -96,7 +104,6 @@ public class EipV6DaoService {
         }
 
         eipMo.setIpv6(eipPoolv6.getIp());
-        eipMo.setStatus(HsConstants.DOWN);
         eipMo.setFirewallId(eipPoolv6.getFireWallId());
 
         eipMo.setRegion(eip.getRegion());
@@ -107,6 +114,8 @@ public class EipV6DaoService {
         eipMo.setIsDelete(0);
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
+        eip.setEipV6Id(eipMo.getEipV6Id());
+        eipRepository.saveAndFlush(eip);
 
         log.info("User:{} success allocate eipv6:{}",userId, eipMo.getEipV6Id());
         return eipMo;
@@ -129,7 +138,7 @@ public class EipV6DaoService {
 
 
     @Transactional
-    public ActionResponse deleteEipV6(String  eipv6id) throws KeycloakTokenException {
+    public ActionResponse deleteEipV6(String eipv6id) throws Exception {
         String msg;
         EipV6 eipV6Entity = eipV6Repository.findByEipV6Id(eipv6id);
         if (null == eipV6Entity) {
@@ -145,17 +154,23 @@ public class EipV6DaoService {
         String dnatptId = eipV6Entity.getDnatptId();
         String snatptId = eipV6Entity.getSnatptId();
         String fireWallId = eipV6Entity.getFirewallId();
+        String ipv4 = eipV6Entity.getIpv4();
+        String projectId = eipV6Entity.getProjectId();
         try {
             if (dnatptId != null && snatptId != null) {
                 Boolean flag = natPtService.delNatPt(dnatptId, snatptId, fireWallId);
-                if (flag == true) {
+                if (flag) {
                     log.info("delete natPt success");
                 } else {
-                    log.error("Failed to delete natPtId");
+                    msg = "Failed to delete natPtId";
+                    log.error(msg);
+                    return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
                 }
             }
         } catch (Exception e) {
-            log.error("delete natPtId exception", e);
+            msg = "delete natPtId exception";
+            log.error(msg, e);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
         eipV6Entity.setFloatingIp(null);
         eipV6Entity.setDnatptId(null);
@@ -163,6 +178,9 @@ public class EipV6DaoService {
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
+        Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(ipv4, projectId, 0);
+        eip.setEipV6Id(null);
+        eipRepository.saveAndFlush(eip);
         EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6Entity.getIpv6());
         if(null != eipV6Pool){
             log.error("******************************************************************************");
@@ -200,5 +218,6 @@ public class EipV6DaoService {
         eipV6Repository.saveAndFlush(eipV6);
         return eipV6;
     }
+
 
 }

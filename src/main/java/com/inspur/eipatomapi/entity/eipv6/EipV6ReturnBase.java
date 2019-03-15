@@ -25,7 +25,7 @@ public class EipV6ReturnBase implements Serializable {
     private String status;
 
     @JsonProperty("create_at")
-    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     @Column(name="ipv4")

@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.entity.MethodSbwReturn;
 import com.inspur.eipatomapi.entity.eip.*;
+import com.inspur.eipatomapi.entity.eipv6.EipV6;
 import com.inspur.eipatomapi.entity.sbw.*;
 import com.inspur.eipatomapi.repository.EipRepository;
+import com.inspur.eipatomapi.repository.EipV6Repository;
 import com.inspur.eipatomapi.repository.SbwRepository;
 import com.inspur.eipatomapi.service.ISbwService;
 import com.inspur.eipatomapi.service.QosService;
@@ -40,6 +42,9 @@ public class SbwServiceImpl implements ISbwService {
 
     @Autowired
     private EipRepository eipRepository;
+
+    @Autowired
+    private EipV6Repository eipV6Repository;
 
     @ICPServiceLog
     public ResponseEntity atomCreateSbw(SbwAllocateParam sbwConfig) {
@@ -86,14 +91,13 @@ public class SbwServiceImpl implements ISbwService {
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 if (searchValue != null) {
                     if (searchValue.matches(matche)) {
-                        page = sbwRepository.findBySbwIdAndProjectIdAndIsDelete(searchValue, projectid, 0, pageable);
+                        page = sbwDaoService.findByIdAndIsDelete(searchValue, projectid, 0, pageable);
                     } else {
-                        page = sbwRepository.findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(projectid, 0, searchValue, pageable);
+                        page = sbwDaoService.findByIsDeleteAndSbwName(projectid, 0, searchValue, pageable);
                     }
                 } else {
-                    page = sbwRepository.findByProjectIdAndIsDelete(projectid, 0, pageable);
+                    page = sbwDaoService.findByIsDelete(projectid, 0, pageable);
                 }
-                log.info("page projectId:", page);
                 for (Sbw sbw : page.getContent()) {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
@@ -207,11 +211,6 @@ public class SbwServiceImpl implements ISbwService {
         return new ResponseEntity<>(SbwReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @Override
-    @ICPServiceLog
-    public ResponseEntity getSbwByInstanceId(String instanceId) {
-        return null;
-    }
 
     @Override
     @ICPServiceLog
@@ -413,9 +412,12 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
 
             for (Eip eip: eipList){
-                EipReturnDetail eipReturn = new EipReturnDetail();
-                BeanUtils.copyProperties(eip, eipReturn);
-                eips.add(eipReturn);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eip.getEipAddress(), eip.getProjectId(), 0);
+                if(eipV6 == null){
+                    EipReturnDetail eipReturn = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturn);
+                    eips.add(eipReturn);
+                }
             }
             data.put("eips",eips);
             return new ResponseEntity<>(data, HttpStatus.OK);

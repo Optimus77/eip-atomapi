@@ -21,7 +21,7 @@ class SlbService {
         if(null ==  vmId || vmId.isEmpty()) {
             return false;
         }
-        if(slbUrl.equals("nourl")){
+        if(slbUrl.equals("none")){
             return false;
         }
         String url = slbUrl + vmId;

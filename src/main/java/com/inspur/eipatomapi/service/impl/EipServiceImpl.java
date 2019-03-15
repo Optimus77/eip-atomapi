@@ -6,12 +6,16 @@ import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
+import com.inspur.eipatomapi.entity.eipv6.EipV6;
+import com.inspur.eipatomapi.entity.eipv6.EipV6AllocateParam;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
+import com.inspur.eipatomapi.repository.EipV6Repository;
 import com.inspur.eipatomapi.service.*;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
@@ -21,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotBlank;
 import java.util.*;
 
 @Slf4j
@@ -43,7 +48,11 @@ public class EipServiceImpl implements IEipService {
     private SbwDaoService sbwDaoService;
 
     @Autowired
-    private FireWallCommondService fireWallCommondService;
+    private EipV6Repository eipV6Repository;
+
+    @Autowired
+    private EipV6ServiceImpl eipV6Service;
+
 
     /**
      * create a eip
@@ -77,6 +86,11 @@ public class EipServiceImpl implements IEipService {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
+                if(eipConfig.getIpv6().equalsIgnoreCase("yes")){
+                    EipV6AllocateParam eipV6AllocateParam = new EipV6AllocateParam();
+                    eipV6AllocateParam.setEipId(eipMo.getEipId());
+                    eipV6Service.atomCreateEipV6(eipV6AllocateParam);
+                }
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
@@ -676,7 +690,6 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEipsByBandWidth( String status){
 
         try {
-            fireWallCommondService.execCustomCommand("48c79596-3fb9-414b-ad69-8902de6d047e", "config");
             String projcectid=CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if(projcectid==null){
@@ -686,23 +699,30 @@ public class EipServiceImpl implements IEipService {
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
             ArrayList<Eip> newList = new ArrayList();
+            ArrayList<Eip> newEipList = new ArrayList();
             List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
-
-            for(Eip eip:eipList){
+            for (Eip eip : eipList) {
+                String eipAddress = eip.getEipAddress();
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, projcectid, 0);
+                if (eipV6 == null) {
+                    newEipList.add(eip);
+                }
+            }
+            for (Eip eip : newEipList) {
                 if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                     continue;
                 }
                 if(eip.getBandWidth()<=10){
-                    EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
-                    BeanUtils.copyProperties(eip, eipReturnDetail);
-                    eips.add(eipReturnDetail);
-                    data.put("eip",eips);
-                    newList.add(eip);
-                    data.put("totalElements",newList.size());
-
+                    if(!StringUtils.isNotEmpty(eip.getSharedBandWidthId())){
+                        EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
+                        BeanUtils.copyProperties(eip, eipReturnDetail);
+                        eips.add(eipReturnDetail);
+                        data.put("eip",eips);
+                        newList.add(eip);
+                        data.put("totalElements",newList.size());
+                    }
                 }
             }
-
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,e.getMessage()), HttpStatus.UNAUTHORIZED);
@@ -711,7 +731,4 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
 }
