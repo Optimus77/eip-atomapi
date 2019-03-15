@@ -21,6 +21,7 @@ public  class CodeInfo {
     public static final String EIP_BIND_OPENSTACK_ASSOCIA_FAIL="EIP_BIND_OPENSTACK_ASSOCIA_FAIL";
     public static final String EIP_BIND_OPENSTACK_ERROR ="EIP_BIND_OPENSTACK_ERROR";
     public static final String EIP_BIND_FIREWALL_ERROR  ="EIP_BIND_FIREWALL_ERROR";
+    public static final String EIP_BIND_EIPV6_ERROR = "EIP_BIND_EIPV6_ERROR";
     public static final String EIP_BIND_FIREWALL_DNAT_ERROR="EIP_BIND_FIREWALL_DNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_SNAT_ERROR="EIP_BIND_FIREWALL_SNAT_ERROR";
     public static final String EIP_BIND_FIREWALL_QOS_ERROR="EIP_BIND_FIREWALL_QOS_ERROR";

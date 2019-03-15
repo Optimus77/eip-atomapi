@@ -124,7 +124,7 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
-            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userConfig.get("debugRegionS"));
+            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
             String clientId = jsonObject.getString("clientId");
             if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
@@ -225,7 +225,6 @@ public class CommonUtil {
         if(null == token){
             log.error("User has no token.");
         }else {
-
             org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
             String userId = (String) jsonObject.get("sub");
             if(userId.equals(projectId)){

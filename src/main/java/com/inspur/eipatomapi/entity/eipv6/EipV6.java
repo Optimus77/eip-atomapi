@@ -36,7 +36,7 @@ public class EipV6 {
 
     private String dnatptId;
 
-    private String status ="DOWN";
+    private String status = "ACTIVE";
 
     @Column(name="create_time" ,nullable = false)
     private Date createTime  = new Date(System.currentTimeMillis());
@@ -44,4 +44,5 @@ public class EipV6 {
     private Date updateTime;
 
     private int isDelete=0;
+
 }

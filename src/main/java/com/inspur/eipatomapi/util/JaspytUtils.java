@@ -46,8 +46,8 @@ public class JaspytUtils {
 
     public static void main(String[] args) {
         // 加密
-        System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "hillstone"));
-       // System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "testeip0914"));
+        System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "mazx"));
+        System.out.println(encryptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "mazongxue@123"));
         // 解密
        // System.out.println(decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "TSu5pS+BQFM5TbKzAgzUzQ=="));
         System.out.println(decyptPwd("EbfYkitulv73I2p0mXI50JMXoaxZTKJ7", "98KylQ3eba/2AKXG8m+83g=="));

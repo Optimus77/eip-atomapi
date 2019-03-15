@@ -20,7 +20,7 @@ public class EipAllocateParam implements Serializable {
     //@Pattern(regexp="[0-9-]{1,2}", message="param duration time error.")
     private String duration;
 
-    private String durationUnit = "M";
+    private String ipv6 = "no";
 
     @NotBlank(message = "can not be blank.")
     @TypeConstraint(allowedValues = {"5_bgp","5_sbgp", "5_telcom", "5_union", "BGP"}, message = "Only 5_bgp,5_sbgp, 5_telcom, 5_union, BGP is allowed. ")

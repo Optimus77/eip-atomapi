@@ -34,9 +34,9 @@ public class EipV6Controller {
     @Autowired
     private EipV6ServiceImpl eipV6Service;
 
-    @PostMapping(value = "/eipv6/createNatWithoutEip")
+    @PostMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity atomAllocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
+    public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
         log.info("Allocate a eipv6:{}.", eipV6Config.getEipV6AllocateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
@@ -47,7 +47,8 @@ public class EipV6Controller {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam());
+        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam());
+        return responseEntity;
     }
 
 
@@ -79,7 +80,7 @@ public class EipV6Controller {
 
     @DeleteMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+    public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                         @PathVariable("eipv6_id") String eipV6Id) {
         //Check the parameters
         log.info("Atom delete the Eip:{} ",eipV6Id);
@@ -113,7 +114,7 @@ public class EipV6Controller {
             @ApiImplicitParam(paramType = "path", name = "eipv6_id", value = "the id of eipv6", required = true, dataType = "String"),
     })
     public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id, @Valid @RequestBody EipV6UpdateParamWrapper param, BindingResult result) {
-
+        log.info("update ipv6 ");
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();

@@ -28,10 +28,10 @@ public interface IEipV6Service {
     /**
      * eip bind with port
      * @param id      id
-     * @param eipAddress  ip
+     * @param eipAddress
      * @return        result
      */
-    ResponseEntity eipV6bindPort(String id, String eipAddress);
+    ResponseEntity eipV6bindPort(String id,String eipAddress);
 
 
 }
