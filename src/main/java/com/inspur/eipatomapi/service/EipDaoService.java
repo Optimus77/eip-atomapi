@@ -678,5 +678,9 @@ public class EipDaoService {
         return eipRepository.findByInstanceIdAndIsDelete(instanceId,0);
     }
 
+    public int statisEipCountBySbw(String sbwId, int isDelete){
+        return (int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
+    }
+
 
 }
