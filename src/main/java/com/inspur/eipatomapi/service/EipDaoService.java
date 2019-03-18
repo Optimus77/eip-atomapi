@@ -585,7 +585,7 @@ public class EipDaoService {
             if (eipV6 != null) {
                 NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
                 if (natPtV6 != null) {
-                    eipV6.setFloatingIp(eip.getFloatingIp());
+                    eipV6.setFloatingIp(ipAddr);
                     eipV6.setDnatptId(natPtV6.getNewDnatPtId());
                     eipV6.setSnatptId(natPtV6.getNewSnatPtId());
                     eipV6.setUpdateTime(CommonUtil.getGmtDate());
