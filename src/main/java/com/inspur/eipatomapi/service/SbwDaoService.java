@@ -275,6 +275,11 @@ public class SbwDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
+        if(StringUtils.isNotBlank(eipEntity.getEipV6Id())){
+            log.error("EIP is already bound to eipv6");
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
+        }
         if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
             log.error("User have no write to operate eip:{}", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,

@@ -71,6 +71,7 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
         public static final String EIP_FORBIDDEN ="无权操作";
         public static final String EIP_FORBIDEN_WITH_ID ="无权操作 :{}";
+        public static final String EIP_BIND_EIPV6 ="这个eip已经绑定eipv6";
 
         //Return messages
         public static final String EIP_CREATION_SUCCEEDED="弹性公网IP创建成功";

@@ -51,6 +51,14 @@ public class EipV6DaoService {
     @Transactional
     public EipV6 allocateEipV6(EipV6AllocateParam eipConfig, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
 
+        Eip eip = eipRepository.findByEipId(eipConfig.getEipId());
+        if(null == eip){
+            log.error("Faild to find eip by id:"+eipConfig.getEipId());
+            return null;
+        }
+        if(StringUtils.isNotBlank(eip.getEipV6Id())){
+            return null;
+        }
         if (!eipPoolv6.getState().equals("0")) {
             log.error("Fatal Error! eipv6 state is not free, state:{}.", eipPoolv6.getState());
             eipPoolV6Repository.saveAndFlush(eipPoolv6);
@@ -71,11 +79,7 @@ public class EipV6DaoService {
             return null;
         }
 
-        Eip eip = eipRepository.findByEipId(eipConfig.getEipId());
-        if(null == eip){
-            log.error("Faild to find eip by id:"+eipConfig.getEipId());
-            return null;
-        }
+
         EipV6 eipMo = new EipV6();
         String ipv6 = eipPoolv6.getIp();
         String ipv4 = eip.getEipAddress();
