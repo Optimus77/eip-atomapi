@@ -461,11 +461,11 @@ public class EipDaoService {
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
                 eipEntity.setStatus(HsConstants.ACTIVE);
                 eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+                eipRepository.saveAndFlush(eipEntity);
             }else{
                 log.error("renew eip error {}", fireWallReturn.getMessage());
             }
         }
-        eipRepository.saveAndFlush(eipEntity);
         return ActionResponse.actionSuccess();
     }
 
