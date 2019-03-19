@@ -59,6 +59,9 @@ public class EipV6DaoService {
         if(StringUtils.isNotBlank(eip.getEipV6Id())){
             return null;
         }
+        if(StringUtils.isNotBlank(eip.getSharedBandWidthId())){
+            return null;
+        }
         if (!eipPoolv6.getState().equals("0")) {
             log.error("Fatal Error! eipv6 state is not free, state:{}.", eipPoolv6.getState());
             eipPoolV6Repository.saveAndFlush(eipPoolv6);
