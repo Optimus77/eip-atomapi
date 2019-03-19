@@ -18,8 +18,6 @@ public class SbwAllocateParam implements Serializable {
     //    @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
     private String duration;
 
-    private String durationUnit ;
-
     @Range(min = 5, max = 500, message = "value must be 5-500.")
     private int bandwidth;
 
