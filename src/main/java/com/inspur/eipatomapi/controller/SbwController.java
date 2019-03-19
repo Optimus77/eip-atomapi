@@ -138,9 +138,9 @@ public class SbwController {
     @PostMapping(value = "/sbws/{sbw_id}/renew")
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
-                                   @RequestBody SbwAllocateParam param) {
+                                   @RequestBody SbwUpdateParamWrapper param) {
         log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.toString());
-        return sbwService.renewSbw(sbwId, param);
+        return sbwService.renewSbw(sbwId, param.getSbwUpdateParam());
     }
 
     /**
@@ -228,7 +228,7 @@ public class SbwController {
     })
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-        log.info("removeFromShared sbwId:{}, :{}.", sbwId, param.toString());
+        log.info("update sbwId:{}, :{}.", sbwId, param.toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -243,8 +243,7 @@ public class SbwController {
             log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbwUpdateParam());
             return sbwService.updateSbwBandWidth(sbwId, param.getSbwUpdateParam());
         } else {
-            msg = "param not correct. " +
-                    "to change bandWidth ,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
+            msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }

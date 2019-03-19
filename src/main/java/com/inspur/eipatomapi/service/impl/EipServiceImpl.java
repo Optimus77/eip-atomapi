@@ -25,7 +25,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotBlank;
 import java.util.*;
 
 @Slf4j
@@ -231,7 +230,7 @@ public class EipServiceImpl implements IEipService {
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
-                Page<Eip> page=eipRepository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
+                Page<Eip> page=eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for(Eip eip:page.getContent()){
                     if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                         continue;
@@ -249,7 +248,7 @@ public class EipServiceImpl implements IEipService {
                 data.put("currentPage",currentPage);
                 data.put("currentPagePer",limit);
             }else{
-                List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
+                List<Eip> eipList=eipDaoService.findByUserId(projcectid);
                 for(Eip eip:eipList){
                     if((null != status) && (!eip.getStatus().trim().equalsIgnoreCase(status))){
                         continue;
@@ -664,19 +663,17 @@ public class EipServiceImpl implements IEipService {
             if (actionResponse.isSuccess()){
                 code = ReturnStatus.SC_OK;
                 msg=("remove from shared successfully");
-                log.info(code);
-                log.info(msg);
+                log.info(code+":"+msg);
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
             }else {
                 code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
                 msg = actionResponse.getFault();
-                log.error(code);
-                log.error(msg);
+                log.info(code+":"+msg);
             }
         } catch (Exception e) {
-            log.error("remove from sbw  exception", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
+            log.error("code:{}, msg:{},remove from sbw  exception",code, msg, e);
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -701,7 +698,7 @@ public class EipServiceImpl implements IEipService {
             JSONArray eips=new JSONArray();
             ArrayList<Eip> newList = new ArrayList();
             ArrayList<Eip> newEipList = new ArrayList();
-            List<Eip> eipList=eipDaoService.findByProjectId(projcectid);
+            List<Eip> eipList=eipDaoService.findByUserId(projcectid);
             for (Eip eip : eipList) {
                 String eipAddress = eip.getEipAddress();
                 EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, projcectid, 0);

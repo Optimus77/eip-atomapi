@@ -6,11 +6,9 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.Qos.*;
-import com.inspur.eipatomapi.repository.EipRepository;
-import com.inspur.eipatomapi.util.HsConstants;
-import com.inspur.eipatomapi.util.HsHttpClient;
-import com.inspur.eipatomapi.util.IpUtil;
+import com.inspur.eipatomapi.util.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -22,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ public class QosService {
     private String fwPwd;
 
     @Autowired
-    private EipRepository eipRepository;
+    private FireWallCommondService fwCmdService;
 
     public QosService() {
     }
@@ -354,6 +353,33 @@ public class QosService {
             log.error(e.getMessage());
         }
         return false;
+    }
+    public MethodReturn controlPipe(String fireWallId, String pipeName, Boolean isDisable){
+        String msg = null;
+        String returnStat = "200";
+
+        String cmd =null;
+        if (isDisable){
+            cmd = disablePipe(pipeName);
+        }else {
+            cmd = noDisablePipe(pipeName);
+        }
+         msg = fwCmdService.execCustomCommand(fireWallId, cmd);
+        if (msg ==null){
+            MethodReturnUtil.success();
+        }
+        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute disable qos error:"+msg);
+    }
+
+    public String disablePipe(String pipeName){
+        String disableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
+                +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.DISABLE +HillStoneConfigConsts.ENTER_END;
+        return disableCmd;
+    }
+    public String noDisablePipe(String pipeName){
+        String noDisableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
+                +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.NO_DISABLE +HillStoneConfigConsts.ENTER_END;
+        return noDisableCmd;
     }
 
     //Customize the Strig adapter

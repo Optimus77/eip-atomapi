@@ -63,8 +63,8 @@ public class SbwServiceImpl implements ISbwService {
                 msg = "Failed to create sbw :" + sbwConfig.getRegion();
                 log.error(msg);
             }
-        } catch (KeycloakTokenException e){
-            return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        //} catch (KeycloakTokenException e){
+           // return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch ( Exception e) {
             return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -266,7 +266,7 @@ public class SbwServiceImpl implements ISbwService {
 
 
     @ICPServiceLog
-    public ResponseEntity renewSbw(String sbwId, SbwAllocateParam sbwUpdateInfo) {
+    public ResponseEntity renewSbw(String sbwId, SbwUpdateParam sbwUpdateInfo) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         try {
@@ -321,7 +321,7 @@ public class SbwServiceImpl implements ISbwService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                Page<Eip> page = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId, pageable);
+                Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
@@ -336,7 +336,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put("currentPage", currentPage);
                 data.put("currentPagePer", limit);
             } else {
-                List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
+                List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
                 for (Eip eip : eipList) {
 
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -411,7 +411,7 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
 
             for (Eip eip: eipList){
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eip.getEipAddress(), eip.getProjectId(), 0);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eip.getEipAddress(), eip.getUserId(), 0);
                 if(eipV6 == null){
                     EipReturnDetail eipReturn = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturn);

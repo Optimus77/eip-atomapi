@@ -13,11 +13,13 @@ public class SbwUpdateParam implements Serializable {
     @JsonProperty(value = "bandwidth")
     private int bandWidth;
 
+    private String duration;
+
     @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
     private String billType = "hourlySettlement";
 
     private String sbwName;
-//    @NotBlank(message = "can not be blank.")
+    
     private String region;
 
 }

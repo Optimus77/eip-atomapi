@@ -203,45 +203,47 @@ public class CommonUtil {
 
         return userConfig.get("debugRegionS");
     }
-    public static String getUsername()throws KeycloakTokenException {
+    public static String getProjectName()throws KeycloakTokenException {
 
         String token = getKeycloackToken();
         if(null == token){
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
-        }else{
-            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-            String username = (String) jsonObject.get("preferred_username");
-            if(username!=null){
-                log.info("getUsername:{}", username);
-                return username;
-            }else{
-                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
-            }
         }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String projectName = null;
+        if (jsonObject.has("project")) {
+            projectName = (String) jsonObject.get("project");
+        } else if (jsonObject.has("preferred_username")) {
+            projectName = (String) jsonObject.get("preferred_username");
+        }
+        if (projectName != null) {
+            log.info("getProjectName:{}", projectName);
+        }
+        return projectName;
     }
     public static boolean isAuthoried(String projectId) {
 
         String token = getKeycloackToken();
         if(null == token){
             log.error("User has no token.");
-        }else {
-            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-            String userId = (String) jsonObject.get("sub");
-            if(userId.equals(projectId)){
-                return true;
-            }
-            String clientId = null;
-            if(jsonObject.has("clientId")) {
-                clientId = jsonObject.getString("clientId");
-            }
-            if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-                log.info("Client token, User has right to operation, client:{}", clientId);
-            }else{
-                log.error("User has no right to operation.{}", jsonObject.toString());
-                return false;
-            }
+            return false;
         }
-        return true;
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String userId = (String) jsonObject.get("sub");
+        if(userId.equals(projectId)){
+            return true;
+        }
+        String clientId = null;
+        if(jsonObject.has("clientId")) {
+            clientId = jsonObject.getString("clientId");
+        }
+        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
+            log.info("Client token, User has right to operation, client:{}", clientId);
+            return true;
+        }else{
+            log.error("User has no right to operation.{}", jsonObject.toString());
+            return false;
+        }
     }
 
 
