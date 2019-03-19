@@ -138,7 +138,7 @@ public class EipV6DaoService {
 
 
     @Transactional
-    public ActionResponse deleteEipV6(String eipv6id) throws Exception {
+    public ActionResponse deleteEipV6(String eipv6id)  {
         String msg;
         EipV6 eipV6Entity = eipV6Repository.findByEipV6Id(eipv6id);
         if (null == eipV6Entity) {
@@ -178,7 +178,7 @@ public class EipV6DaoService {
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
-        Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(ipv4, projectId, 0);
+        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(ipv4, projectId, 0);
         eip.setEipV6Id(null);
         eipRepository.saveAndFlush(eip);
         EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6Entity.getIpv6());

@@ -50,7 +50,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public Sbw allocateSbw(SbwAllocateParam sbwConfig) throws KeycloakTokenException {
+    public Sbw allocateSbw(SbwAllocateParam sbwConfig)  {
         Sbw sbwMo = null;
         try {
             String userId = CommonUtil.getUserId();
@@ -266,7 +266,7 @@ public class SbwDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
-        if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
+        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
             log.error("User have no write to operate eip:{}", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
@@ -338,7 +338,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);
         }
 
-        if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
+        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
             log.error("User have no write to delete eip:{}", eipid);
             return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
         }

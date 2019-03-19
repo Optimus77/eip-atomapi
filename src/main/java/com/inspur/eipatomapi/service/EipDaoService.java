@@ -14,13 +14,11 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -108,7 +106,8 @@ public class EipDaoService {
         eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
         String userId = CommonUtil.getUserId();
         log.debug("get tenantid:{} from clientv3", userId);
-        eipMo.setProjectId(userId);
+        eipMo.setUserId(userId);
+        eipMo.setProjectId(CommonUtil.getProjectName());
         eipMo.setIsDelete(0);
 
         eipMo.setCreateTime(CommonUtil.getGmtDate());
@@ -128,7 +127,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
 
-        if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
+        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -148,7 +147,7 @@ public class EipDaoService {
             log.error(msg);
         }
         String eipAddress = eipEntity.getEipAddress();
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getUserId(), 0);
         if (eipV6 != null) {
             eipV6.setIsDelete(1);
             eipV6.setUpdateTime(CommonUtil.getGmtDate());
@@ -200,7 +199,7 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
+        if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -226,15 +225,15 @@ public class EipDaoService {
     @Transactional
     public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId) throws KeycloakTokenException {
         NetFloatingIP floatingIP ;
-        String returnStat = null;
-        String returnMsg = null;
+        String returnStat ;
+        String returnMsg ;
         Eip eip = eipRepository.findByEipId(eipid);
         if (null == eip) {
             log.error("In associate process, failed to find the eip by id:{} ", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
-        if (!eip.getProjectId().equals(CommonUtil.getUserId())) {
+        if (!eip.getUserId().equals(CommonUtil.getUserId())) {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
@@ -270,7 +269,7 @@ public class EipDaoService {
                                                     eip.getBandWidth(), eip.getFirewallId());
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
                 String eipAddress = eip.getEipAddress();
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eip.getProjectId(), 0);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eip.getUserId(), 0);
                 if (eipV6 != null) {
                     NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
                     if (natPtV6 == null) {
@@ -335,7 +334,7 @@ public class EipDaoService {
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip by id:{} ",eipid);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
+        if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
             log.error("User have no write to delete eip:{}", eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -363,7 +362,7 @@ public class EipDaoService {
         }
 
         String eipAddress = eipEntity.getEipAddress();
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getUserId(), 0);
         if (eipV6 != null) {
             Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
             if (!flag) {
@@ -409,11 +408,10 @@ public class EipDaoService {
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
 
-        if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
+        if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
             log.error("User have no write to operate eip:{}", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
-
         }
         if(param.getEipUpdateParam().getBillType().equals(HsConstants.MONTHLY)&&param.getEipUpdateParam().getBandWidth()<eipEntity.getBandWidth()){
             //can’t sub
@@ -466,12 +464,12 @@ public class EipDaoService {
         return ActionResponse.actionSuccess();
     }
 
-    public List<Eip> findByProjectId(String projectId){
-        return eipRepository.findByProjectIdAndIsDelete(projectId,0);
+    public List<Eip> findByUserId(String projectId){
+        return eipRepository.findByUserIdAndIsDelete(projectId,0);
     }
 
     public  Eip findByEipAddress(String eipAddr) throws KeycloakTokenException {
-        return eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipAddr, CommonUtil.getUserId(), 0);
+        return eipRepository.findByEipAddressAndUserIdAndIsDelete(eipAddr, CommonUtil.getUserId(), 0);
     }
 
     public Eip findByInstanceId(String instanceId) {
@@ -564,7 +562,7 @@ public class EipDaoService {
 
         Eip eip = eipRepository.findByEipId(eipId);
         String eipIp = eip.getEipAddress();
-        if (!eip.getProjectId().equals( CommonUtil.getUserId())) {
+        if (!eip.getUserId().equals( CommonUtil.getUserId())) {
             log.error("User have no write to operate eip:{}", eipId);
             return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
@@ -579,7 +577,7 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
         }
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipIp, eip.getProjectId(), 0);
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipIp, eip.getUserId(), 0);
         MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, ipAddr, eipIp, eip.getBandWidth(), eip.getFirewallId());
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
             if (eipV6 != null) {
@@ -626,7 +624,7 @@ public class EipDaoService {
             log.error("unCpcOrSlbBindEip In disassociate process,failed to find the eip by id:{} ", InstanceId);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
-        if(!eipEntity.getProjectId().equals(CommonUtil.getUserId())){
+        if(!eipEntity.getUserId().equals(CommonUtil.getUserId())){
             log.error("User have no write to delete eip:{}", InstanceId);
             return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
         }
@@ -642,7 +640,7 @@ public class EipDaoService {
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
 
         String eipAddress = eipEntity.getEipAddress();
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getProjectId(), 0);
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, eipEntity.getUserId(), 0);
         if (eipV6 != null) {
             Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
             if (!flag) {
