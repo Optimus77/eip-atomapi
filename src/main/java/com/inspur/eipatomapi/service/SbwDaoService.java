@@ -36,9 +36,6 @@ public class SbwDaoService {
     private SbwRepository sbwRepository;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
     private EipRepository eipRepository;
 
     @Autowired
@@ -46,6 +43,9 @@ public class SbwDaoService {
 
     @Autowired
     private FirewallRepository firewallRepository;
+
+    @Autowired
+    private QosService qosService;
 
     public List<Sbw> findByProjectId(String projectId) {
         return sbwRepository.findByProjectIdAndIsDelete(projectId, 0);
@@ -62,9 +62,7 @@ public class SbwDaoService {
             sbwMo.setSharedbandwidthName(sbwConfig.getSbwName());
             sbwMo.setBandWidth(sbwConfig.getBandwidth());
             sbwMo.setBillType(sbwConfig.getBillType());
-            sbwMo.setChargeMode(sbwConfig.getChargemode());
             sbwMo.setDuration(sbwConfig.getDuration());
-            sbwMo.setDurationUnit(sbwConfig.getDurationUnit());
             sbwMo.setProjectId(userId);
             sbwMo.setIsDelete(0);
             sbwMo.setCreateTime(CommonUtil.getGmtDate());
@@ -162,14 +160,26 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        sbw.setUpdateTime(CommonUtil.getGmtDate());
-        sbwRepository.saveAndFlush(sbw);
-        return ActionResponse.actionSuccess();
+        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
+        if (firewall == null){
+            msg = "Can't find firewall by sbw region:{}"+ sbw.getRegion();
+            log.error("Can't find firewall by sbw region:{}, sbwId:{}" + sbw.getRegion() +sbw.getSbwId() );
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        MethodReturn methodReturn = qosService.controlPipe(firewall.getId(), sbwId, true);
+        if (methodReturn.getHttpCode() == HttpStatus.SC_OK){
+            sbw.setUpdateTime(CommonUtil.getGmtDate());
+            sbw.setStatus("STOP");
+            sbwRepository.saveAndFlush(sbw);
+            return ActionResponse.actionSuccess();
+        }else {
+            return ActionResponse.actionFailed(methodReturn.getMessage(), methodReturn.getHttpCode());
+        }
     }
 
     @Transactional
     public ActionResponse reNewSbwEntity(String sbwId, String renewTime) {
-
+        String msg;
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
             return ActionResponse.actionFailed("Can not find the sbw by id:{}" + sbwId, HttpStatus.SC_NOT_FOUND);
@@ -177,14 +187,24 @@ public class SbwDaoService {
         if (!sbw.getBillType().equals(HsConstants.MONTHLY)) {
             return ActionResponse.actionFailed("Non - packet year - and - month Shared bandWidth cannot be renewed:{}" + sbwId, HttpStatus.SC_NOT_FOUND);
         }
+        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
+        if (firewall == null){
+            msg = "Can't find firewall by sbw region:{}"+ sbw.getRegion();
+            log.error("Can't find firewall by sbw region:{}, sbwId:{}" + sbw.getRegion() +sbw.getSbwId() );
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
         String oldTime = sbw.getDuration();
         int newTime = Integer.valueOf(renewTime) + Integer.valueOf(oldTime);
         sbw.setDuration(String.valueOf(newTime));
-        if ((newTime > 0)) {
+        MethodReturn methodReturn = qosService.controlPipe(firewall.getId(), sbwId, false);
+        if (methodReturn.getHttpCode() == HttpStatus.SC_OK){
             sbw.setUpdateTime(CommonUtil.getGmtDate());
+            sbw.setStatus("ACTIVE");
+            sbwRepository.saveAndFlush(sbw);
+            return ActionResponse.actionSuccess();
+        }else {
+            return ActionResponse.actionFailed(methodReturn.getMessage(), methodReturn.getHttpCode());
         }
-        sbwRepository.saveAndFlush(sbw);
-        return ActionResponse.actionSuccess();
     }
 
     @Transactional

@@ -266,7 +266,7 @@ public class SbwServiceImpl implements ISbwService {
 
 
     @ICPServiceLog
-    public ResponseEntity renewSbw(String sbwId, SbwAllocateParam sbwUpdateInfo) {
+    public ResponseEntity renewSbw(String sbwId, SbwUpdateParam sbwUpdateInfo) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         try {
