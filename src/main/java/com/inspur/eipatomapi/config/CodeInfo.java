@@ -71,6 +71,7 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="包年包月带宽只能调大";
         public static final String EIP_FORBIDDEN ="无权操作";
         public static final String EIP_FORBIDEN_WITH_ID ="无权操作 :{}";
+        public static final String EIP_BIND_EIPV6_ERROR ="这个eip已经绑定eipv6";
 
         //Return messages
         public static final String EIP_CREATION_SUCCEEDED="弹性公网IP创建成功";
@@ -151,6 +152,7 @@ public  class CodeInfo {
         public static final String EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR="the bandWidth must bigger than orgin when choose prepaid modle";
         public static final String EIP_FORBIDDEN ="Forbidden to operate.";
         public static final String EIP_FORBIDEN_WITH_ID ="Forbidden to operate,id:{}.";
+        public static final String EIP_BIND_EIPV6_ERROR ="EIP is already bound to eipv6";
         //Return messages
         public static final String EIP_CREATION_SUCCEEDED="Eip creation succeeded";
         public static final String EIP_DELETE_SUCCEEDED="Eip deletion succeeded";

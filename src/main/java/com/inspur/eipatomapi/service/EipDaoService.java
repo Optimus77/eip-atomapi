@@ -10,6 +10,7 @@ import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -199,6 +200,9 @@ public class EipDaoService {
             msg= "Faild to find eip by id:"+eipid+" ";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        if(StringUtils.isNotBlank(eipEntity.getEipV6Id())){
+            return ActionResponse.actionFailed(CodeInfo.EIP_BIND_EIPV6_ERROR, HttpStatus.SC_NOT_FOUND);
         }
         if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
@@ -408,6 +412,11 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
+        if(StringUtils.isNotBlank(eipEntity.getEipV6Id())){
+            log.error("EIP is already bound to eipv6");
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
+        }
 
         if(!CommonUtil.isAuthoried(eipEntity.getProjectId())){
             log.error("User have no write to operate eip:{}", eipid);
@@ -585,7 +594,7 @@ public class EipDaoService {
             if (eipV6 != null) {
                 NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
                 if (natPtV6 != null) {
-                    eipV6.setFloatingIp(eip.getFloatingIp());
+                    eipV6.setFloatingIp(ipAddr);
                     eipV6.setDnatptId(natPtV6.getNewDnatPtId());
                     eipV6.setSnatptId(natPtV6.getNewSnatPtId());
                     eipV6.setUpdateTime(CommonUtil.getGmtDate());

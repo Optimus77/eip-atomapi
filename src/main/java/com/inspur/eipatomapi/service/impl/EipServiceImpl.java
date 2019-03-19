@@ -177,6 +177,7 @@ public class EipServiceImpl implements IEipService {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
+
             String addTime = eipUpdateInfo.getDuration();
             if(null == addTime){
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);

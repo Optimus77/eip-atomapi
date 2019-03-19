@@ -51,6 +51,17 @@ public class EipV6DaoService {
     @Transactional
     public EipV6 allocateEipV6(EipV6AllocateParam eipConfig, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
 
+        Eip eip = eipRepository.findByEipId(eipConfig.getEipId());
+        if(null == eip){
+            log.error("Faild to find eip by id:"+eipConfig.getEipId());
+            return null;
+        }
+        if(StringUtils.isNotBlank(eip.getEipV6Id())){
+            return null;
+        }
+        if(StringUtils.isNotBlank(eip.getSharedBandWidthId())){
+            return null;
+        }
         if (!eipPoolv6.getState().equals("0")) {
             log.error("Fatal Error! eipv6 state is not free, state:{}.", eipPoolv6.getState());
             eipPoolV6Repository.saveAndFlush(eipPoolv6);
@@ -71,11 +82,7 @@ public class EipV6DaoService {
             return null;
         }
 
-        Eip eip = eipRepository.findByEipId(eipConfig.getEipId());
-        if(null == eip){
-            log.error("Faild to find eip by id:"+eipConfig.getEipId());
-            return null;
-        }
+
         EipV6 eipMo = new EipV6();
         String ipv6 = eipPoolv6.getIp();
         String ipv4 = eip.getEipAddress();
@@ -115,6 +122,7 @@ public class EipV6DaoService {
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
         eip.setEipV6Id(eipMo.getEipV6Id());
+        eip.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
 
         log.info("User:{} success allocate eipv6:{}",userId, eipMo.getEipV6Id());
@@ -179,7 +187,13 @@ public class EipV6DaoService {
         eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
         Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(ipv4, projectId, 0);
+        if(eip == null){
+            msg = "Failed to fetch eip based on ipv4";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
+        }
         eip.setEipV6Id(null);
+        eip.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
         EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6Entity.getIpv6());
         if(null != eipV6Pool){
