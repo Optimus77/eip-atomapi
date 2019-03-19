@@ -85,7 +85,6 @@ public class FireWallCommondService {
             String line;
             String retStr = null;
             while ((line = stdout.readLine()) != null) {
-                System.out.println(line);
                 if ((null != expectStr && line.contains(expectStr)) ||
                         (line.contains("Error"))) {
                     retStr = line;
