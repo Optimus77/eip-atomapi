@@ -454,7 +454,7 @@ public class EipDaoService {
         if (null == eipEntity) {
             return ActionResponse.actionFailed("Can not find the eip by id:{}"+eipId, HttpStatus.SC_NOT_FOUND);
         }
-        if((null ==eipEntity.getSnatId()) && (null == eipEntity.getDnatId())){
+        if((null ==eipEntity.getSnatId()) && (null == eipEntity.getDnatId()) && (null != eipEntity.getFloatingIp())){
             MethodReturn fireWallReturn =  firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
                     eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId() );
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
