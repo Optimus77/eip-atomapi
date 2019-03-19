@@ -20,7 +20,7 @@ public class SbwReturnDetail implements Serializable {
     private String billType;
 
     @JsonProperty("chargemode")
-    private String chargeMode;
+    private String chargeMode ="Bandwidth";
 
     @JsonProperty("bandwidth")
     private int bandWidth;

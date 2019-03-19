@@ -176,6 +176,7 @@ public class EipServiceImpl implements IEipService {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
+
             String addTime = eipUpdateInfo.getDuration();
             if(null == addTime){
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);
@@ -662,19 +663,17 @@ public class EipServiceImpl implements IEipService {
             if (actionResponse.isSuccess()){
                 code = ReturnStatus.SC_OK;
                 msg=("remove from shared successfully");
-                log.info(code);
-                log.info(msg);
+                log.info(code+":"+msg);
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
             }else {
                 code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
                 msg = actionResponse.getFault();
-                log.error(code);
-                log.error(msg);
+                log.info(code+":"+msg);
             }
         } catch (Exception e) {
-            log.error("remove from sbw  exception", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
+            log.error("code:{}, msg:{},remove from sbw  exception",code, msg, e);
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -101,13 +101,9 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
                                         @PathVariable("sbw_id") String sbwId) {
-        //Check the parameters
         log.info("Atom delete the sbw:{} ", sbwId);
         return sbwService.atomDeleteSbw(sbwId);
-
     }
-
-
     /**
      * get sbw instance detail
      *
@@ -142,9 +138,9 @@ public class SbwController {
     @PostMapping(value = "/sbws/{sbw_id}/renew")
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
-                                   @RequestBody SbwAllocateParam param) {
+                                   @RequestBody SbwUpdateParamWrapper param) {
         log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.toString());
-        return sbwService.renewSbw(sbwId, param);
+        return sbwService.renewSbw(sbwId, param.getSbwUpdateParam());
     }
 
     /**
@@ -161,7 +157,7 @@ public class SbwController {
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
                                      @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        log.info("SbwController sbwListEip currentPageIndex:{}, currentPageSize:{}", pageIndex, pageSize);
+        log.info("SbwController ListEip in Sbw currentPageIndex:{}, currentPageSize:{}", pageIndex, pageSize);
         if (pageIndex == null || pageSize == null) {
             pageIndex = "0";
             pageSize = "0";
@@ -204,7 +200,7 @@ public class SbwController {
         }
         String msg;
         if (param.getSbwUpdateParam().getSbwName() !=null && !"".equalsIgnoreCase(param.getSbwUpdateParam().getSbwName())){
-            return sbwService.renameSbw(sbwId, param);
+            return sbwService.renameSbw(sbwId, param.getSbwUpdateParam());
         }else {
             msg="new sbw name must not be null";
         }
@@ -226,13 +222,13 @@ public class SbwController {
 
     @ICPControllerLog
     @PutMapping(value = "/sbws/{sbw_id}/update", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "updateSBWconfig", notes = "post")
+    @ApiOperation(value = "update Sbw config", notes = "post")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip", value = "the sbw wrapper ", required = true, dataType = "json"),
     })
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-        log.info("removeFromShared sbwId:{}, :{}.", sbwId, param.toString());
+        log.info("update sbwId:{}, :{}.", sbwId, param.toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -243,16 +239,11 @@ public class SbwController {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
         String msg ;
-
         if (param.getSbwUpdateParam().getBillType() != null ) {
-
-            log.info("update bandwidth, sbwid:{}, param:{} ", sbwId, param.getSbwUpdateParam());
-            return sbwService.updateSbwBandWidth(sbwId, param);
-
+            log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbwUpdateParam());
+            return sbwService.updateSbwBandWidth(sbwId, param.getSbwUpdateParam());
         } else {
-            msg = "param not correct. " +
-                    "to change bindwidht,body param like {\"sbw\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}" +
-                    "";
+            msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }
