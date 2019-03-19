@@ -87,7 +87,7 @@ public class NatPtService {
     }
 
 
-    public String addSnatPt(String ipv6, String ipv4, String fireWallId) throws Exception {
+    private String addSnatPt(String ipv6, String ipv4, String fireWallId) throws Exception {
         String strSnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
