@@ -229,7 +229,7 @@ public class EipDaoService {
     @Transactional
     public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId) throws KeycloakTokenException {
         NetFloatingIP floatingIP ;
-        String returnStat ;
+        String returnStat;
         String returnMsg ;
         Eip eip = eipRepository.findByEipId(eipid);
         if (null == eip) {
