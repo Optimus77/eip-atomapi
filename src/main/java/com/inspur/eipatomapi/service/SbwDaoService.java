@@ -423,17 +423,5 @@ public class SbwDaoService {
     }
 
 
-    public synchronized Page<Sbw> findByIdAndIsDelete(String sbwId, String userId, int isDelete, Pageable pageable) {
-        return sbwRepository.findBySbwIdAndProjectIdAndIsDelete(sbwId, userId, 0, pageable);
-    }
-
-    public synchronized Page<Sbw> findByIsDeleteAndSbwName(String userId, int isDelete, String name, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(userId, 0, name, pageable);
-    }
-
-    public synchronized Page<Sbw> findByIsDelete(String userId, int isDelte, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDelete(userId, 0, pageable);
-    }
-
 
 }
