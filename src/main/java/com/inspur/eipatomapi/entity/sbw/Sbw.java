@@ -19,17 +19,10 @@ public class Sbw implements Serializable {
 
     private String sharedbandwidthName;
 
-    private String instanceId;
-
-    private String instanceType;
     //计费方式
     private String billType = "monthly";
-    //付费模式
-    private String chargeMode = "BandWidth";
 
     private String duration;
-
-    private String durationUnit = "M";
 
     private Integer bandWidth;
 
@@ -46,4 +39,6 @@ public class Sbw implements Serializable {
     private int isDelete =0;
 
     private String pipeId;
+
+    private String status ="ACTIVE";      //
 }

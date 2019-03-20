@@ -9,8 +9,8 @@ import com.inspur.eipatomapi.entity.sbw.*;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.EipV6Repository;
 import com.inspur.eipatomapi.repository.SbwRepository;
+import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.ISbwService;
-import com.inspur.eipatomapi.service.QosService;
 import com.inspur.eipatomapi.service.SbwDaoService;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
@@ -38,7 +38,7 @@ public class SbwServiceImpl implements ISbwService {
     private SbwDaoService sbwDaoService;
 
     @Autowired
-    private QosService qosService;
+    private EipDaoService eipDaoService;
 
     @Autowired
     private EipRepository eipRepository;
@@ -59,12 +59,12 @@ public class SbwServiceImpl implements ISbwService {
                 log.info("Atom create a sbw success:{}", sbwMo);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
             } else {
-                code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 msg = "Failed to create sbw :" + sbwConfig.getRegion();
                 log.error(msg);
             }
-        } catch (KeycloakTokenException e){
-            return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        //} catch (KeycloakTokenException e){
+           // return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch ( Exception e) {
             return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -184,7 +184,7 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity updateSbwBandWidth(String id, SbwUpdateParamWrapper param) {
+    public ResponseEntity updateSbwBandWidth(String id, SbwUpdateParam param) {
         String code;
         String msg;
         try {
@@ -199,8 +199,8 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 Sbw sbwEntity=(Sbw)result.getSbw();
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
-                long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwEntity.getSbwId(), 0);
-                sbwReturnDetail.setIpCount((int)count);
+                int count = eipDaoService.statisEipCountBySbw(sbwEntity.getSbwId(), 0);
+                sbwReturnDetail.setIpCount(count);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
@@ -266,7 +266,7 @@ public class SbwServiceImpl implements ISbwService {
 
 
     @ICPServiceLog
-    public ResponseEntity renewSbw(String sbwId, SbwAllocateParam sbwUpdateInfo) {
+    public ResponseEntity renewSbw(String sbwId, SbwUpdateParam sbwUpdateInfo) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         try {
@@ -300,7 +300,7 @@ public class SbwServiceImpl implements ISbwService {
 
 
     /**
-     * get eipList by sbwid
+     * get eipList in sbw :获取某共享带宽的EIP列表
      *
      * @param sbwId sbw id
      * @param currentPage page
@@ -311,7 +311,7 @@ public class SbwServiceImpl implements ISbwService {
         String projcectid ;
         try {
             projcectid = CommonUtil.getUserId();
-            log.debug("listEips  of user, userId:{}", projcectid);
+            log.debug("list Eips  in one sbw of user, userId:{}", projcectid);
             if (projcectid == null) {
                 return new ResponseEntity<>(SbwReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
@@ -321,9 +321,8 @@ public class SbwServiceImpl implements ISbwService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                Page<Eip> page = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId, pageable);
+                Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {
-
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
@@ -337,7 +336,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put("currentPage", currentPage);
                 data.put("currentPagePer", limit);
             } else {
-                List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
+                List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
                 for (Eip eip : eipList) {
 
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -368,11 +367,11 @@ public class SbwServiceImpl implements ISbwService {
      *
      * @return ret
      */
-    public ResponseEntity renameSbw(String sbwId, SbwUpdateParamWrapper wrapper) {
+    public ResponseEntity renameSbw(String sbwId, SbwUpdateParam param) {
         String code;
         String msg;
         try {
-            JSONObject result = sbwDaoService.renameSbw(sbwId, wrapper);
+            JSONObject result = sbwDaoService.renameSbw(sbwId, param);
             if (!result.getString("interCode").equals(ReturnStatus.SC_OK)) {
                 code = result.getString("interCode");
                 int httpResponseCode = result.getInteger("httpCode");
@@ -412,7 +411,7 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
 
             for (Eip eip: eipList){
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eip.getEipAddress(), eip.getProjectId(), 0);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eip.getEipAddress(), eip.getUserId(), 0);
                 if(eipV6 == null){
                     EipReturnDetail eipReturn = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturn);

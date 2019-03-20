@@ -77,13 +77,13 @@ logging:
 slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/
 
 #administrator rights
-openstackIp: 10.110.25.117
-openstackUrl: https://10.110.25.117:5000/v3
-userNameS: admin
-passwordS: 89rqdHLMN5rm0x1P
-projectIdS: 140785795de64945b02363661eb9e769
+openstackIp: 10.110.28.35
+openstackUrl: https://10.110.28.35:5000/v3
+userNameS: admineip
+passwordS: eip1qaz2wsx
+projectIdS: f9ba41b61a6146c1a392815ea088c437
 userDomainIdS: default
-debugRegionS: RegionOne
+debugRegionS: inspurtest
 
 
 

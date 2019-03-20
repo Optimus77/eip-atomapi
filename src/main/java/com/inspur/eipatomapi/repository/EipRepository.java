@@ -21,21 +21,21 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     Eip findByInstanceIdAndIsDelete (String instanceId,int isDelete);
 
-    List<Eip> findByProjectIdAndIsDelete(String projectId,int isDelete);
+    List<Eip> findByUserIdAndIsDelete(String projectId, int isDelete);
 
-    Eip findByEipAddressAndProjectIdAndIsDelete(String ipAddress, String userId, int isDelete);
+    Eip findByEipAddressAndUserIdAndIsDelete(String ipAddress, String userId, int isDelete);
 
     Eip findByEipAddressAndIsDelete(String ipAddress, int isDelete);
 
-    Page<Eip> findByProjectIdAndIsDelete(String projectId, int isDelete,Pageable pageable);
+    Page<Eip> findByUserIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 
     List<Eip> findBySharedBandWidthIdAndIsDelete(String sharedBandWidthId, int isDelete);
 
     long countBySharedBandWidthIdAndIsDelete(String sharedBandWidthId, int isDelete);
 
-    Page<Eip> findByProjectIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId, Pageable pageable);
+    Page<Eip> findByUserIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId, Pageable pageable);
 
-    List<Eip> findByProjectIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId);
+    List<Eip> findByUserIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId);
 
     @Query(value = "SELECT * from eip where project_id=?1 and is_delete=?2 and bill_type=?3 and(shared_band_width_id is null or shared_band_width_id=?4)",nativeQuery = true)
     List<Eip> getEipListNotBinding(String projectId, int isDelete,String billType, String sbwId);

@@ -211,6 +211,7 @@ public class HsConstants {
 	public static final String FALSE = "false";
 	public static final String TRUE = "true";
 	public static final String BAND_WIDTH = "bandWidth";
+	public static final String IN_BAND_WIDTH = "inBandWidth";
 	public static final String REASON = "reason";
 	public static final String HTTP_CODE = "httpCode";
 	public static final String INTER_CODE = "interCode";
