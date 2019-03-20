@@ -15,15 +15,15 @@ public interface EipV6Repository extends JpaRepository<EipV6,String> {
 
     EipV6 findByEipV6Id(String id);
 
-    List<EipV6> findByProjectIdAndIsDelete(String projectId, int isDelete);
+    List<EipV6> findByUserIdAndIsDelete(String projectId, int isDelete);
 
-    EipV6 findByIpv6AndProjectIdAndIsDelete(String ipAddress, String userId, int isDelete);
+    EipV6 findByIpv6AndUserIdAndIsDelete(String ipAddress, String userId, int isDelete);
 
     EipV6 findByIpv6AndIsDelete(String ipAddress, int isDelete);
 
-    Page<EipV6> findByProjectIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
+    Page<EipV6> findByUserIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 
-    EipV6 findByIpv4AndProjectIdAndIsDelete(String eipAddress, String projcectid, int isDelete);
+    EipV6 findByIpv4AndUserIdAndIsDelete(String eipAddress, String projcectid, int isDelete);
 
 
 

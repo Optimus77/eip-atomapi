@@ -93,9 +93,9 @@ public class EipV6ServiceImpl implements IEipV6Service {
     public ResponseEntity listEipV6s(int currentPage,int limit, String status){
 
         try {
-            String projcectid=CommonUtil.getUserId();
-            log.debug("listEipV6s  of user, userId:{}", projcectid);
-            if(projcectid==null){
+            String userId=CommonUtil.getUserId();
+            log.debug("listEipV6s  of user, userId:{}", userId);
+            if(userId==null){
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
@@ -104,10 +104,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
             if(currentPage!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
-                Page<EipV6> page=eipV6Repository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
+                Page<EipV6> page=eipV6Repository.findByUserIdAndIsDelete(userId, 0, pageable);
                 for(EipV6 eipV6:page.getContent()){
                     String eipV4Address = eipV6.getIpv4();
-                    String projectId = eipV6.getProjectId();
+                    String projectId = eipV6.getUserId();
                     if (eipV4Address == null || eipV4Address.equals("")) {
                         log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
@@ -141,10 +141,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 data.put("totalPages",page.getTotalPages());
                 data.put("eipv6s", eipv6s);
             }else{
-                List<EipV6> eipV6List=eipV6DaoService.findEipV6ByProjectId(projcectid);
+                List<EipV6> eipV6List=eipV6DaoService.findEipV6ByUserId(userId);
                 for(EipV6 eipV6:eipV6List){
                     String eipV4Address = eipV6.getIpv4();
-                    String projectId = eipV6.getProjectId();
+                    String projectId = eipV6.getUserId();
                     if (eipV4Address == null || eipV4Address.equals("")) {
                         log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
@@ -227,7 +227,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
             EipV6 eipV6Entity = eipV6DaoService.getEipV6ById(eipV6Id);
             if (null != eipV6Entity) {
                 String eipV4Address = eipV6Entity.getIpv4();
-                String projectId = eipV6Entity.getProjectId();
+                String projectId = eipV6Entity.getUserId();
                 if (eipV4Address == null || eipV4Address.equals("")) {
                     log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
                     return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
@@ -281,7 +281,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
         }
         ipv6 = eipV6.getIpv6();
         String oldIpv4 = eipV6.getIpv4();
-        String projectId = eipV6.getProjectId();
+        String projectId = eipV6.getUserId();
         try {
             Eip eipEntity = eipRepository.findByEipAddressAndUserIdAndIsDelete(ipv4, projectId, 0);
             if (eipEntity == null) {

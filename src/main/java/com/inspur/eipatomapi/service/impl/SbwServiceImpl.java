@@ -400,17 +400,20 @@ public class SbwServiceImpl implements ISbwService {
      */
     public ResponseEntity getOtherEips(String sbwId) {
         try {
-            String projcectid=CommonUtil.getUserId();
-            if (projcectid == null) {
+            String userId=CommonUtil.getUserId();
+            if (userId == null) {
                 return new ResponseEntity<>(SbwReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
-            List<Eip> eipList = eipRepository.getEipListNotBinding(projcectid,0,HsConstants.HOURLYSETTLEMENT, "");
-            log.info("get the other eips size:{}",eipList.size());
+            List<Eip> eipList = eipRepository.getEipListNotBinding(userId,0,HsConstants.HOURLYSETTLEMENT, "");
+            log.info("get the other eips size:{}",eipList.toString());
             JSONArray eips = new JSONArray();
             JSONObject data = new JSONObject();
 
             for (Eip eip: eipList){
+                if (null != eip.getSharedBandWidthId() && eip.getSharedBandWidthId().equals(sbwId)){
+                    continue;
+                }
                 EipReturnDetail eipReturn = new EipReturnDetail();
                 BeanUtils.copyProperties(eip, eipReturn);
                 eips.add(eipReturn);
