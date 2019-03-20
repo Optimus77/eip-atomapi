@@ -411,12 +411,9 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
 
             for (Eip eip: eipList){
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eip.getEipAddress(), eip.getUserId(), 0);
-                if(eipV6 == null){
-                    EipReturnDetail eipReturn = new EipReturnDetail();
-                    BeanUtils.copyProperties(eip, eipReturn);
-                    eips.add(eipReturn);
-                }
+                EipReturnDetail eipReturn = new EipReturnDetail();
+                BeanUtils.copyProperties(eip, eipReturn);
+                eips.add(eipReturn);
             }
             data.put("eips",eips);
             return new ResponseEntity<>(data, HttpStatus.OK);
