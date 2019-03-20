@@ -162,6 +162,11 @@ class FirewallService {
             map.put("mgNetCardName", fwBean.getParam3());
             map.put("serNetCardName", fwBean.getParam2());
             map.put("bandWidth", bandwidth);
+            String inBandWidth = "50";
+            if(Integer.valueOf(bandwidth)>50) {
+                inBandWidth = bandwidth;
+            }
+            map.put("inBandWidth", inBandWidth);
             HashMap<String, String> res = qs.createQosPipe(map);
             JSONObject resJson = (JSONObject) JSONObject.toJSON(res);
             if (resJson.getBoolean(HsConstants.SUCCESS)) {
