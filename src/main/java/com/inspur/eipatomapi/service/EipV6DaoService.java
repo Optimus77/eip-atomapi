@@ -117,7 +117,7 @@ public class EipV6DaoService {
         eipMo.setIpv4(eip.getEipAddress());
         String userId = CommonUtil.getUserId();
         log.debug("get tenantid:{} from clientv3", userId);
-        eipMo.setProjectId(userId);
+        eipMo.setUserId(userId);
         eipMo.setIsDelete(0);
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
@@ -154,7 +154,7 @@ public class EipV6DaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.isAuthoried(eipV6Entity.getProjectId())){
+        if(!CommonUtil.isAuthoried(eipV6Entity.getUserId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipv6id);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -163,7 +163,7 @@ public class EipV6DaoService {
         String snatptId = eipV6Entity.getSnatptId();
         String fireWallId = eipV6Entity.getFirewallId();
         String ipv4 = eipV6Entity.getIpv4();
-        String projectId = eipV6Entity.getProjectId();
+        String projectId = eipV6Entity.getUserId();
         try {
             if (dnatptId != null && snatptId != null) {
                 Boolean flag = natPtService.delNatPt(dnatptId, snatptId, fireWallId);
