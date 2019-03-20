@@ -26,7 +26,7 @@ public class EipV6 {
 
     private String floatingIp;
 
-    private String projectId;
+    private String userId;
 
     private String region;
 
