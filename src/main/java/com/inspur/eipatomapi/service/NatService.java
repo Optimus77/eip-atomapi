@@ -18,23 +18,23 @@ import java.util.Map;
 
 @Slf4j
 public class NatService  {
-//
-//    public List<FwSnatVo> getSnat(FwQuery query, FwBaseObject manage) {
-//        List<FwSnatVo> snats = new ArrayList<>();
-//        Gson gson = new Gson();
-//
-//        try {
-//            List<NameValuePair> params = new ArrayList<>();
-//            params.add(new BasicNameValuePair("query", gson.toJson(query)));
-//            String retr = HsHttpClient.hsHttpGet(manage.getManageIP(), null, manage.getManageUser(), manage.getManagePwd(), "/rest/Snat?isDynamic=0&" + URLEncodedUtils.format(params, "UTF-8"));
-//            JSONObject jo = new JSONObject(retr);
-//            jo.getBoolean(HsConstants.SUCCESS);
-//            return snats;
-//        } catch (Exception var8) {
-//            log.error("Exception when get snat.",var8);
-//            return snats;
-//        }
-//    }
+
+    public List<FwSnatVo> getSnat(FwQuery query, FwBaseObject manage) {
+        List<FwSnatVo> snats = new ArrayList<>();
+        Gson gson = new Gson();
+
+        try {
+            List<NameValuePair> params = new ArrayList<>();
+            params.add(new BasicNameValuePair("query", gson.toJson(query)));
+            String retr = HsHttpClient.hsHttpGet(manage.getManageIP(), null, manage.getManageUser(), manage.getManagePwd(), "/rest/Snat?isDynamic=0&" + URLEncodedUtils.format(params, "UTF-8"));
+            JSONObject jo = new JSONObject(retr);
+            jo.getBoolean(HsConstants.SUCCESS);
+            return snats;
+        } catch (Exception var8) {
+            log.error("Exception when get snat.",var8);
+            return snats;
+        }
+    }
 
     FwResponseBody addPSnat(FwSnatVo snat) {
         FwResponseBody body = new FwResponseBody();

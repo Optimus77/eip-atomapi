@@ -701,7 +701,7 @@ public class EipServiceImpl implements IEipService {
             List<Eip> eipList=eipDaoService.findByUserId(projcectid);
             for (Eip eip : eipList) {
                 String eipAddress = eip.getEipAddress();
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, projcectid, 0);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, projcectid, 0);
                 if (eipV6 == null) {
                     newEipList.add(eip);
                 }

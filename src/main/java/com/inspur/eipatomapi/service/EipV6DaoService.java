@@ -140,8 +140,8 @@ public class EipV6DaoService {
     }
 
 
-    public List<EipV6> findEipV6ByProjectId(String projectId){
-        return eipV6Repository.findByProjectIdAndIsDelete(projectId,0);
+    public List<EipV6> findEipV6ByUserId(String projectId){
+        return eipV6Repository.findByUserIdAndIsDelete(projectId,0);
     }
 
 
