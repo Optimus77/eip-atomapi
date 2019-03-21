@@ -41,9 +41,6 @@ public class EipServiceImpl implements IEipService {
     private EipDaoService eipDaoService;
 
     @Autowired
-    private PortService portService;
-
-    @Autowired
     private SbwDaoService sbwDaoService;
 
     @Autowired
@@ -512,39 +509,6 @@ public class EipServiceImpl implements IEipService {
         }
         log.error(msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-
-    @Override
-    public ResponseEntity listServer(String region, String tag){
-        log.info("listServer start execute");
-
-        try {
-            OSClient.OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
-            List<NovaServerEntity> serverList= portService.listServerByTags(tag, osClientV3);
-            JSONArray dataArray=new JSONArray();
-            for(NovaServerEntity server:serverList){
-                log.debug("Server listShareBandWidth , name:{}.",server.getName());
-                String serverId = server.getId();
-                if(null == eipDaoService.findByInstanceId(serverId)) {
-                    List<String> portIds = neutronService.getPortIdByServerId(serverId, osClientV3);
-                    JSONObject data = new JSONObject();
-                    data.put("id", server.getId());
-                    data.put("name", server.getName());
-                    for (int i = 0; i < portIds.size(); i++) {
-                        data.put("port" + i, portIds.get(i));
-                    }
-                    dataArray.add(data);
-                }
-            }
-            return new ResponseEntity<>(ReturnMsgUtil.success(dataArray), HttpStatus.OK);
-        }catch (Exception e){
-            log.error("Exception in listServer", e);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
     }
 
 
