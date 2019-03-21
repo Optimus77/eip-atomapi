@@ -414,9 +414,12 @@ public class SbwServiceImpl implements ISbwService {
                 if (null != eip.getSharedBandWidthId() && eip.getSharedBandWidthId().equals(sbwId)){
                     continue;
                 }
-                EipReturnDetail eipReturn = new EipReturnDetail();
-                BeanUtils.copyProperties(eip, eipReturn);
-                eips.add(eipReturn);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eip.getEipAddress(), eip.getUserId(), 0);
+                if(eipV6 == null){
+                    EipReturnDetail eipReturn = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturn);
+                    eips.add(eipReturn);
+                }
             }
             data.put("eips",eips);
             return new ResponseEntity<>(data, HttpStatus.OK);

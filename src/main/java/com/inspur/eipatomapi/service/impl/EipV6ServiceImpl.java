@@ -106,13 +106,11 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
                 Page<EipV6> page=eipV6Repository.findByUserIdAndIsDelete(userId, 0, pageable);
                 for(EipV6 eipV6:page.getContent()){
-                    String eipV4Address = eipV6.getIpv4();
-                    String projectId = eipV6.getUserId();
-                    if (eipV4Address == null || eipV4Address.equals("")) {
-                        log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
+                    if (eipV6.getIpv4() == null || eipV6.getIpv4().equals("")) {
+                        log.error("Failed to obtain eipv4 in eipv6",eipV6.getIpv4());
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                     }else{
-                        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV4Address, projectId,0);
+                        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6.getIpv4(), eipV6.getUserId(),0);
                         if(eip == null){
                             return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                                     "Failed to fetch eip based on ipv4"), HttpStatus.BAD_REQUEST);
@@ -143,13 +141,11 @@ public class EipV6ServiceImpl implements IEipV6Service {
             }else{
                 List<EipV6> eipV6List=eipV6DaoService.findEipV6ByUserId(userId);
                 for(EipV6 eipV6:eipV6List){
-                    String eipV4Address = eipV6.getIpv4();
-                    String projectId = eipV6.getUserId();
-                    if (eipV4Address == null || eipV4Address.equals("")) {
-                        log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
+                    if (eipV6.getIpv4() == null || eipV6.getIpv4().equals("")) {
+                        log.error("Failed to obtain eipv4 in eipv6",eipV6.getIpv4());
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                     }else{
-                        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV4Address, projectId,0);
+                        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6.getIpv4(), eipV6.getUserId(),0);
                         if(eip == null){
                             return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                                     "Failed to fetch eip based on ipv4"), HttpStatus.BAD_REQUEST);
@@ -226,15 +222,13 @@ public class EipV6ServiceImpl implements IEipV6Service {
         try {
             EipV6 eipV6Entity = eipV6DaoService.getEipV6ById(eipV6Id);
             if (null != eipV6Entity) {
-                String eipV4Address = eipV6Entity.getIpv4();
-                String projectId = eipV6Entity.getUserId();
-                if (eipV4Address == null || eipV4Address.equals("")) {
-                    log.error("Failed to obtain eipv4 in eipv6",eipV4Address);
+                if (eipV6Entity.getIpv4() == null || eipV6Entity.getIpv4().equals("")) {
+                    log.error("Failed to obtain eipv4 in eipv6",eipV6Entity.getIpv4());
                     return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
                 }else {
-                    Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV4Address, projectId, 0);
+                    Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getUserId(), 0);
                     if(eip == null){
-                        log.error("Failed to fetch eip based on ipv4",eipV4Address);
+                        log.error("Failed to fetch eip based on ipv4",eipV6Entity.getIpv4());
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to fetch eip based on ipv4"), HttpStatus.BAD_REQUEST);
                     }
                     EipV6ReturnDetail eipV6ReturnDetail = new EipV6ReturnDetail();
@@ -281,15 +275,14 @@ public class EipV6ServiceImpl implements IEipV6Service {
         }
         ipv6 = eipV6.getIpv6();
         String oldIpv4 = eipV6.getIpv4();
-        String projectId = eipV6.getUserId();
         try {
-            Eip eipEntity = eipRepository.findByEipAddressAndUserIdAndIsDelete(ipv4, projectId, 0);
+            Eip eipEntity = eipRepository.findByEipAddressAndUserIdAndIsDelete(oldIpv4, eipV6.getUserId(), 0);
             if (eipEntity == null) {
                 code = ReturnStatus.SC_NOT_FOUND;
                 msg = "Query eip failed";
                 return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(ipv4, projectId, 0);
+            Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(ipv4, eipV6.getUserId(), 0);
             if (eip == null) {
                 code = ReturnStatus.SC_NOT_FOUND;
                 msg = "Query eip failed";
@@ -362,7 +355,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         msg = "Failed to del natPtId";
                     }
                 } else {
-                    //未完  待续
                     Boolean flag = natPtService.delNatPt(snatptId, dnatptId, eipV6.getFirewallId());
                     log.info("del nat successfully. snat:{}, dnat:{},",
                             snatptId, dnatptId);
