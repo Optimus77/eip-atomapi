@@ -551,8 +551,8 @@ public class EipServiceImpl implements IEipService {
     @Override
     public ResponseEntity getEipCount() {
         try {
-            String projectid =CommonUtil.getUserId();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(projectid)), HttpStatus.OK);
+            String userId =CommonUtil.getUserId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get instance_num_success",eipDaoService.getInstanceNum(userId)), HttpStatus.OK);
         }catch (KeycloakTokenException e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN,e.getMessage(),null), HttpStatus.UNAUTHORIZED);
         }catch(Exception e){
