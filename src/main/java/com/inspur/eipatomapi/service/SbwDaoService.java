@@ -64,6 +64,7 @@ public class SbwDaoService {
             sbwMo.setBillType(sbwConfig.getBillType());
             sbwMo.setDuration(sbwConfig.getDuration());
             sbwMo.setProjectId(userId);
+            sbwMo.setProjectName(CommonUtil.getProjectName());
             sbwMo.setIsDelete(0);
             sbwMo.setCreateTime(CommonUtil.getGmtDate());
             Sbw sbw = sbwRepository.saveAndFlush(sbwMo);
