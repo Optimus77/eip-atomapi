@@ -65,11 +65,6 @@ public interface IEipService {
 
 
     /**
-     * listShareBandWidth all server of current users
-     */
-    ResponseEntity listServer(String userRegion, String tag);
-
-    /**
      * get eip by floating ip
      */
     ResponseEntity getEipByInstanceId(String instanceId);
