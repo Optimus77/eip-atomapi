@@ -41,4 +41,6 @@ public class Sbw implements Serializable {
     private String pipeId;
 
     private String status ="ACTIVE";      //
+
+    private String projectName;
 }
