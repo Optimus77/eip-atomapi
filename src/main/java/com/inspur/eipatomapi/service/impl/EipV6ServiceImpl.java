@@ -372,7 +372,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                             eipEntity.setEipV6Id(null);
                             eipRepository.saveAndFlush(eipEntity);
                             log.info("add nat successfully. snat:{}, dnat:{},",
-                                    newSnatptId, newDnatptId);
+                                    natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId());
                             code = ReturnStatus.SC_OK;
                             msg = "Ipv4 was replaced successfully";
                             return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
