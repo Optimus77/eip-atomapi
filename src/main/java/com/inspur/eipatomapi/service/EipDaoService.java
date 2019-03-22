@@ -492,9 +492,9 @@ public class EipDaoService {
         return eipEntity;
     }
 
-    public long getInstanceNum(String projectId){
+    public long getInstanceNum(String userId){
 
-        String sql ="select count(1) as num from eip where project_id='"+projectId+"'"+ "and is_delete=0";
+        String sql ="select count(1) as num from eip where user_id='"+userId+"'"+ "and is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
         long num =(long)map.get("num");
