@@ -135,16 +135,6 @@ public class EipController {
     }
 
 
-    @GetMapping(value = "/servers")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity getServerList(@RequestParam String region, @RequestParam String tag) {
-        return eipService.listServer(region, tag);
-    }
-
-
-
-
     @PutMapping(value = "/eips/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")
