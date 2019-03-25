@@ -139,7 +139,7 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwUpdateParamWrapper param) {
-        log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.toString());
+        log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.getSbwUpdateParam().toString());
         return sbwService.renewSbw(sbwId, param.getSbwUpdateParam());
     }
 
