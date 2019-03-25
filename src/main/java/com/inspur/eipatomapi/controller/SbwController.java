@@ -228,7 +228,7 @@ public class SbwController {
     })
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-        log.info("update sbwId:{}, :{}.", sbwId, param.toString());
+        log.info("update sbwId:{}, :{}.", sbwId, param.getSbwUpdateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
