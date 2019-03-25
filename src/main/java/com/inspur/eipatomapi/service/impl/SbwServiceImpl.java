@@ -285,7 +285,7 @@ public class SbwServiceImpl implements ISbwService {
             }
             ActionResponse actionResponse = sbwDaoService.reNewSbwEntity(sbwId, renewTime);
             if (actionResponse.isSuccess()) {
-                log.info("renew sbw:{} , add duration:{}", sbwId, renewTime);
+                log.info("renew sbw success:{} , add duration:{}", sbwId, renewTime);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(), HttpStatus.OK);
             } else {
                 msg = actionResponse.getFault();

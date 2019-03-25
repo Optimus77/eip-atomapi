@@ -366,9 +366,11 @@ public class QosService {
         }
          msg = fwCmdService.execCustomCommand(fireWallId, cmd);
         if (msg ==null){
-            MethodReturnUtil.success();
+            return MethodReturnUtil.success();
+        }else if (msg !=null && msg.contains("error")){
+            return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute disable qos error:"+msg);
         }
-        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute disable qos error:"+msg);
+        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute cmd meet An unknown error:"+msg);
     }
 
     public String disablePipe(String pipeName){
