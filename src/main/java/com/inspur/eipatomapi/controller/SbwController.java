@@ -139,7 +139,7 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwUpdateParamWrapper param) {
-        log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.toString());
+        log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.getSbwUpdateParam().toString());
         return sbwService.renewSbw(sbwId, param.getSbwUpdateParam());
     }
 
@@ -189,6 +189,7 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity renameSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param , BindingResult result){
+        log.info("rename sbw param:{}",param.getSbwUpdateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -228,7 +229,7 @@ public class SbwController {
     })
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-        log.info("update sbwId:{}, :{}.", sbwId, param.toString());
+        log.info("update sbwId:{}, :{}.", sbwId, param.getSbwUpdateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();

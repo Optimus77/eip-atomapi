@@ -194,9 +194,6 @@ public class SbwDaoService {
             log.error("Can't find firewall by sbw region:{}, sbwId:{}" + sbw.getRegion() +sbw.getSbwId() );
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        String oldTime = sbw.getDuration();
-        int newTime = Integer.valueOf(renewTime) + Integer.valueOf(oldTime);
-        sbw.setDuration(String.valueOf(newTime));
         MethodReturn methodReturn = qosService.controlPipe(firewall.getId(), sbwId, false);
         if (methodReturn.getHttpCode() == HttpStatus.SC_OK){
             sbw.setUpdateTime(CommonUtil.getGmtDate());
