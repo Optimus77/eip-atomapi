@@ -283,7 +283,7 @@ public class SbwServiceImpl implements ISbwService {
                             HttpStatus.BAD_REQUEST);
                 }
             }
-            ActionResponse actionResponse = sbwDaoService.reNewSbwEntity(sbwId, renewTime);
+            ActionResponse actionResponse = sbwDaoService.renewSbwEntity(sbwId);
             if (actionResponse.isSuccess()) {
                 log.info("renew sbw success:{} , add duration:{}", sbwId, renewTime);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(), HttpStatus.OK);
