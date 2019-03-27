@@ -182,10 +182,10 @@ public class EipServiceImpl implements IEipService {
                 ActionResponse actionResponse = eipDaoService.softDownEip(eipId);
                 if(actionResponse.isSuccess()) {
                     return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-                }else {
+                }else if(actionResponse.getCode() == HttpStatus.NOT_FOUND.value()){
                     return new ResponseEntity<>(ReturnMsgUtil.error(
                             String.valueOf(actionResponse.getCode()), actionResponse.getFault()),
-                            HttpStatus.BAD_REQUEST);
+                            HttpStatus.NOT_FOUND);
                 }
             }else {
                 ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);

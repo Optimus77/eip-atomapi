@@ -146,15 +146,15 @@ public class SbwServiceImpl implements ISbwService {
         try {
             ActionResponse actionResponse = sbwDaoService.deleteSbw(sbwId);
             if (actionResponse.isSuccess()) {
-                log.info("Atom delete eip successfully, eipId:{}", sbwId);
+                log.info("Atom delete sbw successfully, sbwId:{}", sbwId);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(), HttpStatus.OK);
             } else {
                 msg = actionResponse.getFault();
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                log.info("Atom delete eip failed,{}", msg);
+                log.info("Atom delete sbw failed,{}", msg);
             }
         } catch (Exception e) {
-            log.error("Exception in atomDeleteEip", e);
+            log.error("Exception in atomDeleteSBW", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage() + "";
         }
@@ -283,7 +283,7 @@ public class SbwServiceImpl implements ISbwService {
                             HttpStatus.BAD_REQUEST);
                 }
             }
-            ActionResponse actionResponse = sbwDaoService.reNewSbwEntity(sbwId, renewTime);
+            ActionResponse actionResponse = sbwDaoService.renewSbwEntity(sbwId);
             if (actionResponse.isSuccess()) {
                 log.info("renew sbw success:{} , add duration:{}", sbwId, renewTime);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(), HttpStatus.OK);
