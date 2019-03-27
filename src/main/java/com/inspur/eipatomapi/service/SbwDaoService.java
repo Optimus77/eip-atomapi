@@ -127,6 +127,7 @@ public class SbwDaoService {
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
         if (StringUtils.isBlank(sbwEntity.getPipeId())) {
             sbwEntity.setIsDelete(1);
+            sbwEntity.setStatus(HsConstants.DELETE);
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbwEntity);
             return ActionResponse.actionSuccess();
@@ -134,6 +135,7 @@ public class SbwDaoService {
         boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), firewall.getId());
         if (delQos) {
             sbwEntity.setIsDelete(1);
+            sbwEntity.setStatus(HsConstants.DELETE);
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
             sbwEntity.setPipeId(null);
             sbwRepository.saveAndFlush(sbwEntity);
