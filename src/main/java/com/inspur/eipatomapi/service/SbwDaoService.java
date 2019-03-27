@@ -118,8 +118,8 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        if (null != sbwEntity.getBillType() && !sbwEntity.getBillType().equalsIgnoreCase(HsConstants.HOURLYSETTLEMENT)) {
-            msg = "Only hourlysettlement is allowed for billType";
+        if (null != sbwEntity.getBillType()) {
+            msg = "billType can not be null";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
@@ -130,7 +130,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
-        if (sbwEntity.getPipeId() == null || "".equals(sbwEntity.getPipeId())) {
+        if (StringUtils.isBlank(sbwEntity.getPipeId())) {
             sbwEntity.setIsDelete(1);
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbwEntity);
