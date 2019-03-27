@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,9 +40,9 @@ public class SbwController {
     @ICPControllerLog
     @PostMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "atomAllocateSbw", notes = "allocateSbw")
+    @ApiOperation(value = "atomCreateSbw", notes = "createSbw")
     public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwAllocateParamWrapper sbwConfig, BindingResult result) {
-        log.info("Allocate a sbws:{}.", sbwConfig.getSbwAllocateParam().toString());
+        log.info("Create a sbws Atom param:{}.", sbwConfig.getSbwAllocateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -62,7 +63,7 @@ public class SbwController {
     public ResponseEntity listSbw(@RequestParam(required = false, name = "currentPageIndex") String pageIndex,
                                   @RequestParam(required = false, name = "currentPageSize") String pageSize,
                                   @RequestParam(required = false, name = "searchValue") String searchValue) {
-        log.info("SbwController listSbw currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
+        log.info("Atom listSbw method param currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
         if (pageIndex == null || pageSize == null) {
             pageIndex = "0";
             pageSize = "0";
@@ -88,6 +89,7 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "getSbwByProjectId", notes = "get")
     public ResponseEntity getSbwByProjectId(@RequestParam(required = false) String projectId) {
+        log.info("Atom param get Sbw by project Id project:{}",projectId);
         if (null == projectId) {
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
@@ -101,7 +103,7 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
                                         @PathVariable("sbw_id") String sbwId) {
-        log.info("Atom delete the sbw:{} ", sbwId);
+        log.info("Atom delete the sbw , sbwId:{} ", sbwId);
         return sbwService.atomDeleteSbw(sbwId);
     }
     /**
@@ -113,11 +115,12 @@ public class SbwController {
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "getSbwDetail", notes = "get")
+    @ApiOperation(value = "getSbwDetail", notes = "sbwDetail")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId) {
+        log.info("Atom get the sbw detail , sbwId:{} ", sbwId);
         return sbwService.getSbwDetail(sbwId);
     }
 
@@ -131,6 +134,7 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "getSbwCount", notes = "get number")
     public ResponseEntity getSbwCount() {
+        log.info("Atom get Sbw Count loading……");
         return sbwService.getSbwCount();
     }
 
@@ -139,12 +143,12 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwUpdateParamWrapper param) {
-        log.info("Renew a sbw sbwId:{}, param:{}.", sbwId, param.toString());
+        log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbwUpdateParam().toString());
         return sbwService.renewSbw(sbwId, param.getSbwUpdateParam());
     }
 
     /**
-     * get the eipList by sbw
+     * get the eipList in this sbw
      * @param sbwId id
      * @param pageIndex index
      * @param pageSize size
@@ -157,7 +161,7 @@ public class SbwController {
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
                                      @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        log.info("SbwController ListEip in Sbw currentPageIndex:{}, currentPageSize:{}", pageIndex, pageSize);
+        log.info("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageIndex, pageSize);
         if (pageIndex == null || pageSize == null) {
             pageIndex = "0";
             pageSize = "0";
@@ -189,20 +193,21 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity renameSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param , BindingResult result){
+        log.info("Atom rename sbw param:{}",param.getSbwUpdateParam().toString());
         if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
+            StringBuilder builder = new StringBuilder();
             List<FieldError> fieldErrors = result.getFieldErrors();
             for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+                builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
-            log.info("{}",msgBuffer);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
+            log.info("{}",builder);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()), HttpStatus.BAD_REQUEST);
         }
         String msg;
-        if (param.getSbwUpdateParam().getSbwName() !=null && !"".equalsIgnoreCase(param.getSbwUpdateParam().getSbwName())){
+        if (StringUtils.isNotBlank(param.getSbwUpdateParam().getSbwName())){
             return sbwService.renameSbw(sbwId, param.getSbwUpdateParam());
         }else {
-            msg="new sbw name must not be null";
+            msg="The new sbw name must not be blank";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }
@@ -216,6 +221,7 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
+        log.info("Atom get the other Eip have not bind in sbw,Sbwid:{}",sbwId);
         return sbwService.getOtherEips(sbwId);
     }
 
@@ -228,7 +234,7 @@ public class SbwController {
     })
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-        log.info("update sbwId:{}, :{}.", sbwId, param.toString());
+        log.info("Atom update sbw sbwId:{},param:{}.", sbwId, param.getSbwUpdateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
