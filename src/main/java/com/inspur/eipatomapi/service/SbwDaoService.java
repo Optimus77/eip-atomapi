@@ -118,11 +118,6 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        if (null != sbwEntity.getBillType()) {
-            msg = "billType can not be null";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
-        }
         ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwEntity.getSbwId(), 0);
         if (ipCount != 0) {
             msg = "EIP in sbw so that sbw cannot be removed ，please remove first !,ipCount:{}" + ipCount;
