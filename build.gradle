@@ -35,6 +35,8 @@ configurations.all {
 configurations {
     all*.exclude module: 'spring-boot-starter-logging'
     all*.exclude module: 'slf4j-nop'
+    all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    all*.exclude group: 'org.slf4j', module: 'slf4j-nop'
 }
 
 
