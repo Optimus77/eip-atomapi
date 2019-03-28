@@ -92,8 +92,7 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "snatrule from ipv6-any to " + ipv6
-                + " service any trans-to eif-ip"
-                + " mode dynamicport" + "\r"
+                + " service any trans-to eif-ip mode dynamicport" + "\r"
                 + "end");
         if(strSnatPtId == null){
             log.error("Failed to add snatPtId", strSnatPtId);
@@ -114,8 +113,7 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "snatrule from ipv6-any to " + ipv6
-                + " service any trans-to " + ipv4
-                + " mode dynamicport" + "\r"
+                + " service any trans-to eif-ip mode dynamicport" + "\r"
                 + "end");
         if(strSnatPtId == null){
             log.error("Failed to add snatPtId", strSnatPtId);
