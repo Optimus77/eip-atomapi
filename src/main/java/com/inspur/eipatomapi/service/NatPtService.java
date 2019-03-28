@@ -92,7 +92,7 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "snatrule from ipv6-any to " + ipv6
-                + " service any trans-to " + ipv4
+                + " service any trans-to eif-ip"
                 + " mode dynamicport" + "\r"
                 + "end");
         if(strSnatPtId == null){
