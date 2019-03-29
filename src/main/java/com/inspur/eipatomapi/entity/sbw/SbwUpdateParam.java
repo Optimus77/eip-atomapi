@@ -9,9 +9,9 @@ import java.io.Serializable;
 
 @Data
 public class SbwUpdateParam implements Serializable {
-    @Range(min=5,max=2000,message = "value must be 5-2000.")
+    @Range(min=5,max=500,message = "value must be 5-500.")
     @JsonProperty(value = "bandwidth")
-    private int bandWidth;
+    private int bandWidth=5;
 
     private String duration;
 
