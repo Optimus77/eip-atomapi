@@ -275,7 +275,7 @@ public class EipDaoService {
                 String eipAddress = eip.getEipAddress();
                 EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, eip.getUserId(), 0);
                 if (eipV6 != null) {
-                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
+                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
                     if (natPtV6 == null) {
                         returnMsg = fireWallReturn.getMessage();
                         returnStat = fireWallReturn.getInnerCode();
@@ -582,11 +582,11 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
         }
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipIp, eip.getUserId(), 0);
         MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, ipAddr, eipIp, eip.getBandWidth(), eip.getFirewallId());
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
+            EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipIp, eip.getUserId(), 0);
             if (eipV6 != null) {
-                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eipV6.getIpv4(), eipV6.getFirewallId());
+                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
                 if (natPtV6 != null) {
                     eipV6.setFloatingIp(ipAddr);
                     eipV6.setDnatptId(natPtV6.getNewDnatPtId());

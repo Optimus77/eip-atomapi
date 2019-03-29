@@ -85,7 +85,7 @@ public class EipV6DaoService {
         NatPtV6 natPtV6;
         try {
             if (StringUtils.isNotEmpty(eip.getFloatingIp())) {
-                natPtV6 = natPtService.addNatPt(eipPoolv6.getIp(), eip.getEipAddress(), eipPoolv6.getFireWallId());
+                natPtV6 = natPtService.addNatPt(eipPoolv6.getIp(), eip.getFloatingIp(), eipPoolv6.getFireWallId());
                 if (natPtV6 != null) {
                     eipMo.setSnatptId(natPtV6.getNewSnatPtId());
                     eipMo.setDnatptId(natPtV6.getNewDnatPtId());

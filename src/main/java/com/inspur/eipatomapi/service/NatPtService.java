@@ -14,7 +14,7 @@ public class NatPtService {
     private FireWallCommondService fireWallCommondService;
 
 
-    public  Boolean delSnatPt(String snatPtId, String fireWallId) throws Exception {
+    private   Boolean delSnatPt(String snatPtId, String fireWallId) throws Exception {
         String disconnectSnat = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
@@ -70,20 +70,13 @@ public class NatPtService {
         String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
-                + "dnatrule from ipv6-any to " + ipv6
-                + " service any trans-to " + ipv4 + "\r"
+                + "dnatrule from ipv6-any to " + ipv6 + " service any trans-to " + ipv4 + "\r"
                 + "end");
         if(strDnatPtId == null){
             log.error("Failed to add snatPtId", strDnatPtId);
             throw new FwNatV6Excvption("Failed to add snatPtId" + strDnatPtId);
         }
-        String newDnatPtId = strDnatPtId.split("=")[1].trim();
-        if (newDnatPtId == null) {
-            log.error("Failed to add dnatPtId", newDnatPtId);
-            throw new FwNatV6Excvption("Failed to add dnatPtId" + newDnatPtId);
-
-        }
-        return newDnatPtId;
+        return strDnatPtId.split("=")[1].trim();
     }
 
 
@@ -91,19 +84,13 @@ public class NatPtService {
         String strSnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
-                + "snatrule from ipv6-any to " + ipv6
-                + " service any trans-to eif-ip mode dynamicport" + "\r"
+                + "snatrule from ipv6-any to " + ipv6 + " service any trans-to eif-ip mode dynamicport" + "\r"
                 + "end");
         if(strSnatPtId == null){
             log.error("Failed to add snatPtId", strSnatPtId);
             throw new FwNatV6Excvption("Failed to add snatPtId" + strSnatPtId);
         }
-        String newSnatPtId = strSnatPtId.split("=")[1].trim();
-        if (newSnatPtId == null) {
-            log.error("Failed to add snatPtId", newSnatPtId);
-            throw new FwNatV6Excvption("Failed to add snatPtId" + newSnatPtId);
-        }
-        return newSnatPtId;
+        return strSnatPtId.split("=")[1].trim();
     }
 
 
@@ -112,38 +99,28 @@ public class NatPtService {
         String strSnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
-                + "snatrule from ipv6-any to " + ipv6
-                + " service any trans-to eif-ip mode dynamicport" + "\r"
+                + "snatrule from ipv6-any to " + ipv6 +" service any trans-to eif-ip mode dynamicport" + "\r"
                 + "end");
         if(strSnatPtId == null){
             log.error("Failed to add snatPtId", strSnatPtId);
             throw new FwNatV6Excvption("Failed to add snatPtId" + strSnatPtId);
         }
         String newSnatPtId = strSnatPtId.split("=")[1].trim();
-        if (newSnatPtId == null) {
-            log.error("Failed to add snatPtId", newSnatPtId);
-            throw new FwNatV6Excvption("Failed to add snatPtId" + newSnatPtId);
-        } else {
-            String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
-                    "configure\r"
-                    + "ip vrouter trust-vr\r"
-                    + "dnatrule from ipv6-any to " + ipv6
-                    + " service any trans-to " + ipv4 + "\r"
-                    + "end");
-            if(strDnatPtId == null){
-                log.error("Failed to add snatPtId", strDnatPtId);
-                throw new FwNatV6Excvption("Failed to add snatPtId" + strDnatPtId);
-            }
-            String newDnatPtId = strDnatPtId.split("=")[1].trim();
-            if (newDnatPtId == null) {
-                delSnatPt(newSnatPtId, fireWallId);
-                throw new FwNatV6Excvption("Failed to add dnatPtId" + newDnatPtId);
-            } else {
-                natPtV6.setNewDnatPtId(newDnatPtId);
-                natPtV6.setNewSnatPtId(newSnatPtId);
-            }
 
+        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                + "ip vrouter trust-vr\r"
+                + "dnatrule from ipv6-any to " + ipv6 + " service any trans-to " + ipv4 + "\r"
+                + "end");
+        if(strDnatPtId == null){
+            log.error("Failed to add snatPtId", strDnatPtId);
+            delSnatPt(newSnatPtId, fireWallId);
+            throw new FwNatV6Excvption("Failed to add snatPtId" + strDnatPtId);
         }
+        String newDnatPtId = strDnatPtId.split("=")[1].trim();
+
+        natPtV6.setNewDnatPtId(newDnatPtId);
+        natPtV6.setNewSnatPtId(newSnatPtId);
         return natPtV6;
     }
 
