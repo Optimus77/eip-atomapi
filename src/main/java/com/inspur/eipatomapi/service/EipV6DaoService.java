@@ -123,10 +123,10 @@ public class EipV6DaoService {
     @Transactional(isolation= Isolation.SERIALIZABLE)
     public synchronized EipPoolV6 getOneEipFromPoolV6(){
         EipPoolV6 eipAddress =  eipPoolV6Repository.getEipV6ByRandom();
-       if(null != eipAddress) {
+        if(null != eipAddress) {
             eipPoolV6Repository.deleteById(eipAddress.getId());
-           eipPoolV6Repository.flush();
-       }
+            eipPoolV6Repository.flush();
+        }
         return eipAddress;
     }
 
