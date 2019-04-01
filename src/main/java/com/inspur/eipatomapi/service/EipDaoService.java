@@ -335,6 +335,7 @@ public class EipDaoService {
 
         String msg = null;
         Eip eipEntity = eipRepository.findByEipId(eipid);
+        String status= HsConstants.DOWN;
         if(null == eipEntity){
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip by id:{} ",eipid);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
@@ -353,6 +354,7 @@ public class EipDaoService {
         MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
             msg += fireWallReturn.getMessage();
+            status = HsConstants.ERROE;
         }
 
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
@@ -392,7 +394,7 @@ public class EipDaoService {
         eipEntity.setFloatingIp(null);
         eipEntity.setFloatingIpId(null);
 
-        eipEntity.setStatus(HsConstants.ERROE);
+        eipEntity.setStatus(status);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
 
