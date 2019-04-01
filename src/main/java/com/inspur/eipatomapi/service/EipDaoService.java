@@ -345,7 +345,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) && !(eipEntity.getStatus().equals(HsConstants.STOP)) ){
+        if(eipEntity.getStatus().equals(HsConstants.DOWN)){
             msg = "Error status when disassociate eip:"+eipEntity.toString();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
