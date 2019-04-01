@@ -669,8 +669,11 @@ public class EipDaoService {
         eipEntity.setInstanceType(null);
         eipEntity.setFloatingIp(null);
 
-
-        eipEntity.setStatus(HsConstants.ERROE);
+        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+            eipEntity.setStatus(HsConstants.ERROE);
+        }else {
+            eipEntity.setStatus(HsConstants.DOWN);
+        }
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
