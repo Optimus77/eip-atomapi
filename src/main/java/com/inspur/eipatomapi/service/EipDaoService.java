@@ -172,6 +172,9 @@ public class EipDaoService {
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipEntity.setEipV6Id(null);
         eipRepository.saveAndFlush(eipEntity);
+        if(eipEntity.getStatus().equals(HsConstants.ERROE)){
+            return ActionResponse.actionSuccess();
+        }
         EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
         if (null != eipPool) {
             log.error("******************************************************************************");
@@ -391,7 +394,7 @@ public class EipDaoService {
         eipEntity.setFloatingIp(null);
         eipEntity.setFloatingIpId(null);
 
-        eipEntity.setStatus(HsConstants.DOWN);
+        eipEntity.setStatus(HsConstants.ERROE);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
 
@@ -667,7 +670,7 @@ public class EipDaoService {
         eipEntity.setFloatingIp(null);
 
 
-        eipEntity.setStatus("DOWN");
+        eipEntity.setStatus(HsConstants.ERROE);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
