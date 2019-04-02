@@ -334,6 +334,7 @@ public class EipDaoService {
     public ActionResponse disassociateInstanceWithEip(String eipid) throws Exception {
 
         String msg = null;
+        String status = HsConstants.DOWN;
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if(null == eipEntity){
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip by id:{} ",eipid);
@@ -353,6 +354,7 @@ public class EipDaoService {
         MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
             msg += fireWallReturn.getMessage();
+            eipEntity.setStatus(HsConstants.ERROE);
         }
 
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
@@ -392,7 +394,7 @@ public class EipDaoService {
         eipEntity.setFloatingIp(null);
         eipEntity.setFloatingIpId(null);
 
-        eipEntity.setStatus(HsConstants.ERROE);
+        eipEntity.setStatus(status);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
 
@@ -624,6 +626,7 @@ public class EipDaoService {
     public ActionResponse unCpcOrSlbBindEip(String InstanceId) throws Exception {
 
         String msg ;
+        String status=HsConstants.DOWN;
         Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(InstanceId, 0);
 
         if(null == eipEntity){
@@ -644,6 +647,9 @@ public class EipDaoService {
         }
 
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+            eipEntity.setStatus(HsConstants.ERROE);
+        }
 
         String eipAddress = eipEntity.getEipAddress();
         EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, eipEntity.getUserId(), 0);
@@ -668,7 +674,7 @@ public class EipDaoService {
         eipEntity.setFloatingIp(null);
 
 
-        eipEntity.setStatus(HsConstants.ERROE);
+        eipEntity.setStatus(status);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
