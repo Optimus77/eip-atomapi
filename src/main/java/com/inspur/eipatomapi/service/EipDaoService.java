@@ -600,10 +600,6 @@ public class EipDaoService {
                     eipV6.setSnatptId(natPtV6.getNewSnatPtId());
                     eipV6.setUpdateTime(CommonUtil.getGmtDate());
                     eipV6Repository.saveAndFlush(eipV6);
-                } else {
-                    //firewallService.delNatAndQos(eip);
-                    //return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE,
-                            //CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
                 }
             }
             eip.setInstanceId(InstanceId);
