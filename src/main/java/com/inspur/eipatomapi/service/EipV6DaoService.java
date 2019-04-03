@@ -151,7 +151,7 @@ public class EipV6DaoService {
         }
         try {
             if (eipV6Entity.getDnatptId() != null && eipV6Entity.getSnatptId() != null) {
-                Boolean flag = natPtService.delNatPt(eipV6Entity.getDnatptId(), eipV6Entity.getSnatptId(), eipV6Entity.getFirewallId());
+                Boolean flag = natPtService.delNatPt(eipV6Entity.getSnatptId(),eipV6Entity.getDnatptId(),eipV6Entity.getFirewallId());
                 if (flag) {
                     log.info("delete natPt success");
                 } else {
