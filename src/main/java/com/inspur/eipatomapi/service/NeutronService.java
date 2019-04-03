@@ -176,9 +176,10 @@ public  class NeutronService {
     synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
                                                                 String region) throws KeycloakTokenException {
 
-        if(null == serverId || slbService.isFipInUse(serverId)){
+        if(null == serverId || slbService.isFipInUse(serverId) || null == fipId){
             return ActionResponse.actionSuccess();
         }
+
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Server server = osClientV3.compute().servers().get(serverId);
         if (server == null) {
