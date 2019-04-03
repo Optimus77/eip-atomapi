@@ -122,10 +122,10 @@ public class EipDaoService {
     public ActionResponse deleteEip(String eipid) throws KeycloakTokenException {
         String msg;
         Eip eipEntity = eipRepository.findByEipId(eipid);
-        if (null == eipEntity) {
+        if ((null == eipEntity) || (eipEntity.getIsDelete() == 1) ){
             msg = "Faild to find eip by id:" + eipid;
             log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+            return ActionResponse.actionSuccess();
         }
 
         if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
@@ -172,6 +172,9 @@ public class EipDaoService {
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipEntity.setEipV6Id(null);
         eipRepository.saveAndFlush(eipEntity);
+        if(eipEntity.getStatus().equals(HsConstants.ERROE)){
+            return ActionResponse.actionSuccess();
+        }
         EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
         if (null != eipPool) {
             log.error("******************************************************************************");
@@ -227,7 +230,7 @@ public class EipDaoService {
      * @throws KeycloakTokenException   e
      */
     @Transactional
-    public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId) throws KeycloakTokenException {
+    public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId, String fip) throws KeycloakTokenException {
         NetFloatingIP floatingIP ;
         String returnStat;
         String returnMsg ;
@@ -247,28 +250,30 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
-        if (serverId == null || portId == null) {
+        if ((serverId == null) || (instanceType.equalsIgnoreCase("1") && portId == null) ) {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR));
         }
-
         try {
-            String networkId = getExtNetId(eip.getRegion());
-            if (null == networkId) {
-                log.error("Failed to get external net in region:{}. ", eip.getRegion());
-                return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
-                        CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+            if(null == fip && instanceType.equals("1")) {
+                String networkId = getExtNetId(eip.getRegion());
+                if (null == networkId) {
+                    log.error("Failed to get external net in region:{}. ", eip.getRegion());
+                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
+                            CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                }
+                floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), networkId, portId, eip, serverId);
+                if (null == floatingIP) {
+                    log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
+                            networkId, eip.getRegion(), portId);
+                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
+                            CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                }
+                eip.setFloatingIp(floatingIP.getFloatingIpAddress());
+                eip.setFloatingIpId(floatingIP.getId());
+            }else {
+                eip.setFloatingIp(fip);
             }
-            floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), networkId, portId, eip, serverId);
-            if (null == floatingIP) {
-                log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
-                        networkId, eip.getRegion(), portId);
-                return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
-                        CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
-            }
-            eip.setFloatingIp(floatingIP.getFloatingIpAddress());
-            eip.setFloatingIpId(floatingIP.getId());
-
             MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                                                     eip.getBandWidth(), eip.getFirewallId());
             returnMsg = fireWallReturn.getMessage();
@@ -280,8 +285,8 @@ public class EipDaoService {
                     NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
                     if (natPtV6 == null) {
                         firewallService.delNatAndQos(eip);
-                        neutronService.disassociateAndDeleteFloatingIp(floatingIP.getFloatingIpAddress(),
-                                floatingIP.getId(), serverId, eip.getRegion());
+                        neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
+                                eip.getFloatingIpId(), serverId, eip.getRegion());
                         eip.setFloatingIp(null);
                         eip.setFloatingIpId(null);
                         eipRepository.saveAndFlush(eip);
@@ -305,8 +310,8 @@ public class EipDaoService {
                         eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
                 return MethodReturnUtil.success(eip);
             }else{
-                neutronService.disassociateAndDeleteFloatingIp(floatingIP.getFloatingIpAddress(),
-                        floatingIP.getId(), serverId, eip.getRegion());
+                neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
+                        eip.getFloatingIpId(), serverId, eip.getRegion());
                 eip.setFloatingIp(null);
                 eip.setFloatingIpId(null);
                 eipRepository.saveAndFlush(eip);
@@ -332,6 +337,7 @@ public class EipDaoService {
 
         String msg = null;
         Eip eipEntity = eipRepository.findByEipId(eipid);
+        String status= HsConstants.DOWN;
         if(null == eipEntity){
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip by id:{} ",eipid);
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
@@ -341,15 +347,16 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
-        if(!(eipEntity.getStatus().equals(HsConstants.ACTIVE)) && !(eipEntity.getStatus().equals(HsConstants.STOP)) ){
+        if(eipEntity.getStatus().equals(HsConstants.DOWN)){
             msg = "Error status when disassociate eip:"+eipEntity.toString();
             log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_ACCEPTABLE);
+            return ActionResponse.actionSuccess();
         }
 
         MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
             msg += fireWallReturn.getMessage();
+            status = HsConstants.ERROE;
         }
 
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
@@ -389,7 +396,7 @@ public class EipDaoService {
         eipEntity.setFloatingIp(null);
         eipEntity.setFloatingIpId(null);
 
-        eipEntity.setStatus(HsConstants.DOWN);
+        eipEntity.setStatus(status);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
 
@@ -576,6 +583,10 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
+        if(ipAddr ==  null){
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
+        }
         if (InstanceId == null) {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
@@ -584,17 +595,13 @@ public class EipDaoService {
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
             EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipIp, eip.getUserId(), 0);
             if (eipV6 != null) {
-                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
+                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), ipAddr, eipV6.getFirewallId());
                 if (natPtV6 != null) {
                     eipV6.setFloatingIp(ipAddr);
                     eipV6.setDnatptId(natPtV6.getNewDnatPtId());
                     eipV6.setSnatptId(natPtV6.getNewSnatPtId());
                     eipV6.setUpdateTime(CommonUtil.getGmtDate());
                     eipV6Repository.saveAndFlush(eipV6);
-                } else {
-                    firewallService.delNatAndQos(eip);
-                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE,
-                            CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
                 }
             }
             eip.setInstanceId(InstanceId);
@@ -664,8 +671,11 @@ public class EipDaoService {
         eipEntity.setInstanceType(null);
         eipEntity.setFloatingIp(null);
 
-
-        eipEntity.setStatus("DOWN");
+        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+            eipEntity.setStatus(HsConstants.ERROE);
+        }else {
+            eipEntity.setStatus(HsConstants.DOWN);
+        }
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {

@@ -78,6 +78,7 @@ public class FireWallCommondService {
                 Firewall firewall = firewallService.getFireWallById(fireWallId);
 //                initConnection("10.110.17.250", "hillstone", "hillstone");
                 initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
+                log.info("firewall connection reinit.");
             }
             printWriter.write(cmd + "\r\n");
             printWriter.flush();

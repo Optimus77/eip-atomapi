@@ -57,8 +57,8 @@ public class NatPtService {
                 + "dnatrule from ipv6-any to " + ipv6 + " service any trans-to " + ipv4 + "\r"
                 + "end");
         if(strDnatPtId == null){
-            log.error("Failed to add snatPtId", strDnatPtId);
-            throw new FwNatV6Excvption("Failed to add snatPtId" + strDnatPtId);
+            log.error("Failed to add DnatPtId", strDnatPtId);
+            throw new FwNatV6Excvption("Failed to add DnatPtId" + strDnatPtId);
         }
         return strDnatPtId.split("=")[1].trim();
     }

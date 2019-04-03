@@ -419,7 +419,7 @@ public class EipServiceImpl implements IEipService {
                 case "1":
                     log.debug("bind a server:{} port:{} with eipId:{}",serverId, portId, id);
                     // 1：ecs
-                    MethodReturn result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId);
+                    MethodReturn result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId, null);
                     if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
                         msg = result.getMessage();
                         log.error(msg);
@@ -537,7 +537,8 @@ public class EipServiceImpl implements IEipService {
         // bind slb
         MethodReturn result;
         try {
-            result = eipDaoService.cpsOrSlbBindEip(eipId, InstanceId, ipAddr,type);
+//            result = eipDaoService.cpsOrSlbBindEip(eipId, InstanceId, ipAddr,type);
+            result = eipDaoService.associateInstanceWithEip(eipId, InstanceId, type, null, ipAddr);
             if (!result.getInnerCode().equals(ReturnStatus.SC_OK)){
                 msg = result.getMessage();
                 log.error(msg);

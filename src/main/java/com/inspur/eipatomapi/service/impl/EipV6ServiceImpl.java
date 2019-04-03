@@ -291,7 +291,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipRepository.saveAndFlush(eipEntity);
                         code = "200";
                         msg = "update success";
-
+                        log.info("update success ");
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                     }
 
