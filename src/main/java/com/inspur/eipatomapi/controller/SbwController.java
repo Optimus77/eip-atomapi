@@ -63,7 +63,7 @@ public class SbwController {
     public ResponseEntity listSbw(@RequestParam(required = false, name = "currentPageIndex") String pageIndex,
                                   @RequestParam(required = false, name = "currentPageSize") String pageSize,
                                   @RequestParam(required = false, name = "searchValue") String searchValue) {
-        log.info("Atom listSbw method param currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
+        log.debug("Atom listSbw method param currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
         if (pageIndex == null || pageSize == null) {
             pageIndex = "0";
             pageSize = "0";
