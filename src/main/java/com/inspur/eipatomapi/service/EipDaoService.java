@@ -581,6 +581,10 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
+        if(ipAddr ==  null){
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
+        }
         if (InstanceId == null) {
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SLB_BIND_NOT_FOND));
@@ -589,7 +593,7 @@ public class EipDaoService {
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
             EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipIp, eip.getUserId(), 0);
             if (eipV6 != null) {
-                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
+                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), ipAddr, eipV6.getFirewallId());
                 if (natPtV6 != null) {
                     eipV6.setFloatingIp(ipAddr);
                     eipV6.setDnatptId(natPtV6.getNewDnatPtId());
@@ -597,9 +601,9 @@ public class EipDaoService {
                     eipV6.setUpdateTime(CommonUtil.getGmtDate());
                     eipV6Repository.saveAndFlush(eipV6);
                 } else {
-                    firewallService.delNatAndQos(eip);
-                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE,
-                            CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
+                    //firewallService.delNatAndQos(eip);
+                    //return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_NATPT_UNAVAILABLE,
+                            //CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
                 }
             }
             eip.setInstanceId(InstanceId);
