@@ -3,8 +3,8 @@ package com.inspur.eipatomapi.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
+import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.entity.MethodReturn;
-import com.inspur.eipatomapi.entity.NovaServerEntity;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
 import com.inspur.eipatomapi.entity.eipv6.EipV6AllocateParam;
@@ -16,7 +16,6 @@ import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +47,9 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private EipV6ServiceImpl eipV6Service;
+
+    @Autowired
+    private FirewallService firewallService;
 
 
     /**
@@ -524,6 +526,51 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
+
+    @Override
+    public ResponseEntity getFreeEipCount() {
+        try {
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get free_eip_num_success",eipDaoService.getFreeEipCount()), HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @Override
+    public ResponseEntity getUsingEipCount() {
+        try {
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get using_eip_num_success",eipDaoService.getUsingEipCount()), HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @Override
+    public ResponseEntity getUsingEipCountByStatus(String status) {
+        try {
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get using_eip_num_success",eipDaoService.getUsingEipCountByStatus(status)), HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @Override
+    public ResponseEntity getTotalEipCount() {
+        try {
+            long usingEipCount = eipDaoService.getUsingEipCount();
+            long freeEipCount = eipDaoService.getFreeEipCount();
+            long totalEipCount = usingEipCount + freeEipCount;
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get total_eip_num_success",totalEipCount), HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
     /**
      * eip bind with port
      * @param eipId     eip id
@@ -694,4 +741,21 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Override
+    public ResponseEntity FirewallStatusCheck() {
+        String region = "cn-north-3";
+        Firewall firewall = eipDaoService.getFirewallByRegion(region);
+        if(firewall == null){
+            log.error("No firewall was found based on region");
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"No firewall was found based on region ",null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        boolean ping =firewallService.ping(firewall.getIp(), 5, 5000);
+        if(ping){
+           return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"Eip can ping the firewall ",ping), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"Eip cannot ping the firewall ",ping), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
 }
