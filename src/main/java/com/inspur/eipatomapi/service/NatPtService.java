@@ -64,11 +64,11 @@ public class NatPtService {
     }
 
 
-    private String addSnatPt(String ipv6, String ipv4, String fireWallId) throws Exception {
+    private String addSnatPt(String ipv6, String eip, String fireWallId) throws Exception {
         String strSnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
-                + "snatrule from ipv6-any to " + ipv6 + " service any trans-to eif-ip mode dynamicport" + "\r"
+                + "snatrule from ipv6-any to " + ipv6 + " service any trans-to "+ eip+" mode dynamicport" + "\r"
                 + "end");
         if(strSnatPtId == null){
             log.error("Failed to add snatPtId", strSnatPtId);
@@ -78,10 +78,10 @@ public class NatPtService {
     }
 
 
-    public NatPtV6 addNatPt(String ipv6, String ipv4, String fireWallId) throws Exception {
+    public NatPtV6 addNatPt(String ipv6, String eip,String fip, String fireWallId) throws Exception {
         NatPtV6 natPtV6 = new NatPtV6();
-        String newSnatPtId = addSnatPt(ipv6, ipv4, fireWallId);
-        String newDnatPtId = addDnatPt(ipv6, ipv4, fireWallId);
+        String newSnatPtId = addSnatPt(ipv6, eip, fireWallId);
+        String newDnatPtId = addDnatPt(ipv6, fip, fireWallId);
 
         natPtV6.setNewDnatPtId(newDnatPtId);
         natPtV6.setNewSnatPtId(newSnatPtId);
