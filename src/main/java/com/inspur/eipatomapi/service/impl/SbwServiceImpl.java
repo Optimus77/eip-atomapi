@@ -112,7 +112,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put(HsConstants.CURRENT_PAGEPER, pageSize);
             } else {
                 List<Sbw> sbwList = sbwDaoService.findByProjectId(projectid);
-                log.info("sbwList size:{}", sbwList.size());
+                log.debug("sbwList size:{}", sbwList.size());
                 for (Sbw sbw : sbwList) {
                     if (null != searchValue) {
                         continue;
@@ -129,7 +129,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put(HsConstants.CURRENT_PAGE, 1);
                 data.put(HsConstants.CURRENT_PAGEPER, sbws.size());
             }
-            log.info("data :{}", data.toString());
+            log.debug("data :{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Exception in listShareBandWidth", e);

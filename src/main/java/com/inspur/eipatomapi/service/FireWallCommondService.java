@@ -36,7 +36,7 @@ public class FireWallCommondService {
     private ExecutorService service = Executors.newFixedThreadPool(3);
 
 
-    public void initConnection(String hostName, String userName, String passwd) throws Exception {
+    private void initConnection(String hostName, String userName, String passwd) throws Exception {
         connection = new Connection(hostName);
         connection.connect();
 
@@ -56,7 +56,7 @@ public class FireWallCommondService {
         initSession();
     }
 
-    public void initSession() throws Exception {
+    private void initSession() throws Exception {
 
         session = connection.openSession();
         session.requestPTY("vt100", 80, 24, 640, 480, null);
@@ -67,16 +67,15 @@ public class FireWallCommondService {
         stderr = new BufferedReader(new InputStreamReader(new StreamGobbler(session.getStderr()), StandardCharsets.UTF_8));
         printWriter = new PrintWriter(session.getStdin());
 
-        TimeUnit.MILLISECONDS.sleep(500);
-
+        TimeUnit.MILLISECONDS.sleep(250);
     }
 
-    public String execCustomCommand(String fireWallId, String cmd) {
+    synchronized String execCustomCommand(String fireWallId, String cmd) {
         String expectStr = "ID=";
         try {
             if(!bConnect){
                 Firewall firewall = firewallService.getFireWallById(fireWallId);
-//                initConnection("10.110.17.250", "hillstone", "hillstone");
+//                initConnection("10.110.29.206", "test", "test");
                 initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
                 log.info("firewall connection reinit.");
             }
@@ -91,12 +90,14 @@ public class FireWallCommondService {
                         (line.contains("Error"))) {
                     retStr = line;
                 }else if(line.contains("end")) {
+                    log.info("Command return:{}", retStr);
                     return retStr;
                 }
             }
         } catch (Exception e) {
             log.error("Error when init :", e);
         }
+        log.info("Commond get no return.");
         return null;
     }
 
@@ -115,18 +116,22 @@ public class FireWallCommondService {
         FireWallCommondService sshAgent = new FireWallCommondService();
         long currentTimeMillis = System.currentTimeMillis();
         //sshAgent.initConnection("10.110.17.250", "hillstone", "hillstone");
-        //sshAgent.execCustomCommand("configure" + "\r\n"+"ip vrouter trust-vr"+"\r\n"+"help", "config");
-        String ret = sshAgent.execCustomCommand("id", "configure\r"
-                +"service my-service1\r"
-                +"tcp dst-port 21 23\r"
-                +"exit\r"
-                +"policy-global\r"
-                +"rule\r"
-                +"src-addr any\r"
-                +"dst-ip 5.6.7.9/32\r"
-                +"service my-service1\r"
-                +"action permit\r"
-                +"end");
+        String ret = sshAgent.execCustomCommand("1",
+                "configure\r"
+                        + "ip vrouter trust-vr\r"
+                        + "dnatrule from ipv6-any to 1111::2222 service any trans-to 22.11.22.11\r"
+                        + "end");
+//        String ret = sshAgent.execCustomCommand("id", "configure\r"
+//                +"service my-service1\r"
+//                +"tcp dst-port 21 23\r"
+//                +"exit\r"
+//                +"policy-global\r"
+//                +"rule\r"
+//                +"src-addr any\r"
+//                +"dst-ip 5.6.7.9/32\r"
+//                +"service my-service1\r"
+//                +"action permit\r"
+//                +"end");
         if(null != ret){
             System.out.print(ret);
         }
