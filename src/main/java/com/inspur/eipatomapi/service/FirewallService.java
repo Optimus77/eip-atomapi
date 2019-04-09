@@ -271,10 +271,8 @@ public class FirewallService {
 
     boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = true;
-        if ("offline".equals(ruleid)) {
-            return bSuccess;
-        }
         if (StringUtils.isNotEmpty(ruleid)) {
+
             FwSnatVo vo = new FwSnatVo();
 
             Firewall accessFirewallBeanByNeid = getFireWallById(devId);

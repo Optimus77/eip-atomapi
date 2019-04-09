@@ -283,7 +283,7 @@ public class EipDaoService {
                 String eipAddress = eip.getEipAddress();
                 EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, eip.getUserId(), 0);
                 if (eipV6 != null) {
-                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
+                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(),eip.getEipAddress(), eip.getFloatingIp(), eipV6.getFirewallId());
                     if (natPtV6 == null) {
                         firewallService.delNatAndQos(eip);
                         neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
@@ -638,7 +638,7 @@ public class EipDaoService {
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
             EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipIp, eip.getUserId(), 0);
             if (eipV6 != null) {
-                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), ipAddr, eipV6.getFirewallId());
+                NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(),eip.getEipAddress(), ipAddr, eipV6.getFirewallId());
                 if (natPtV6 != null) {
                     eipV6.setFloatingIp(ipAddr);
                     eipV6.setDnatptId(natPtV6.getNewDnatPtId());

@@ -296,7 +296,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     }
 
                 } else {
-                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
+                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(),eip.getEipAddress(), eip.getFloatingIp(), eipV6.getFirewallId());
                     if (natPtV6 != null) {
                         eipV6.setSnatptId(natPtV6.getNewSnatPtId());
                         eipV6.setDnatptId(natPtV6.getNewDnatPtId());
@@ -349,7 +349,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     log.info("del nat successfully. snat:{}, dnat:{},",
                             eipV6.getSnatptId(), eipV6.getDnatptId());
                     if (flag) {
-                        NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(), eip.getFloatingIp(), eipV6.getFirewallId());
+                        NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(),eip.getEipAddress(), eip.getFloatingIp(), eipV6.getFirewallId());
                         if (natPtV6 != null) {
                             eipV6.setSnatptId(natPtV6.getNewSnatPtId());
                             eipV6.setDnatptId(natPtV6.getNewDnatPtId());
