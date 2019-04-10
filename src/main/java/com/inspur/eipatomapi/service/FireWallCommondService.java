@@ -89,6 +89,7 @@ public class FireWallCommondService {
                 line = stdout.readLine();
                 if(null == line || (System.currentTimeMillis() - start) > 3 * 1000) {
                     log.error("Get no response in 3 second from firewall.");
+                    close();
                     break;
                 }
                 log.info(line);
@@ -109,7 +110,7 @@ public class FireWallCommondService {
 
 
 
-    public void close() {
+    private void close() {
         IOUtils.closeQuietly(stdout);
         IOUtils.closeQuietly(stderr);
         IOUtils.closeQuietly(printWriter);
