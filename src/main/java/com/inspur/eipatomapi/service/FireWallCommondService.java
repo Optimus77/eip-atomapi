@@ -116,6 +116,7 @@ public class FireWallCommondService {
         IOUtils.closeQuietly(printWriter);
         session.close();
         connection.close();
+        bConnect = false;
     }
 
     public static void main(String[] args) {
