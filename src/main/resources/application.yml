@@ -70,6 +70,12 @@ keycloak:
   cors-allowed-headers: Authorization, Origin, X-Requested-With, Content-Type, X-Custom-Header
   cors-allowed-methods: GET,POST,PUT,DELETE,OPTIONS
 
+Kafka:
+  servers: 10.110.25.107:9092,10.10.6.6:9092,10.110.25.105:9092
+  topic: monitor-metrics
+
+regionCode: cn-north-3
+
 # Logback
 logging:
   config: classpath:log4j.properties

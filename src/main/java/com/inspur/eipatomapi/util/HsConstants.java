@@ -20,6 +20,7 @@ public class HsConstants {
 	public static final String DOWN = "DOWN";
 	public static final String STOP = "STOP";
     public static final String ERROE = "ERROE";
+	public static final String SCHEDULETIME = "SCHEDULE_TIME";
 
     public static final String BGP = "BGP";
     public static final String BILLINGITEM = "billingItem";
