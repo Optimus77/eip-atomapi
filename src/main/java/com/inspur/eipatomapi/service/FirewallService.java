@@ -464,7 +464,7 @@ public class FirewallService {
             }
             in = new BufferedReader(new InputStreamReader(p.getInputStream()));
             int connectedCount = 0;
-            String line;
+            String line = null;
             while ((line = in.readLine()) != null) {
                 connectedCount += getCheckResult(line);
             }

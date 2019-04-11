@@ -83,6 +83,15 @@ public interface IEipService {
      */
     ResponseEntity listEipsByBandWidth(String status);
 
+    ResponseEntity getFreeEipCount();
+
+    ResponseEntity getUsingEipCount();
+
+    ResponseEntity getTotalEipCount();
+
+    ResponseEntity FirewallStatusCheck();
+
+    ResponseEntity getUsingEipCountByStatus(String status);
 
 
 }

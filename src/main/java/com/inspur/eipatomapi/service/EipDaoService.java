@@ -6,6 +6,7 @@ import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.EipPoolV6;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
 import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
+import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 
@@ -510,6 +511,48 @@ public class EipDaoService {
 
     }
 
+
+    public long getFreeEipCount(){
+
+        String sql ="select count(*) as num from eip_pool";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return num;
+
+    }
+
+
+    public long getUsingEipCount(){
+
+        String sql ="select count(*) as num from eip where is_delete=0";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return num;
+
+    }
+
+
+    public long getUsingEipCountByStatus(String status){
+
+        String sql ="select count(*) as num from eip where status='"+status+"'"+ "and is_delete=0";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return num;
+
+    }
+
     @Transactional(isolation= Isolation.SERIALIZABLE)
     public synchronized EipPool getOneEipFromPool(){
         EipPool eipAddress =  eipPoolRepository.getEipByRandom();
@@ -691,6 +734,14 @@ public class EipDaoService {
 
     public int statisEipCountBySbw(String sbwId, int isDelete){
         return (int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
+    }
+
+
+    public Firewall getFirewallByRegion(String region){
+
+        Firewall firewall = firewallRepository.findFirewallByRegion(region);
+
+        return firewall;
     }
 
 
