@@ -83,7 +83,7 @@ public class EipV6Controller {
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                         @PathVariable("eipv6_id") String eipV6Id) {
         //Check the parameters
-        log.info("Atom delete the Eip:{} ",eipV6Id);
+        log.info("Atom delete the EipV6Id:{} ",eipV6Id);
         return eipV6Service.atomDeleteEipV6(eipV6Id);
 
     }

@@ -139,7 +139,7 @@ public class EipV6DaoService {
     @Transactional
     public ActionResponse deleteEipV6(String eipv6id)  {
         String msg;
-        EipV6 eipV6Entity = eipV6Repository.findByEipV6Id(eipv6id);
+        EipV6 eipV6Entity = eipV6Repository.findByIpv6AndIsDelete(eipv6id,0);
         if (null == eipV6Entity) {
             msg= "Faild to find eipV6 by id:"+eipv6id;
             log.error(msg);
