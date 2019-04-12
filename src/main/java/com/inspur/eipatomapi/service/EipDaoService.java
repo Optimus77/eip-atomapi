@@ -517,11 +517,11 @@ public class EipDaoService {
         String sql ="select count(*) as num from eip_pool";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        int num =(int)map.get("num");
+        long num =(long)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
-        return num;
+        return (int)num;
 
     }
 
@@ -531,11 +531,11 @@ public class EipDaoService {
         String sql ="select count(*) as num from eip where is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        int num =(int)map.get("num");
+        long num =(long)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
-        return num;
+        return (int)num;
 
     }
 
@@ -545,11 +545,11 @@ public class EipDaoService {
         String sql ="select count(*) as num from eip where status='"+status+"'"+ "and is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        int num =(int)map.get("num");
+        long num =(long)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
-        return num;
+        return (int)num;
 
     }
 
