@@ -80,7 +80,7 @@ public class CommonUtil {
         userConfig.put("userDomainIdS",userDomainIdS);
         userConfig.put("debugRegionS",debugRegionS);
         userConfig.put("openstackUrl",openstackUrl);
-        userConfig.put(SCHEDULETIME, "0 0/1 0/1 * * ?");
+        userConfig.put(SCHEDULETIME, "0 0/3 * * * ?");
     }
 
 //    private static OSClientV3 getOsClientV3(){
