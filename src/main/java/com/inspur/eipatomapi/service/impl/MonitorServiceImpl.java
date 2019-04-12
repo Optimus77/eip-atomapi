@@ -71,17 +71,17 @@ public class MonitorServiceImpl implements MonitorService {
         metricEntity.setResourceId("default");
         metricEntity.setResourceName("default");
         metricEntity.setRegion(regionCode);
-        float free_count = eipDaoService.getFreeEipCount();
-        float erro_count = eipDaoService.getUsingEipCountByStatus("ERROR");
-        float using_count = eipDaoService.getUsingEipCount();
-        float metricValue = 0;
+        int free_count = eipDaoService.getFreeEipCount();
+        int erro_count = eipDaoService.getUsingEipCountByStatus("ERROR");
+        int using_count = eipDaoService.getUsingEipCount();
+        int metricValue = 0;
         if(free_count < 100){
             metricValue = 1;
         }
         if(erro_count >= 1){
             metricValue +=2;
         }
-        metricEntity.setMetricValue(metricValue);//0-正常//1-资源不够//2-有错误状态的EIP//3-资源告警状态错误
+        metricEntity.setMetricValue(Float.intBitsToFloat(metricValue));//0-正常//1-资源不够//2-有错误状态的EIP//3-资源告警状态错误
 
         Map<String, String> dimensions = new HashMap<>();
         dimensions.put(FREE_EIP_COUNT, String.valueOf(free_count));
@@ -102,7 +102,7 @@ public class MonitorServiceImpl implements MonitorService {
         fireWallBeans.parallelStream().forEach(firewall -> {
             String firewallSta="ACTIVE";
             float firewallMetricValue = 0;
-            if(firewallService.ping(firewall.getIp(), 5, 5000)){
+            if(!firewallService.ping(firewall.getIp(), 5, 5000)){
                 firewallSta="DOWN";
                 firewallMetricValue = 1;
             }

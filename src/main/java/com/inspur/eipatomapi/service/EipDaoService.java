@@ -512,12 +512,12 @@ public class EipDaoService {
     }
 
 
-    public float getFreeEipCount(){
+    public int getFreeEipCount(){
 
         String sql ="select count(*) as num from eip_pool";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        float num =(float)map.get("num");
+        int num =(int)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
@@ -526,12 +526,12 @@ public class EipDaoService {
     }
 
 
-    public float getUsingEipCount(){
+    public int getUsingEipCount(){
 
         String sql ="select count(*) as num from eip where is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        float num =(float)map.get("num");
+        int num =(int)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
@@ -540,12 +540,12 @@ public class EipDaoService {
     }
 
 
-    public float getUsingEipCountByStatus(String status){
+    public int getUsingEipCountByStatus(String status){
 
         String sql ="select count(*) as num from eip where status='"+status+"'"+ "and is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        float num =(float)map.get("num");
+        int num =(int)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
