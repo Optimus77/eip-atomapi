@@ -56,8 +56,8 @@ public class MonitorServiceImpl implements MonitorService {
         metricEntity.setMetricValue(Float.parseFloat("0"));//0-正常//1-管理网不通//2-业务网不通//3-本地网不通
         metricEntity.setTimestamp(timestamp);
         metricEntity.setAccount(ADMIN);
-        metricEntity.setResourceId("123");
-        metricEntity.setResourceName("eip_service");
+        metricEntity.setResourceId("default");
+        metricEntity.setResourceName("default");
         metricEntity.setRegion(regionCode);
 
         Map<String, String> dimensions = new HashMap<>();

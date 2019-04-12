@@ -36,7 +36,7 @@ public class MonitorScheduledTask implements SchedulingConfigurer {
         }, triggerContext -> {
             String cron = getCron();
             if (cron == null || "".equals(cron)) {
-                cron = "0 0/1 0/1 * * ? ";
+                cron = "0 0/10 * * * ? ";
             }
             //定时任务触发,可修改定时任务的执行周期
             CronTrigger trigger = new CronTrigger(cron);
@@ -52,6 +52,6 @@ public class MonitorScheduledTask implements SchedulingConfigurer {
                 return timeDely;
             }
         }
-        return "0 0/1 0/1 * * ? ";
+        return "0 0/10 * * * ? ";
     }
 }

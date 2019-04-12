@@ -15,6 +15,9 @@ public class NatPtService {
 
 
     private   Boolean delSnatPt(String snatPtId, String fireWallId) throws Exception {
+        if(snatPtId == null){
+            return true;
+        }
         String disconnectSnat = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
@@ -29,6 +32,10 @@ public class NatPtService {
 
 
     private Boolean delDnatPt(String dnatPtId, String fireWallId) throws Exception {
+        if(dnatPtId == null){
+            return true;
+        }
+
         String disconnectDnat = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                 + "ip vrouter trust-vr\r"
