@@ -106,7 +106,7 @@ public class MonitorServiceImpl implements MonitorService {
         fireWallBeans.parallelStream().forEach(firewall -> {
             String firewallSta="ACTIVE";
             float firewallMetricValue = 0;
-            if(!firewallService.ping(firewall.getIp(), 5, 5000)){
+            if(!firewallService.ping(firewall.getIp())){
                 firewallSta="DOWN";
                 firewallMetricValue = 1;
             }

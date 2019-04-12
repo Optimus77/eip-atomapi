@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -453,45 +454,14 @@ public class FirewallService {
     }
 
 
-    public boolean ping(String ipAddress, int pingTimes, int timeOut) {
-        BufferedReader in = null;
-        Runtime r = Runtime.getRuntime();
+    public static boolean ping(String ipAddress)  {
         try {
-            String pingCommand = "ping " + ipAddress + " -n " + pingTimes    + " -w " + timeOut;
-            Process p = r.exec(pingCommand);
-            if (p == null) {
-                return false;
-            }
-            in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            int connectedCount = 0;
-            String line = null;
-            while ((line = in.readLine()) != null) {
-                connectedCount += getCheckResult(line);
-            }
-            return connectedCount == pingTimes;
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-            return false;
-        } finally {
-            try {
-                if(in != null){
-                    in.close();
-                }else{
-                    log.error("BufferedReader in  is not null");
-                }
-            } catch (IOException e) {
-                log.error(e.getMessage());
-            }
-        }
-    }
-    private int getCheckResult(String line) {
-        Pattern pattern = Pattern.compile("(\\d+ms)(\\s+)(TTL=\\d+)",    Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(line);
-        if(matcher.find()){
-            return 1;
-        }else {
-            return 0;
-        }
-    }
 
+            int  timeOut =  3000 ;
+            boolean status = InetAddress.getByName(ipAddress).isReachable(timeOut);
+            return status;
+        }catch (Exception e){
+            return false;
+        }
+    }
 }
