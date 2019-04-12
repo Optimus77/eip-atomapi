@@ -92,7 +92,7 @@ Kafka:
 
 regionCode: cn-north-3
 
-scheduleTime: 0 0/2 * * * ?
+scheduleTime: 0 0/5 * * * ?
 
 
 

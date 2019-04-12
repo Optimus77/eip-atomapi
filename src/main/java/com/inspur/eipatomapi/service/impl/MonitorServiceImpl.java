@@ -29,7 +29,6 @@ public class MonitorServiceImpl implements MonitorService {
     private static final String EIP_IPS_STATUS = "eip_ips_status";
     private static final String EIP_POD_STATUS = "eip_pod_status";
     private static final String STATUS = "status";
-    private static final String EIP_COUNT = "eip_count";
     private static final String FREE_EIP_COUNT = "free_eip_count";
     private static final String USING_EIP_COUNT = "using_eip_count";
     private static final String ERROR_EIP_COUNT = "error_eip_count";
@@ -58,7 +57,7 @@ public class MonitorServiceImpl implements MonitorService {
     @Override
     public void scheculeTask() {
 
-        log.info("**************************start timed task 1 : eip num check**************************");
+        log.info("**************************start timed task : eip check**************************");
         List<MetricEntity> podMonitorMetric = Collections.synchronizedList(new ArrayList<>());
 
         Long timestamp = System.currentTimeMillis();
@@ -91,28 +90,22 @@ public class MonitorServiceImpl implements MonitorService {
         dimensions.put(FREE_EIP_COUNT, String.valueOf(free_count));
         dimensions.put(USING_EIP_COUNT, String.valueOf(using_count));
         dimensions.put(ERROR_EIP_COUNT, String.valueOf(erro_count));
-        dimensions.put(EIP_COUNT, String.valueOf(free_count + using_count));
         dimensions.put("service", "eip");
         metricEntity.setDimensions(dimensions);
         podMonitorMetric.add(metricEntity);
 
-        log.info("task 1 result: " + JSONObject.toJSONString(podMonitorMetric));
+        log.info("eip_ips_status result: " + JSONObject.toJSONString(podMonitorMetric));
         producerHandler.sendMetrics(podMonitorMetric);
-        log.info("**************************eip num check success**************************");
 
-        log.info("***************start timed task 2 : firewall status check******************");
         List<MetricEntity> eipMonitorMetric = Collections.synchronizedList(new ArrayList<>());
         List<Firewall> fireWallBeans = firewallRepository.findAll();
-        log.info("get firewalls:{}", fireWallBeans);
         fireWallBeans.parallelStream().forEach(firewall -> {
             String firewallSta="ACTIVE";
             float firewallMetricValue = 0;
-            log.info("check firewalls:{}", firewall);
             if(!firewallService.ping(firewall.getIp())){
                 firewallSta="DOWN";
                 firewallMetricValue = 1;
             }
-            log.info("check result:{}", firewallMetricValue);
             String id = firewall.getId();
             MetricEntity fireWallMetricEntity = new MetricEntity();
             fireWallMetricEntity.setMetricName(EIP_POD_STATUS);
@@ -131,9 +124,9 @@ public class MonitorServiceImpl implements MonitorService {
             eipMonitorMetric.add(fireWallMetricEntity);
 
         });
-        log.info("task 2 result : " + JSONObject.toJSONString(eipMonitorMetric));
+        log.info("eip_pod_status result : " + JSONObject.toJSONString(eipMonitorMetric));
         producerHandler.sendMetrics(eipMonitorMetric);
-        log.info("*************************end of task 2**************************");
+        log.info("**************************end of task **************************");
     }
 
 
