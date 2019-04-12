@@ -68,6 +68,10 @@ public class CommonUtil {
     private String userDomainIdS;
     @Value("${debugRegionS}")
     private String debugRegionS;
+
+    @Value("${scheduleTime}")
+    private String scheduleTime;
+
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static Map<String,String> userConfig = new HashMap<>(16);
 
@@ -80,7 +84,7 @@ public class CommonUtil {
         userConfig.put("userDomainIdS",userDomainIdS);
         userConfig.put("debugRegionS",debugRegionS);
         userConfig.put("openstackUrl",openstackUrl);
-        userConfig.put(SCHEDULETIME, "0 0/3 * * * ?");
+        userConfig.put(SCHEDULETIME, scheduleTime);
     }
 
 //    private static OSClientV3 getOsClientV3(){
