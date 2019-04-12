@@ -349,13 +349,4 @@ public class EipController {
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
-
-    @GetMapping(value = "/firewall-status")
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "firewall check")
-    public ResponseEntity FirewallStatusCheck() {
-
-        return eipService.FirewallStatusCheck();
-    }
-
 }

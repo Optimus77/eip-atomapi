@@ -512,12 +512,12 @@ public class EipDaoService {
     }
 
 
-    public long getFreeEipCount(){
+    public float getFreeEipCount(){
 
         String sql ="select count(*) as num from eip_pool";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        long num =(long)map.get("num");
+        float num =(float)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
@@ -526,12 +526,12 @@ public class EipDaoService {
     }
 
 
-    public long getUsingEipCount(){
+    public float getUsingEipCount(){
 
         String sql ="select count(*) as num from eip where is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        long num =(long)map.get("num");
+        float num =(float)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
@@ -540,12 +540,12 @@ public class EipDaoService {
     }
 
 
-    public long getUsingEipCountByStatus(String status){
+    public float getUsingEipCountByStatus(String status){
 
         String sql ="select count(*) as num from eip where status='"+status+"'"+ "and is_delete=0";
 
         Map<String, Object> map=jdbcTemplate.queryForMap(sql);
-        long num =(long)map.get("num");
+        float num =(float)map.get("num");
         log.debug("{}, result:{}",sql, num);
 
 
@@ -734,14 +734,6 @@ public class EipDaoService {
 
     public int statisEipCountBySbw(String sbwId, int isDelete){
         return (int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
-    }
-
-
-    public Firewall getFirewallByRegion(String region){
-
-        Firewall firewall = firewallRepository.findFirewallByRegion(region);
-
-        return firewall;
     }
 
 

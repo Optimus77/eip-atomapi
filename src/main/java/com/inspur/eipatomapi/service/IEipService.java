@@ -89,8 +89,6 @@ public interface IEipService {
 
     ResponseEntity getTotalEipCount();
 
-    ResponseEntity FirewallStatusCheck();
-
     ResponseEntity getUsingEipCountByStatus(String status);
 
 

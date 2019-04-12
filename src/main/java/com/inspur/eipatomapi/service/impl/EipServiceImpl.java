@@ -560,9 +560,9 @@ public class EipServiceImpl implements IEipService {
     @Override
     public ResponseEntity getTotalEipCount() {
         try {
-            long usingEipCount = eipDaoService.getUsingEipCount();
-            long freeEipCount = eipDaoService.getFreeEipCount();
-            long totalEipCount = usingEipCount + freeEipCount;
+            float usingEipCount = eipDaoService.getUsingEipCount();
+            float freeEipCount = eipDaoService.getFreeEipCount();
+            float totalEipCount = usingEipCount + freeEipCount;
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get total_eip_num_success",totalEipCount), HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -740,21 +740,6 @@ public class EipServiceImpl implements IEipService {
             log.error("Exception in listEips", e);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    @Override
-    public ResponseEntity FirewallStatusCheck() {
-        String region = "cn-north-3";
-        Firewall firewall = eipDaoService.getFirewallByRegion(region);
-        if(firewall == null){
-            log.error("No firewall was found based on region");
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"No firewall was found based on region ",null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        boolean ping =firewallService.ping(firewall.getIp(), 5, 5000);
-        if(ping){
-           return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"Eip can ping the firewall ",ping), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,"Eip cannot ping the firewall ",ping), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
