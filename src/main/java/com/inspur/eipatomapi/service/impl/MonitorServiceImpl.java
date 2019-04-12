@@ -1,13 +1,19 @@
-package com.inspur.eipatomapi.service;
+package com.inspur.eipatomapi.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.cloud.cloudmonitormetric.entity.MetricEntity;
 import com.inspur.cloud.cloudmonitormetric.handler.ProducerHandler;
+import com.inspur.eipatomapi.controller.EipController;
+import com.inspur.eipatomapi.entity.ReturnMsg;
 import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.FirewallRepository;
+import com.inspur.eipatomapi.service.EipDaoService;
+import com.inspur.eipatomapi.service.FirewallService;
+import com.inspur.eipatomapi.service.MonitorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -26,6 +32,8 @@ public class MonitorServiceImpl implements MonitorService {
     private static final String EIP_COUNT = "eip_count";
     private static final String FREE_EIP_COUNT = "free_eip_count";
     private static final String USING_EIP_COUNT = "using_eip_count";
+    private String eipSta="ACTIVE";
+    private String firewallSta="ACTIVE";
     @Value("${regionCode}")
     private String regionCode;
 
@@ -41,6 +49,12 @@ public class MonitorServiceImpl implements MonitorService {
         this.producerHandler = producerHandler;
         this.firewallRepository = firewallRepository;
     }
+
+    @Autowired
+    private EipController eipController;
+
+    @Autowired
+    private EipDaoService eipDaoService;
 
 
     @Override
@@ -60,10 +74,13 @@ public class MonitorServiceImpl implements MonitorService {
         metricEntity.setResourceName("eip_service");
         metricEntity.setRegion(regionCode);
 
+        ResponseEntity<ReturnMsg> returnMsgTotal = eipController.getEipCount("totaleipnumbers", null);
+        String totaleipnumbers = returnMsgTotal.getBody().getData().toString();
+
         Map<String, String> dimensions = new HashMap<>();
-        dimensions.put(EIP_COUNT, "44");//layer4/layer7/layerall
-        dimensions.put(FREE_EIP_COUNT, "33");//0:独享/1:共享
-        dimensions.put(USING_EIP_COUNT, "11");
+        dimensions.put(EIP_COUNT, totaleipnumbers);//layer4/layer7/layerall
+        dimensions.put(FREE_EIP_COUNT, Long.toString(eipDaoService.getFreeEipCount()));//0:独享/1:共享
+        dimensions.put(USING_EIP_COUNT, Long.toString(eipDaoService.getUsingEipCount()));
         dimensions.put("service", "eip");
         metricEntity.setDimensions(dimensions);
         podMonitorMetric.add(metricEntity);
@@ -77,7 +94,14 @@ public class MonitorServiceImpl implements MonitorService {
                 .collect(Collectors.toConcurrentMap(MetricEntity::getResourceId, Function.identity()));
 
         List<MetricEntity> eipMonitorMetric = Collections.synchronizedList(new ArrayList<>());
-
+        ResponseEntity<ReturnMsg> returnMsgEip = eipController.EipHealthCheck();
+        if(!returnMsgEip.getBody().getCode().equals("200")){
+            eipSta="DOWN";
+        };
+        ResponseEntity<ReturnMsg> returnMsgFirewall = eipController.FirewallStatusCheck();
+        if(!returnMsgFirewall.getBody().getCode().equals("200")){
+            firewallSta="DOWN";
+        };
         List<Firewall> fireWallBeans = firewallRepository.findAll();
         fireWallBeans.parallelStream().forEach(firewall -> {
 
@@ -93,8 +117,8 @@ public class MonitorServiceImpl implements MonitorService {
 
             Map<String, String> fireWallDimensions = new HashMap<>();
             fireWallDimensions.put("service", "eip");
-            fireWallDimensions.put("eip_server_status", "active");
-            fireWallDimensions.put("firewall_status", "active");
+            fireWallDimensions.put("eip_server_status", eipSta);
+            fireWallDimensions.put("firewall_status", firewallSta);
             fireWallMetricEntity.setDimensions(fireWallDimensions);
             eipMonitorMetric.add(fireWallMetricEntity);
 

@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.entity.eip.*;
@@ -298,7 +299,7 @@ public class EipController {
         msg ="The eip is running";
         log.info(msg);
 
-        return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg,null), HttpStatus.OK);
+        return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg, null), HttpStatus.OK);
     }
 
 
