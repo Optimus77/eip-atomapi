@@ -112,7 +112,6 @@ public class SbwServiceImpl implements ISbwService {
                 data.put(HsConstants.CURRENT_PAGEPER, pageSize);
             } else {
                 List<Sbw> sbwList = sbwDaoService.findByProjectId(projectid);
-                log.debug("sbwList size:{}", sbwList.size());
                 for (Sbw sbw : sbwList) {
                     if (null != searchValue) {
                         continue;

@@ -454,12 +454,10 @@ public class FirewallService {
     }
 
 
-    public static boolean ping(String ipAddress)  {
+    public boolean ping(String ipAddress)  {
         try {
-
             int  timeOut =  3000 ;
-            boolean status = InetAddress.getByName(ipAddress).isReachable(timeOut);
-            return status;
+            return InetAddress.getByName(ipAddress).isReachable(timeOut);
         }catch (Exception e){
             return false;
         }
