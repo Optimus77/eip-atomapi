@@ -100,7 +100,7 @@ public class MonitorServiceImpl implements MonitorService {
         producerHandler.sendMetrics(podMonitorMetric);
         log.info("**************************eip num check success**************************");
 
-        log.info("***************start timed task 1 : firewall status check******************");
+        log.info("***************start timed task 2 : firewall status check******************");
         List<MetricEntity> eipMonitorMetric = Collections.synchronizedList(new ArrayList<>());
         List<Firewall> fireWallBeans = firewallRepository.findAll();
         fireWallBeans.parallelStream().forEach(firewall -> {
