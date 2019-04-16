@@ -235,6 +235,12 @@ public class EipDaoService {
         NetFloatingIP floatingIP ;
         String returnStat;
         String returnMsg ;
+        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+        if(eipEntity != null){
+            log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+        }
         Eip eip = eipRepository.findByEipId(eipid);
         if (null == eip) {
             log.error("In associate process, failed to find the eip by id:{} ", eipid);
