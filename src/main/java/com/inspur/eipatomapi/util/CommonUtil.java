@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.inspur.eipatomapi.util.HsConstants.SCHEDULETIME;
+
 @Slf4j
 @Component
 public class CommonUtil {
@@ -66,6 +68,10 @@ public class CommonUtil {
     private String userDomainIdS;
     @Value("${debugRegionS}")
     private String debugRegionS;
+
+    @Value("${scheduleTime}")
+    private String scheduleTime;
+
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static Map<String,String> userConfig = new HashMap<>(16);
 
@@ -78,6 +84,7 @@ public class CommonUtil {
         userConfig.put("userDomainIdS",userDomainIdS);
         userConfig.put("debugRegionS",debugRegionS);
         userConfig.put("openstackUrl",openstackUrl);
+        userConfig.put(SCHEDULETIME, scheduleTime);
     }
 
 //    private static OSClientV3 getOsClientV3(){
@@ -89,6 +96,9 @@ public class CommonUtil {
 //                .scopeToProject(Identifier.byId(projectIdS))
 //                .authenticate().useRegion(debugRegionS);
 //    }
+    public static Map<String, String> getUserConfig(){
+        return userConfig;
+    }
 
     //administrator rights
     private static OSClientV3 getOsClientV3(){

@@ -1,5 +1,6 @@
 package com.inspur.eipatomapi.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.ConstantClassField;
 import com.inspur.eipatomapi.entity.*;
 import com.inspur.eipatomapi.entity.eip.*;
@@ -215,9 +216,58 @@ public class EipController {
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
-    public ResponseEntity getEipCount() {
-        return  eipService.getEipCount();
+    public ResponseEntity getEipCount(@RequestParam(required = false )String DimensionName,
+                                        @RequestParam(required = false )String status) {
+        if(DimensionName == null){
+            return  eipService.getEipCount();
+        }else {
+            if(status == null){
+                if(DimensionName.equals("freeeipnumbers")){
+                    return  eipService.getFreeEipCount();
+                }else if(DimensionName.equals("totaleipnumbers")){
+                    return  eipService.getTotalEipCount();
+                }
+                return  eipService.getUsingEipCount();
+            }else{
+                return eipService.getUsingEipCountByStatus(status);
+            }
+        }
+
     }
+
+
+
+    /**
+     * get number of user
+     * @return response
+     */
+    @GetMapping(value = "/freeeipnumbers")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="get number",notes="get number")
+    public ResponseEntity getFreeEipCount() { return  eipService.getFreeEipCount();
+    }
+
+
+    @GetMapping(value = "/usingeipnumbers")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="get number",notes="get number")
+    public ResponseEntity getUsingEipCount(@RequestParam(required = false )String status) {
+        if(status == null){
+            return  eipService.getUsingEipCount();
+        }else{
+            return eipService.getUsingEipCountByStatus(status);
+        }
+
+    }
+
+
+    @GetMapping(value = "/totaleipnumbers")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="get number",notes="get number")
+    public ResponseEntity getTotalEipCount() {
+        return  eipService.getTotalEipCount();
+    }
+
 
 
     @PostMapping(value = "/eips/{eip_id}/renew")
@@ -249,7 +299,7 @@ public class EipController {
         msg ="The eip is running";
         log.info(msg);
 
-        return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg,null), HttpStatus.OK);
+        return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg, null), HttpStatus.OK);
     }
 
 

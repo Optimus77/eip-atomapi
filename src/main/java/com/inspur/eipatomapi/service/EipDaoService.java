@@ -6,6 +6,7 @@ import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.EipPoolV6;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
 import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
+import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 
@@ -507,6 +508,48 @@ public class EipDaoService {
 
 
         return num;
+
+    }
+
+
+    public int getFreeEipCount(){
+
+        String sql ="select count(*) as num from eip_pool";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return (int)num;
+
+    }
+
+
+    public int getUsingEipCount(){
+
+        String sql ="select count(*) as num from eip where is_delete=0";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return (int)num;
+
+    }
+
+
+    public int getUsingEipCountByStatus(String status){
+
+        String sql ="select count(*) as num from eip where status='"+status+"'"+ "and is_delete=0";
+
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+        long num =(long)map.get("num");
+        log.debug("{}, result:{}",sql, num);
+
+
+        return (int)num;
 
     }
 

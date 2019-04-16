@@ -84,13 +84,20 @@ public class FireWallCommondService {
 
             String line;
             String retStr = null;
-            while ((line = stdout.readLine()) != null) {
+            long start = System.currentTimeMillis();
+            while (true){
+                line = stdout.readLine();
+                if(null == line || (System.currentTimeMillis() - start) > 3 * 1000) {
+                    log.error("Get no response in 3 second from firewall.");
+                    close();
+                    break;
+                }
                 log.info(line);
                 if ((null != expectStr && line.contains(expectStr)) ||
                         (line.contains("Error"))) {
                     retStr = line;
-                }else if(line.contains("end")) {
-                    log.info("Command return:{}", retStr);
+                } else if (line.contains("end")) {
+                    log.info("Command return:{}, end string:{}", retStr, stdout.readLine());
                     return retStr;
                 }
             }
@@ -103,12 +110,13 @@ public class FireWallCommondService {
 
 
 
-    public void close() {
+    private void close() {
         IOUtils.closeQuietly(stdout);
         IOUtils.closeQuietly(stderr);
         IOUtils.closeQuietly(printWriter);
         session.close();
         connection.close();
+        bConnect = false;
     }
 
     public static void main(String[] args) {

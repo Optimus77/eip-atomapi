@@ -291,7 +291,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipRepository.saveAndFlush(eipEntity);
                         code = "200";
                         msg = "update success";
-                        log.info("update success ");
+                        log.info("update success ，eipv6id:{},newIpv4:{}",eipV6.getEipV6Id(),eip.getEipAddress());
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                     }
 
@@ -308,8 +308,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipRepository.saveAndFlush(eip);
                         eipEntity.setEipV6Id(null);
                         eipRepository.saveAndFlush(eipEntity);
-                        log.info("add nat successfully. snat:{}, dnat:{},",
-                                natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId());
+                        log.info("add nat successfully. snat:{}, dnat:{},eipv6id:{},newIpv4:{},",
+                                natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId(),eipV6.getEipV6Id(),eip.getEipAddress());
                         code = ReturnStatus.SC_OK;
                         msg = "Ipv4 was replaced successfully";
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
@@ -333,8 +333,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipRepository.saveAndFlush(eip);
                         eipEntity.setEipV6Id(null);
                         eipRepository.saveAndFlush(eipEntity);
-                        log.info("del nat successfully. snat:{}, dnat:{},",
-                                eipV6.getSnatptId(), eipV6.getDnatptId());
+                        log.info("del nat successfully. snat:{}, dnat:{},eipv6id:{},newIpv4:{},",
+                                eipV6.getSnatptId(), eipV6.getDnatptId(),eipV6.getEipV6Id(),eip.getEipAddress());
                         code = ReturnStatus.SC_OK;
                         msg = "Ipv4 was replaced successfully";
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
@@ -361,8 +361,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
                             eipRepository.saveAndFlush(eip);
                             eipEntity.setEipV6Id(null);
                             eipRepository.saveAndFlush(eipEntity);
-                            log.info("add nat successfully. snat:{}, dnat:{},",
-                                    natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId());
+                            log.info("add nat successfully. snat:{}, dnat:{},,eipv6id:{},newIpv4:{},",
+                                    natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId(),eipV6.getEipV6Id(),eip.getEipAddress());
                             code = ReturnStatus.SC_OK;
                             msg = "Ipv4 was replaced successfully";
                             return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);

@@ -15,6 +15,8 @@ public interface EipV6Repository extends JpaRepository<EipV6,String> {
 
     EipV6 findByEipV6Id(String id);
 
+    EipV6 findByEipV6IdAndIsDelete(String eipV6Id,int isDelete);
+
     List<EipV6> findByUserIdAndIsDelete(String projectId, int isDelete);
 
     EipV6 findByIpv6AndUserIdAndIsDelete(String ipAddress, String userId, int isDelete);

@@ -17,13 +17,19 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-class FirewallService {
+public class FirewallService {
 
     @Autowired
     private FirewallRepository firewallRepository;
@@ -447,4 +453,13 @@ class FirewallService {
         return Boolean.parseBoolean("False");
     }
 
+
+    public boolean ping(String ipAddress)  {
+        try {
+            int  timeOut =  3000 ;
+            return InetAddress.getByName(ipAddress).isReachable(timeOut);
+        }catch (Exception e){
+            return false;
+        }
+    }
 }
