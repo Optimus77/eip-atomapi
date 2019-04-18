@@ -19,7 +19,7 @@ public class SbwUpdateParam implements Serializable {
     private String billType = "hourlySettlement";
 
     private String sbwName;
-    
+
     private String region;
 
 }
