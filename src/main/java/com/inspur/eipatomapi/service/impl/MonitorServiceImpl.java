@@ -3,8 +3,6 @@ package com.inspur.eipatomapi.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.cloud.cloudmonitormetric.entity.MetricEntity;
 import com.inspur.cloud.cloudmonitormetric.handler.ProducerHandler;
-import com.inspur.eipatomapi.controller.EipController;
-import com.inspur.eipatomapi.entity.ReturnMsg;
 import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.service.EipDaoService;
@@ -13,12 +11,9 @@ import com.inspur.eipatomapi.service.MonitorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 @Service
