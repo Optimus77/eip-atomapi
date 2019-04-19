@@ -473,7 +473,7 @@ public class EipServiceImpl implements IEipService {
                     switch (instanceType) {
                         case "1":
                             // 1：ecs
-                            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(id);
+                            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(id, null);
                             if (actionResponse.isSuccess()){
                                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
@@ -615,7 +615,7 @@ public class EipServiceImpl implements IEipService {
         String msg;
 
         try {
-            ActionResponse actionResponse = eipDaoService.unCpcOrSlbBindEip(instanceId);
+            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(null,instanceId);
             if (actionResponse.isSuccess()){
                 code = ReturnStatus.SC_OK;
                 msg=("The Eip unbinds the instance successfully");
