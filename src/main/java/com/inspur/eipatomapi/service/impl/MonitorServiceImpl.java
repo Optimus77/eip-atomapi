@@ -93,7 +93,7 @@ public class MonitorServiceImpl implements MonitorService {
         dimensions.put("service", "eip");
         metricEntity.setDimensions(dimensions);
         podMonitorMetric.add(metricEntity);
-        if(sendInterval%6 == 0 || erro_count > 0 || using_count < Integer.valueOf(minEipNum)) {
+        if(sendInterval%6 == 0 || erro_count > 0 || free_count < Integer.valueOf(minEipNum)) {
             log.info("eip_ips_status result: " + JSONObject.toJSONString(podMonitorMetric));
             producerHandler.sendMetrics(podMonitorMetric);
         }
