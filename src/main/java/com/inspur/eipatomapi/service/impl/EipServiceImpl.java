@@ -3,7 +3,6 @@ package com.inspur.eipatomapi.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eipatomapi.config.CodeInfo;
-import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
@@ -413,83 +412,78 @@ public class EipServiceImpl implements IEipService {
      * @return        result
      */
     @Override
-    public ResponseEntity eipbindPort(String id, String type,String serverId, String portId,String addrIp){
-        String code;
-        String msg;
-        try {
-            switch(type){
-                case "1":
-                    log.debug("bind a server:{} port:{} with eipId:{}",serverId, portId, id);
-                    // 1：ecs
-                    MethodReturn result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId, null);
-                    if(!result.getInnerCode().equals(ReturnStatus.SC_OK)){
-                        msg = result.getMessage();
-                        log.error(msg);
-                        return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
-                                HttpStatus.valueOf(result.getHttpCode()));
-                    }else{
-                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
-                        Eip eipEntity=(Eip)result.getEip();
-                        BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                        eipReturnDetail.setResourceset(Resourceset.builder()
-                                .resourceid(eipEntity.getInstanceId())
-                                .resourcetype(eipEntity.getInstanceType()).build());
-                        return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-                    }
-                case "2":
-                case "3":
-                    return eipbindInstance( id,  serverId,  addrIp, type);
+    public ResponseEntity eipBindWithInstance(String id, String type,String serverId, String portId,String addrIp){
 
-                default:
-                    code = ReturnStatus.SC_PARAM_ERROR;
-                    msg = "no support type param "+type;
-                    log.warn(msg);
-                    break;
-            }
-        } catch (Exception e) {
-            log.error("eipbindPort exception", e);
+        MethodReturn result = null;
 
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
+        if (StringUtils.isEmpty(serverId) ) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR)), HttpStatus.BAD_REQUEST);
         }
-        log.info("Error when bind port，code:{}, msg:{}.", code, msg);
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        Eip eipCheck = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+        if(eipCheck != null){
+            log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.EIP_BIND_HAS_BAND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND)), HttpStatus.BAD_REQUEST);
+        }
+
+        switch(type) {
+            case "1":
+                log.debug("bind a server:{} port:{} with eipId:{}", serverId, portId, id);
+                // 1：ecs
+                if (!StringUtils.isEmpty(portId)) {
+                    result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId, null);
+                }
+                break;
+            case "2":
+            case "3":
+                if (!StringUtils.isEmpty(addrIp)){
+                    result = eipDaoService.associateInstanceWithEip(id, serverId, type, null, addrIp);
+                }
+                break;
+            default:
+                log.warn("no support type param： "+type);
+                break;
+        }
+
+
+        if(null != result){
+            if(result.getInnerCode().equals(ReturnStatus.SC_OK)) {
+                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_OK, "success"), HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), result.getMessage()), HttpStatus.valueOf(result.getHttpCode()));
+            }
+        }
+        String msg  = "Can not get bind responds when bind eip with server"+ serverId;
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    /**
-     * un bind port
-     * @param id    id
-     * @return      result
-     */
+
     @Override
-    public ResponseEntity unBindPort(String id){
-        String code;
-        String msg;
+    public ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId){
+        String code = ReturnStatus.SC_PARAM_ERROR;
+        String msg = "param error";
+        ActionResponse actionResponse = null;
+        Eip eipEntity = null;
         try {
-            Eip eipEntity = eipDaoService.getEipById(id);
+            if(!StringUtils.isEmpty(eipId)) {
+                eipEntity = eipDaoService.getEipById(eipId);
+            }else if(!StringUtils.isEmpty(instanceId)){
+                eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+            }
             if (null != eipEntity) {
                 String instanceType = eipEntity.getInstanceType();
                 if(null != instanceType) {
                     switch (instanceType) {
                         case "1":
                             // 1：ecs
-                            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(id, null);
-                            if (actionResponse.isSuccess()){
-                                EipReturnDetail eipReturnDetail = new EipReturnDetail();
-
-                                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                                eipReturnDetail.setResourceset(Resourceset.builder()
-                                        .resourceid(eipEntity.getInstanceId())
-                                        .resourcetype(eipEntity.getInstanceType()).build());
-                                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-                            }else{
-                                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-                                msg = actionResponse.getFault();
-                            }
+                            actionResponse = eipDaoService.disassociateInstanceWithEip(eipEntity);
                             break;
                         case "2":
                         case "3":
-                            return unBindInstance(eipEntity.getInstanceId());
+                            actionResponse = eipDaoService.disassociateInstanceWithEip(eipEntity);
                         default:
                             //default ecs
                             code = ReturnStatus.SC_PARAM_ERROR;
@@ -502,12 +496,26 @@ public class EipServiceImpl implements IEipService {
                 }
             } else {
                 code = ReturnStatus.SC_NOT_FOUND;
-                msg = "can not find eip id ："+id;
+                msg = "can not find eip id ："+eipId;
             }
         } catch (Exception e) {
             log.error("Exception in unBindPort", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
+        }
+        if(actionResponse != null){
+            if (actionResponse.isSuccess()){
+                code = ReturnStatus.SC_OK;
+                msg=("unbind successfully");
+                log.info(code);
+                log.info(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+            }else {
+                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                msg = actionResponse.getFault();
+                log.error(code);
+                log.error(msg);
+            }
         }
         log.error(msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -567,73 +575,6 @@ public class EipServiceImpl implements IEipService {
         }catch(Exception e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-
-
-    /**
-     * eip bind with port
-     * @param eipId     eip id
-     * @param InstanceId     eipid
-     * @param ipAddr    Addrip
-     * @return        result
-     */
-    public ResponseEntity eipbindInstance(String eipId, String InstanceId, String ipAddr,String type) {
-        String code;
-        String msg;
-        // bind slb
-        MethodReturn result;
-        try {
-//            result = eipDaoService.cpsOrSlbBindEip(eipId, InstanceId, ipAddr,type);
-            result = eipDaoService.associateInstanceWithEip(eipId, InstanceId, type, null, ipAddr);
-            if (!result.getInnerCode().equals(ReturnStatus.SC_OK)){
-                msg = result.getMessage();
-                log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
-                        HttpStatus.valueOf(result.getHttpCode()));
-            }else {
-                msg = "The Eip binding Instance succeeded";
-                log.info(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error( ReturnStatus.SC_OK, msg), HttpStatus.OK);
-            }
-        }catch (Exception e){
-            log.error("eipbindSlb exception", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-    /**
-     * eip bind with port
-     * @param instanceId     eipid
-     * @return        result
-     */
-    public ResponseEntity unBindInstance(String instanceId) {
-        String code;
-        String msg;
-
-        try {
-            ActionResponse actionResponse = eipDaoService.disassociateInstanceWithEip(null,instanceId);
-            if (actionResponse.isSuccess()){
-                code = ReturnStatus.SC_OK;
-                msg=("The Eip unbinds the instance successfully");
-                log.info(code);
-                log.info(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
-            }else {
-                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-                msg = actionResponse.getFault();
-                log.error(code);
-                log.error(msg);
-            }
-        }catch (Exception e){
-            log.error("eipbindInstance exception", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -700,9 +641,9 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEipsByBandWidth( String status){
 
         try {
-            String projcectid=CommonUtil.getUserId();
-            log.debug("listEips  of user, userId:{}", projcectid);
-            if(projcectid==null){
+            String userId=CommonUtil.getUserId();
+            log.debug("listEips  of user, userId:{}", userId);
+            if(userId==null){
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
@@ -710,10 +651,10 @@ public class EipServiceImpl implements IEipService {
             JSONArray eips=new JSONArray();
             ArrayList<Eip> newList = new ArrayList();
             ArrayList<Eip> newEipList = new ArrayList();
-            List<Eip> eipList=eipDaoService.findByUserId(projcectid);
+            List<Eip> eipList=eipDaoService.findByUserId(userId);
             for (Eip eip : eipList) {
                 String eipAddress = eip.getEipAddress();
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, projcectid, 0);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, userId, 0);
                 if (eipV6 == null) {
                     newEipList.add(eip);
                 }

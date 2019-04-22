@@ -54,14 +54,15 @@ public interface IEipService {
      * @param portId   port id
      * @return        result
      */
-    ResponseEntity eipbindPort(String id,String type, String serverId, String portId, String slbIp);
+    ResponseEntity eipBindWithInstance(String id,String type, String serverId, String portId, String slbIp);
 
     /**
-     * un bind port
-     * @param id    id
-     * @return      result
+     *  unbind
+     * @param eipId eipid
+     * @param instanceId  instanceId
+     * @return ret
      */
-    ResponseEntity unBindPort(String id);
+    ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId);
 
 
     /**

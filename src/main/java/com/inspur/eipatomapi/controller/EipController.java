@@ -160,11 +160,11 @@ public class EipController {
             //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
             if (updateParam.getServerId().trim().equals("")){
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
-                return eipService.unBindPort(eipId);
+                return eipService.eipUnbindWithInstacnce(eipId, null);
             } else {
                 log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
                 if (updateParam.getType() != null) {
-                    return eipService.eipbindPort(eipId, updateParam.getType(), updateParam.getServerId(),
+                    return eipService.eipBindWithInstance(eipId, updateParam.getType(), updateParam.getServerId(),
                             updateParam.getPortId(), updateParam.getPrivateIp());
                 } else {
                     msg = "need param serverid and type";
@@ -173,7 +173,7 @@ public class EipController {
         } else {
             if(updateParam.getBillType()==null&&updateParam.getBandWidth()==0) {
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEipUpdateParam());
-                return eipService.unBindPort(eipId);
+                return eipService.eipUnbindWithInstacnce(eipId, null);
             }else if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
                 if (updateParam.getSharedBandWidthId() != null) {
                     if (updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
@@ -243,14 +243,12 @@ public class EipController {
      */
     @GetMapping(value = "/freeeipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getFreeEipCount() { return  eipService.getFreeEipCount();
     }
 
 
     @GetMapping(value = "/usingeipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getUsingEipCount(@RequestParam(required = false )String status) {
         if(status == null){
             return  eipService.getUsingEipCount();
@@ -263,7 +261,6 @@ public class EipController {
 
     @GetMapping(value = "/totaleipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getTotalEipCount() {
         return  eipService.getTotalEipCount();
     }
@@ -313,7 +310,7 @@ public class EipController {
             , @PathVariable("eip_id") String eipId
             ,@PathVariable("ip_addr") String ipAddr) {
         log.info("Bind eip.{}, {}, {}", slbId,ipAddr,eipId);
-        return eipService.eipbindInstance(eipId,slbId,ipAddr, "3");
+        return eipService.eipBindWithInstance(eipId, "3", slbId, null, ipAddr);
     }
 
 
@@ -325,7 +322,7 @@ public class EipController {
     })
     public ResponseEntity eipUnbinWithSlb(@PathVariable("slb_id") String slbId) {
         log.info("unBind eip.{}, {}, {}", slbId);
-        return eipService.unBindInstance(slbId);
+        return eipService.eipUnbindWithInstacnce(null, slbId);
     }
 
 

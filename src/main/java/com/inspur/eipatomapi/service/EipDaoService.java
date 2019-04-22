@@ -228,40 +228,32 @@ public class EipDaoService {
      * @param serverId     server id
      * @param instanceType instance type
      * @return             true or false
-     * @throws KeycloakTokenException   e
      */
     @Transactional
-    public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId, String fip) throws KeycloakTokenException {
+    public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId, String fip){
         NetFloatingIP floatingIP ;
         String returnStat;
         String returnMsg ;
-        Eip eipEntity = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
-        if(eipEntity != null){
-            log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
-            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
-        }
+
         Eip eip = eipRepository.findByEipId(eipid);
         if (null == eip) {
             log.error("In associate process, failed to find the eip by id:{} ", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
         }
-        if (!eip.getUserId().equals(CommonUtil.getUserId())) {
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
-            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
-        }
 
         if (!(HsConstants.DOWN.equals(eip.getStatus())) || (null != eip.getDnatId()) || (null != eip.getSnatId()) ) {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
-        if ((serverId == null) || (instanceType.equalsIgnoreCase("1") && portId == null) ) {
-            return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR));
-        }
+
         try {
+            if (!eip.getUserId().equals(CommonUtil.getUserId())) {
+                log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+                return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+                        CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            }
+
             if(null == fip && instanceType.equals("1")) {
                 String networkId = getExtNetId(eip.getRegion());
                 if (null == networkId) {
@@ -332,30 +324,19 @@ public class EipDaoService {
     }
 
 
-    /**
-     * disassociate port with eip
-     *
-     * @param eipid eip id
-     * @return reuslt, true or false
-     * @throws KeycloakTokenException e
-     */
+
     @Transactional
-    public ActionResponse disassociateInstanceWithEip(String eipid, String instanceId) throws Exception {
+    public ActionResponse disassociateInstanceWithEip(Eip  eipEntity) throws Exception {
 
         String msg = null;
-        Eip eipEntity = null;
-        if(null != eipid) {
-            eipEntity = eipRepository.findByEipId(eipid);
-        }else if(null != instanceId){
-            eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
-        }
+
         String status= HsConstants.DOWN;
         if(null == eipEntity){
-            log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip by id:{} ",eipid);
+            log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip ");
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
         if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
-            log.error("User have no write to delete eip:{}", eipid);
+            log.error("User have no write to delete eip:{}", eipEntity.getEipId());
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
