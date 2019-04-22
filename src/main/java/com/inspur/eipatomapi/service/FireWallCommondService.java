@@ -67,7 +67,7 @@ public class FireWallCommondService {
         stderr = new BufferedReader(new InputStreamReader(new StreamGobbler(session.getStderr()), StandardCharsets.UTF_8));
         printWriter = new PrintWriter(session.getStdin());
 
-        TimeUnit.MILLISECONDS.sleep(250);
+        TimeUnit.MILLISECONDS.sleep(400);
     }
 
     synchronized String execCustomCommand(String fireWallId, String cmd) {
