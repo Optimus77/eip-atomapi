@@ -388,9 +388,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
-
-
-
+    public EipV6 findEipV6ByEipV6Id(String eipV6Id){
+        return eipV6DaoService.findByEipV6IdAndIsDelete(eipV6Id,0);
+    }
 
 }

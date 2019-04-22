@@ -33,9 +33,6 @@ public class EipServiceImpl implements IEipService {
     private EipRepository eipRepository;
 
     @Autowired
-    private NeutronService neutronService;
-
-    @Autowired
     private EipDaoService eipDaoService;
 
     @Autowired
@@ -47,8 +44,6 @@ public class EipServiceImpl implements IEipService {
     @Autowired
     private EipV6ServiceImpl eipV6Service;
 
-    @Autowired
-    private FirewallService firewallService;
 
 
     /**
@@ -238,6 +233,12 @@ public class EipServiceImpl implements IEipService {
                     eipReturnDetail.setResourceset(Resourceset.builder()
                             .resourceid(eip.getInstanceId())
                             .resourcetype(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())){
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 !=null){
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
                     eips.add(eipReturnDetail);
                 }
                 data.put("eips",eips);
@@ -256,6 +257,12 @@ public class EipServiceImpl implements IEipService {
                     eipReturnDetail.setResourceset(Resourceset.builder()
                             .resourceid(eip.getInstanceId())
                             .resourcetype(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())){
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 !=null){
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
                     eips.add(eipReturnDetail);
                 }
                 data.put("eips",eips);
@@ -289,13 +296,17 @@ public class EipServiceImpl implements IEipService {
                 eipReturnDetail.setResourceset(Resourceset.builder()
                         .resourceid(eipEntity.getInstanceId())
                         .resourcetype(eipEntity.getInstanceType()).build());
-
+                if (StringUtils.isNotBlank(eipEntity.getEipV6Id())){
+                    EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eipEntity.getEipV6Id());
+                    if (eipV6 !=null){
+                        eipReturnDetail.setIpv6(eipV6.getIpv6());
+                    }
+                }
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "Can not find eip by id:" + eipId+"."),
                         HttpStatus.NOT_FOUND);
-
             }
         } catch (Exception e) {
             log.error("Exception in getEipDetail", e);
