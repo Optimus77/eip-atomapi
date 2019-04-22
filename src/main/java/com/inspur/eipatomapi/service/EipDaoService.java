@@ -277,27 +277,17 @@ public class EipDaoService {
             returnMsg = fireWallReturn.getMessage();
             returnStat = fireWallReturn.getInnerCode();
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
-                String eipAddress = eip.getEipAddress();
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, eip.getUserId(), 0);
-                if (eipV6 != null) {
-                    NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(),eip.getEipAddress(), eip.getFloatingIp(), eipV6.getFirewallId());
-                    if (natPtV6 == null) {
-                        firewallService.delNatAndQos(eip);
-                        neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
-                                eip.getFloatingIpId(), serverId, eip.getRegion());
-                        eip.setFloatingIp(null);
-                        eip.setFloatingIpId(null);
-                        eipRepository.saveAndFlush(eip);
-                        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
-                    }
-                    eipV6.setFloatingIp(eip.getFloatingIp());
-                    eipV6.setDnatptId(natPtV6.getNewDnatPtId());
-                    eipV6.setSnatptId(natPtV6.getNewSnatPtId());
-                    eipV6.setUpdateTime(CommonUtil.getGmtDate());
-                    eipV6Repository.saveAndFlush(eipV6);
-                    log.info("Bind eipv6 with instance successfully. eip:{}");
-
+                boolean bindRet = eipV6DaoService.bindIpv6WithInstance(eip.getEipAddress(), eip.getFloatingIp(), eip.getUserId());
+                if (!bindRet) {
+                    firewallService.delNatAndQos(eip);
+                    neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
+                            eip.getFloatingIpId(), serverId, eip.getRegion());
+                    eip.setFloatingIp(null);
+                    eip.setFloatingIpId(null);
+                    eipRepository.saveAndFlush(eip);
+                    return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
                 }
+
                 eip.setInstanceId(serverId);
                 eip.setInstanceType(instanceType);
                 eip.setPortId(portId);
@@ -363,24 +353,16 @@ public class EipDaoService {
         }
 
         String eipAddress = eipEntity.getEipAddress();
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, eipEntity.getUserId(), 0);
-        if (eipV6 != null) {
-            Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
-            if (!flag) {
-                neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
-                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
-                        eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
-                msg = "Failed to disassociate  with natPt:" + eipV6.getSnatptId() + "--" + eipV6.getDnatptId();
-                log.error(msg);
-                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            } else {
-                eipV6.setSnatptId(null);
-                eipV6.setDnatptId(null);
-                eipV6.setFloatingIp(null);
-                eipV6.setUpdateTime(CommonUtil.getGmtDate());
-                eipV6Repository.saveAndFlush(eipV6);
-            }
+        boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getUserId());
+        if (!unbindIpv6Ret) {
+            neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
+            firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                    eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
+            msg = "Failed to disassociate  with natPt";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
+
         eipEntity.setInstanceId(null);
         eipEntity.setInstanceType(null);
         eipEntity.setPrivateIpAddress(null);
