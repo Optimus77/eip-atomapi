@@ -8,6 +8,7 @@ import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.FirewallService;
 import com.inspur.eipatomapi.service.MonitorService;
+import com.inspur.eipatomapi.util.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,7 +71,7 @@ public class MonitorServiceImpl implements MonitorService {
         metricEntity.setResourceName("default");
         metricEntity.setRegion(regionCode);
         int free_count = eipDaoService.getFreeEipCount();
-        int erro_count = eipDaoService.getUsingEipCountByStatus("ERROR");
+        int erro_count = eipDaoService.getUsingEipCountByStatus(HsConstants.ERROR);
         int using_count = eipDaoService.getUsingEipCount();
         String metricValue = "0";
         if(free_count < Integer.valueOf(minEipNum)){
@@ -92,7 +93,7 @@ public class MonitorServiceImpl implements MonitorService {
         dimensions.put("service", "eip");
         metricEntity.setDimensions(dimensions);
         podMonitorMetric.add(metricEntity);
-        if(sendInterval/6 == 0 || erro_count > 0 || using_count < Integer.valueOf(minEipNum)) {
+        if(sendInterval%6 == 0 || erro_count > 0 || using_count < Integer.valueOf(minEipNum)) {
             log.info("eip_ips_status result: " + JSONObject.toJSONString(podMonitorMetric));
             producerHandler.sendMetrics(podMonitorMetric);
         }
@@ -125,7 +126,7 @@ public class MonitorServiceImpl implements MonitorService {
             eipMonitorMetric.add(fireWallMetricEntity);
 
         });
-        if(sendInterval/6 == 0 ) {
+        if(sendInterval%6 == 0 ) {
             log.info("eip_pod_status result : " + JSONObject.toJSONString(eipMonitorMetric));
             producerHandler.sendMetrics(eipMonitorMetric);
         }

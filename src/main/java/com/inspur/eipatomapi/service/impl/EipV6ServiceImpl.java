@@ -339,7 +339,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         msg = "Ipv4 was replaced successfully";
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                     } else {
-                        eip.setStatus(HsConstants.ERROE);
+                        eip.setStatus(HsConstants.ERROR);
                         log.error("Failed to del natPtId" + eipV6.getSnatptId(), eipV6.getDnatptId());
                         code = ReturnStatus.SC_FIREWALL_NAT_UNAVAILABLE;
                         msg = "Failed to del natPtId";

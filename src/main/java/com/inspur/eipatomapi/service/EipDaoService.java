@@ -6,7 +6,6 @@ import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.EipPoolV6;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
 import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
-import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 
@@ -173,7 +172,7 @@ public class EipDaoService {
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipEntity.setEipV6Id(null);
         eipRepository.saveAndFlush(eipEntity);
-        if(eipEntity.getStatus().equals(HsConstants.ERROE)){
+        if(eipEntity.getStatus().equals(HsConstants.ERROR)){
             return ActionResponse.actionSuccess();
         }
         EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
@@ -349,7 +348,7 @@ public class EipDaoService {
         MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
             msg += fireWallReturn.getMessage();
-            status = HsConstants.ERROE;
+            status = HsConstants.ERROR;
         }
 
         if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
