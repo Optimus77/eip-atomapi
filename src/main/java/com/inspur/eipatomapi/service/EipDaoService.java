@@ -3,9 +3,6 @@ package com.inspur.eipatomapi.service;
 import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.eip.*;
-import com.inspur.eipatomapi.entity.eipv6.EipPoolV6;
-import com.inspur.eipatomapi.entity.eipv6.EipV6;
-import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
 
@@ -31,9 +28,6 @@ public class EipDaoService {
     private EipPoolRepository eipPoolRepository;
 
     @Autowired
-    private FirewallRepository firewallRepository;
-
-    @Autowired
     private ExtNetRepository extNetRepository;
 
     @Autowired
@@ -46,19 +40,10 @@ public class EipDaoService {
     private NeutronService neutronService;
 
     @Autowired
-    private EipV6Repository eipV6Repository;
-
-    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private EipV6DaoService eipV6DaoService;
-
-    @Autowired
-    private NatPtService natPtService;
-
-    @Autowired
-    private EipPoolV6Repository eipPoolV6Repository;
 
 
     /**
@@ -147,27 +132,11 @@ public class EipDaoService {
             msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
             log.error(msg);
         }
-        String eipAddress = eipEntity.getEipAddress();
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, eipEntity.getUserId(), 0);
-        if (eipV6 != null) {
-            eipV6.setIsDelete(1);
-            eipV6.setUpdateTime(CommonUtil.getGmtDate());
-            eipV6Repository.saveAndFlush(eipV6);
-            EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6.getIpv6());
-            if (null != eipV6Pool) {
-                log.error("******************************************************************************");
-                log.error("Fatal error, eipV6 has already exist in eipV6 pool. can not add to eipV6 pool.{}",
-                        eipV6.getIpv6());
-                log.error("******************************************************************************");
-            } else {
-                EipPoolV6 eipPoolV6Mo = new EipPoolV6();
-                eipPoolV6Mo.setFireWallId(eipV6.getFirewallId());
-                eipPoolV6Mo.setIp(eipV6.getIpv6());
-                eipPoolV6Mo.setState("0");
-                eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
-                log.info("Success delete eipV6:{}", eipV6.getIpv6());
-            }
+        ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id());
+        if(!delV6Ret.isSuccess()){
+            log.error("Faild to delete ipv6 address.");
         }
+
         eipEntity.setIsDelete(1);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         eipEntity.setEipV6Id(null);
