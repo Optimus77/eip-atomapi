@@ -135,6 +135,10 @@ public class EipV6DaoService {
         return eipV6Repository.findByUserIdAndIsDelete(userId,0);
     }
 
+    public EipV6 findByEipV6IdAndIsDelete(String eipV6Id, int isDelete){
+        return eipV6Repository.findByEipV6IdAndIsDelete(eipV6Id,0);
+    }
+
 
     @Transactional
     public ActionResponse deleteEipV6(String eipv6id)  {
