@@ -254,9 +254,9 @@ public class QosService {
     /**
      * remove
      *
-     * @param floatIp
-     * @param pipeId
-     * @return
+     * @param floatIp fip
+     * @param pipeId pip
+     * @return ret
      */
     HashMap<String, String> removeIpFromPipe(String floatIp, String pipeId) {
         HashMap<String, String> res = new HashMap();
@@ -337,9 +337,9 @@ public class QosService {
     /**
      * @param pipeId   管道id
      * @param sequence ip序号
-     * @return
+     * @return ret
      */
-    public Boolean deleteIpFromPipe(String pipeId, String sequence) {
+    private Boolean deleteIpFromPipe(String pipeId, String sequence) {
         String param = "[{\"target\":\"root.rule\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\",\"rule\":[{\"id\":\"" + sequence + "\"}]}}}]";
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", param);
@@ -354,7 +354,7 @@ public class QosService {
         }
         return false;
     }
-    public MethodReturn controlPipe(String fireWallId, String pipeName, Boolean isDisable){
+    MethodReturn controlPipe(String fireWallId, String pipeName, Boolean isDisable){
         String msg = null;
         String returnStat = "200";
 
@@ -364,21 +364,21 @@ public class QosService {
         }else {
             cmd = noDisablePipe(pipeName);
         }
-         msg = fwCmdService.execCustomCommand(fireWallId, cmd);
+         msg = fwCmdService.execCustomCommand(fireWallId, cmd, null);
         if (msg ==null){
             return MethodReturnUtil.success();
-        }else if (msg !=null && msg.contains("error")){
+        }else if (msg.contains("error")){
             return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute disable qos error:"+msg);
         }
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute cmd meet An unknown error:"+msg);
     }
 
-    public String disablePipe(String pipeName){
+    private String disablePipe(String pipeName){
         String disableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
                 +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.DISABLE +HillStoneConfigConsts.ENTER_END;
         return disableCmd;
     }
-    public String noDisablePipe(String pipeName){
+    private String noDisablePipe(String pipeName){
         String noDisableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
                 +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.NO_DISABLE +HillStoneConfigConsts.ENTER_END;
         return noDisableCmd;
@@ -405,24 +405,24 @@ public class QosService {
         }
     };
 
-    public void setFwIp(String fwIp) {
+    void setFwIp(String fwIp) {
         this.fwIp = fwIp;
     }
 
-    public void setFwPort(String fwPort) {
+    void setFwPort(String fwPort) {
         this.fwPort = fwPort;
     }
 
-    public void setFwUser(String fwUser) {
+    void setFwUser(String fwUser) {
         this.fwUser = fwUser;
     }
 
-    public void setFwPwd(String fwPwd) {
+    void setFwPwd(String fwPwd) {
         this.fwPwd = fwPwd;
     }
 
 
-    JSONArray getQosRuleId(String pipeId) {
+    private JSONArray getQosRuleId(String pipeId) {
         String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22" + pipeId + "%22%7D%5D%7D&target=root.rule";
         try {
             String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);

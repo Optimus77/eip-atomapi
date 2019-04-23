@@ -4,7 +4,6 @@ import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.eipv6.EipPoolV6;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
-import com.inspur.eipatomapi.entity.eipv6.EipV6AllocateParam;
 import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
@@ -45,15 +44,15 @@ public class EipV6DaoService {
     /**
      * allocate eipv6
      *
-     * @param eipConfig    eipconfig
+     * @param  eipV4Id    eipconfig
      * @return result
      */
     @Transactional
-    public EipV6 allocateEipV6(EipV6AllocateParam eipConfig, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
+    public EipV6 allocateEipV6(String  eipV4Id, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
 
-        Eip eip = eipRepository.findByEipId(eipConfig.getEipId());
+        Eip eip = eipRepository.findByEipId(eipV4Id);
         if(null == eip){
-            log.error("Faild to find eip by id:"+eipConfig.getEipId());
+            log.error("Faild to find eip by id:{}",eipV4Id);
             return null;
         }
         if(StringUtils.isNotBlank(eip.getEipV6Id())){

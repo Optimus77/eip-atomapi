@@ -6,7 +6,6 @@ import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.MethodReturn;
 import com.inspur.eipatomapi.entity.eip.*;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
-import com.inspur.eipatomapi.entity.eipv6.EipV6AllocateParam;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.EipV6Repository;
@@ -79,9 +78,7 @@ public class EipServiceImpl implements IEipService {
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
                 if(eipConfig.getIpv6().equalsIgnoreCase("yes")){
-                    EipV6AllocateParam eipV6AllocateParam = new EipV6AllocateParam();
-                    eipV6AllocateParam.setEipId(eipMo.getEipId());
-                    eipV6Service.atomCreateEipV6(eipV6AllocateParam);
+                    eipV6Service.atomCreateEipV6(eipMo.getEipId());
                 }
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
             } else {

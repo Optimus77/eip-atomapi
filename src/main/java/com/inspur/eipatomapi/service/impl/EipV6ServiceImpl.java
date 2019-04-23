@@ -46,10 +46,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
     /**
      * create a eipV6
-     * @param eipConfig          config
+     * @param eipV4Id          eipV4Id
      * @return                   json info of eip
      */
-    public ResponseEntity atomCreateEipV6(EipV6AllocateParam eipConfig) {
+    public ResponseEntity atomCreateEipV6(String eipV4Id) {
 
         String code;
         String msg;
@@ -62,7 +62,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         HttpStatus.FAILED_DEPENDENCY);
             }
 
-            EipV6 eipMo = eipV6DaoService.allocateEipV6(eipConfig, eipV6);
+            EipV6 eipMo = eipV6DaoService.allocateEipV6(eipV4Id, eipV6);
             if (null != eipMo) {
                 EipV6ReturnBase eipInfo = new EipV6ReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
@@ -388,7 +388,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public EipV6 findEipV6ByEipV6Id(String eipV6Id){
+    EipV6 findEipV6ByEipV6Id(String eipV6Id){
         return eipV6DaoService.findByEipV6IdAndIsDelete(eipV6Id,0);
     }
 

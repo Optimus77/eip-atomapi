@@ -47,7 +47,7 @@ public class EipV6Controller {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam());
+        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam().getEipId());
         return responseEntity;
     }
 

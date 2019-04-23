@@ -22,7 +22,8 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "no snatrule id " + snatPtId + "\r"
-                + "end");
+                + "# end",
+                null);
         if (disconnectSnat != null) {
             log.error("Failed to delete dnatPtId", snatPtId);
             throw new FwNatV6Excvption("Failed to delete snatPtId" + snatPtId);
@@ -40,7 +41,8 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "no dnatrule id " + dnatPtId + "\r"
-                + "end");
+                + "# end",
+                null);
         if (disconnectDnat != null) {
             log.error("Failed to delete dnatPtId", dnatPtId);
             throw new FwNatV6Excvption("Failed to delete dnatPtId" + dnatPtId);
@@ -62,7 +64,8 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "dnatrule from ipv6-any to " + ipv6 + " service any trans-to " + ipv4 + "\r"
-                + "end");
+                + "end",
+                "ID=");
         if(strDnatPtId == null){
             log.error("Failed to add DnatPtId", strDnatPtId);
             throw new FwNatV6Excvption("Failed to add DnatPtId" + strDnatPtId);
@@ -76,7 +79,8 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "snatrule from ipv6-any to " + ipv6 + " service any trans-to "+ eip+" mode dynamicport" + "\r"
-                + "end");
+                + "end",
+                "ID=");
         if(strSnatPtId == null){
             log.error("Failed to add snatPtId", strSnatPtId);
             throw new FwNatV6Excvption("Failed to add snatPtId" + strSnatPtId);
