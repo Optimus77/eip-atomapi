@@ -57,7 +57,7 @@ public class MonitorServiceImpl implements MonitorService {
     @Override
     public void scheculeTask() {
 
-        log.info("**************************start timed task : eip check**************************");
+        log.debug("**************************start timed task : eip check**************************");
         List<MetricEntity> podMonitorMetric = Collections.synchronizedList(new ArrayList<>());
 
         Long timestamp = System.currentTimeMillis();
@@ -130,7 +130,7 @@ public class MonitorServiceImpl implements MonitorService {
             log.info("eip_pod_status result : " + JSONObject.toJSONString(eipMonitorMetric));
             producerHandler.sendMetrics(eipMonitorMetric);
         }
-        log.info("**************************end of task **************************");
+        log.debug("**************************end of task **************************");
         sendInterval++;
     }
 

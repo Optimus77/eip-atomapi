@@ -168,7 +168,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0));
-                log.info("sbwReturnDetail:{}", sbwReturnDetail.toString());
+                log.debug("sbwReturnDetail:{}", sbwReturnDetail.toString());
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
