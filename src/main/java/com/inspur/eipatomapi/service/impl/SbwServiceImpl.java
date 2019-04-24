@@ -9,9 +9,6 @@ import com.inspur.eipatomapi.entity.sbw.*;
 import com.inspur.eipatomapi.repository.EipRepository;
 import com.inspur.eipatomapi.repository.EipV6Repository;
 import com.inspur.eipatomapi.repository.SbwRepository;
-import com.inspur.eipatomapi.service.EipDaoService;
-import com.inspur.eipatomapi.service.ISbwService;
-import com.inspur.eipatomapi.service.SbwDaoService;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import com.inspur.eipatomapi.service.*;
 
 import java.util.List;
 
