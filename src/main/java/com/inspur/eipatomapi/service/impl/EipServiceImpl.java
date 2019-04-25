@@ -576,9 +576,9 @@ public class EipServiceImpl implements IEipService {
     @Override
     public ResponseEntity getTotalEipCount() {
         try {
-            float usingEipCount = eipDaoService.getUsingEipCount();
-            float freeEipCount = eipDaoService.getFreeEipCount();
-            float totalEipCount = usingEipCount + freeEipCount;
+            int usingEipCount = eipDaoService.getUsingEipCount();
+            int freeEipCount = eipDaoService.getFreeEipCount();
+            int totalEipCount = usingEipCount + freeEipCount;
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK,"get total_eip_num_success",totalEipCount), HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
