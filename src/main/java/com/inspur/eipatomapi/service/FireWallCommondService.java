@@ -67,11 +67,11 @@ public class FireWallCommondService {
         stderr = new BufferedReader(new InputStreamReader(new StreamGobbler(session.getStderr()), StandardCharsets.UTF_8));
         printWriter = new PrintWriter(session.getStdin());
 
-        TimeUnit.MILLISECONDS.sleep(250);
+        TimeUnit.MILLISECONDS.sleep(400);
     }
 
-    synchronized String execCustomCommand(String fireWallId, String cmd) {
-        String expectStr = "ID=";
+    synchronized String execCustomCommand(String fireWallId, String cmd, String expectStr) {
+
         try {
             if(!bConnect){
                 Firewall firewall = firewallService.getFireWallById(fireWallId);
@@ -84,27 +84,27 @@ public class FireWallCommondService {
 
             String line;
             String retStr = null;
-            long start = System.currentTimeMillis();
-            while (true){
-                line = stdout.readLine();
-                if(null == line || (System.currentTimeMillis() - start) > 3 * 1000) {
-                    log.error("Get no response in 3 second from firewall.");
-                    close();
-                    break;
-                }
+            while (null != (line = stdout.readLine())){
                 log.info(line);
-                if ((null != expectStr && line.contains(expectStr)) ||
-                        (line.contains("Error"))) {
+                if ((null != expectStr && line.contains(expectStr)) || (line.contains("Error"))) {
                     retStr = line;
-                } else if (line.contains("end")) {
-                    log.info("Command return:{}, end string:{}", retStr, stdout.readLine());
-                    return retStr;
+                }
+
+                if (line.contains("end")) {
+                    if(line.contains("# end")){
+                        log.info("Command return:{}, end string:{}", retStr, stdout.readLine());
+                        return retStr;
+                    }else {
+                        log.error("Firewall not connect, end string:{}.");
+                        close();
+                        return "ERROR";
+                    }
                 }
             }
         } catch (Exception e) {
             log.error("Error when init :", e);
         }
-        log.info("Commond get no return.");
+        log.error("Commond get no return.");
         return null;
     }
 
@@ -123,12 +123,21 @@ public class FireWallCommondService {
 
         FireWallCommondService sshAgent = new FireWallCommondService();
         long currentTimeMillis = System.currentTimeMillis();
-        //sshAgent.initConnection("10.110.17.250", "hillstone", "hillstone");
+//
+//        String ret = sshAgent.execCustomCommand("1",
+//                "configure\r"
+//                        + "ip vrouter trust-vr\r"
+//                        + "dnatrule from ipv6-any to 1111::2222 service any trans-to 22.11.22.11\r"
+//                        + "end",
+//                "ID=");
         String ret = sshAgent.execCustomCommand("1",
                 "configure\r"
                         + "ip vrouter trust-vr\r"
-                        + "dnatrule from ipv6-any to 1111::2222 service any trans-to 22.11.22.11\r"
-                        + "end");
+                        + "no dnatrule id 95\r"
+                        + "end",
+                null);
+
+
 //        String ret = sshAgent.execCustomCommand("id", "configure\r"
 //                +"service my-service1\r"
 //                +"tcp dst-port 21 23\r"
@@ -143,15 +152,6 @@ public class FireWallCommondService {
         if(null != ret){
             System.out.print(ret);
         }
-
-//        sshAgent.execCustomCommand("configure\r"
-//                +"ip vrouter trust-vr\r"
-//                +"snatrule from ipv6-any to 2003::2 service any trans-to eif-ip mode dynamicport\r"
-//                +"end");
-//        sshAgent.execCustomCommand("configure\r"
-//                +"ip vrouter trust-vr\r"
-//                +"dnatrule from ipv6-any to 2003::2 service any trans-to 192.168.1.2\r"
-//                +"end");
         long currentTimeMillis1 = System.currentTimeMillis();
         System.out.println("\r\nganymed-ssh2 time:"+(currentTimeMillis1-currentTimeMillis));
         //sshAgent.close();

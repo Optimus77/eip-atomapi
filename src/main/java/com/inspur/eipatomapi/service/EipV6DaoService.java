@@ -4,7 +4,6 @@ import com.inspur.eipatomapi.config.CodeInfo;
 import com.inspur.eipatomapi.entity.eip.Eip;
 import com.inspur.eipatomapi.entity.eipv6.EipPoolV6;
 import com.inspur.eipatomapi.entity.eipv6.EipV6;
-import com.inspur.eipatomapi.entity.eipv6.EipV6AllocateParam;
 import com.inspur.eipatomapi.entity.eipv6.NatPtV6;
 import com.inspur.eipatomapi.repository.*;
 import com.inspur.eipatomapi.util.*;
@@ -45,15 +44,15 @@ public class EipV6DaoService {
     /**
      * allocate eipv6
      *
-     * @param eipConfig    eipconfig
+     * @param  eipV4Id    eipconfig
      * @return result
      */
     @Transactional
-    public EipV6 allocateEipV6(EipV6AllocateParam eipConfig, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
+    public EipV6 allocateEipV6(String  eipV4Id, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
 
-        Eip eip = eipRepository.findByEipId(eipConfig.getEipId());
+        Eip eip = eipRepository.findByEipId(eipV4Id);
         if(null == eip){
-            log.error("Faild to find eip by id:"+eipConfig.getEipId());
+            log.error("Faild to find eip by id:{}",eipV4Id);
             return null;
         }
         if(StringUtils.isNotBlank(eip.getEipV6Id())){
@@ -135,10 +134,18 @@ public class EipV6DaoService {
         return eipV6Repository.findByUserIdAndIsDelete(userId,0);
     }
 
+    public EipV6 findByEipV6IdAndIsDelete(String eipV6Id, int isDelete){
+        return eipV6Repository.findByEipV6IdAndIsDelete(eipV6Id,0);
+    }
+
 
     @Transactional
     public ActionResponse deleteEipV6(String eipv6id)  {
         String msg;
+        if(null == eipv6id) {
+            return ActionResponse.actionSuccess();
+        }
+
         EipV6 eipV6Entity = eipV6Repository.findByEipV6IdAndIsDelete(eipv6id,0);
         if (null == eipV6Entity) {
             msg= "Faild to find eipV6 by id:"+eipv6id;
@@ -197,6 +204,44 @@ public class EipV6DaoService {
         return ActionResponse.actionSuccess();
     }
 
+
+    boolean bindIpv6WithInstance(String eipAddress, String floatingIp, String userId) throws Exception{
+
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, userId, 0);
+        if (eipV6 != null) {
+            NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(),eipAddress, floatingIp, eipV6.getFirewallId());
+            if (natPtV6 == null) {
+                log.error("Failed to add natpt wieth:{}---{}",eipAddress, eipV6.getIpv6() );
+                return false;
+            }
+            eipV6.setFloatingIp(floatingIp);
+            eipV6.setDnatptId(natPtV6.getNewDnatPtId());
+            eipV6.setSnatptId(natPtV6.getNewSnatPtId());
+            eipV6.setUpdateTime(CommonUtil.getGmtDate());
+            eipV6Repository.saveAndFlush(eipV6);
+            log.info("Bind eipv6 with instance successfully. eip:{}", eipV6.toString());
+        }
+        return  true;
+    }
+
+    boolean unBindIpv6WithInstance(String eipAddress, String userId) throws Exception{
+
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, userId, 0);
+        if (eipV6 != null) {
+            Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
+            if (!flag) {
+                log.error("Failed to disassociate  with natPt:{}--{}", eipV6.getSnatptId() ,eipV6.getDnatptId());
+                return false;
+            }
+            eipV6.setSnatptId(null);
+            eipV6.setDnatptId(null);
+            eipV6.setFloatingIp(null);
+            eipV6.setUpdateTime(CommonUtil.getGmtDate());
+            eipV6Repository.saveAndFlush(eipV6);
+            log.info("unbind ipv6 with instance successful, {}---{}", eipAddress, eipV6.getIpv6());
+        }
+        return  true;
+    }
 
     public EipV6 getEipV6ById(String id){
 

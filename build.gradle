@@ -24,6 +24,7 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'cloud'
+apply plugin: 'jacoco'
 
 group = 'com.inspur'
 version = '0.0.1-SNAPSHOT'
@@ -77,5 +78,26 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.keycloak.bom:keycloak-adapter-bom:${keycloakVersion}"
+    }
+}
+
+
+jacoco {
+    toolVersion = '0.8.1'
+    reportsDir = file("$buildDir/customJacocoReportDir")
+}
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.enabled true
+        xml.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoXml.xml")
+        csv.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoCsv.csv")
+        html.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoHtml")
+    }
+}
+test {
+    jacoco{
+        destinationFile = file("$buildDir/jacoco/test.exec")
     }
 }

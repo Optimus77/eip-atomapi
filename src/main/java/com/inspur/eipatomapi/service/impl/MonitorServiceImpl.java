@@ -3,22 +3,18 @@ package com.inspur.eipatomapi.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.cloud.cloudmonitormetric.entity.MetricEntity;
 import com.inspur.cloud.cloudmonitormetric.handler.ProducerHandler;
-import com.inspur.eipatomapi.controller.EipController;
-import com.inspur.eipatomapi.entity.ReturnMsg;
 import com.inspur.eipatomapi.entity.fw.Firewall;
 import com.inspur.eipatomapi.repository.FirewallRepository;
 import com.inspur.eipatomapi.service.EipDaoService;
 import com.inspur.eipatomapi.service.FirewallService;
 import com.inspur.eipatomapi.service.MonitorService;
+import com.inspur.eipatomapi.util.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -31,7 +27,9 @@ public class MonitorServiceImpl implements MonitorService {
     private static final String FREE_EIP_COUNT = "free_eip_count";
     private static final String USING_EIP_COUNT = "using_eip_count";
     private static final String ERROR_EIP_COUNT = "error_eip_count";
-    private String eipSta="ACTIVE";
+    static int sendInterval = 0;
+    private float firewallMetricValue =0;
+    private String eipStatus="ACTIVE";
 
     @Value("${regionCode}")
     private String regionCode;
@@ -59,7 +57,7 @@ public class MonitorServiceImpl implements MonitorService {
     @Override
     public void scheculeTask() {
 
-        log.info("**************************start timed task : eip check**************************");
+        log.debug("**************************start timed task : eip check**************************");
         List<MetricEntity> podMonitorMetric = Collections.synchronizedList(new ArrayList<>());
 
         Long timestamp = System.currentTimeMillis();
@@ -73,7 +71,7 @@ public class MonitorServiceImpl implements MonitorService {
         metricEntity.setResourceName("default");
         metricEntity.setRegion(regionCode);
         int free_count = eipDaoService.getFreeEipCount();
-        int erro_count = eipDaoService.getUsingEipCountByStatus("ERROR");
+        int erro_count = eipDaoService.getUsingEipCountByStatus(HsConstants.ERROR);
         int using_count = eipDaoService.getUsingEipCount();
         String metricValue = "0";
         if(free_count < Integer.valueOf(minEipNum)){
@@ -95,18 +93,20 @@ public class MonitorServiceImpl implements MonitorService {
         dimensions.put("service", "eip");
         metricEntity.setDimensions(dimensions);
         podMonitorMetric.add(metricEntity);
-
-        log.info("eip_ips_status result: " + JSONObject.toJSONString(podMonitorMetric));
-        producerHandler.sendMetrics(podMonitorMetric);
+        if(sendInterval%6 == 0 || erro_count > 0 || free_count < Integer.valueOf(minEipNum)) {
+            log.info("eip_ips_status result: " + JSONObject.toJSONString(podMonitorMetric));
+            producerHandler.sendMetrics(podMonitorMetric);
+        }
 
         List<MetricEntity> eipMonitorMetric = Collections.synchronizedList(new ArrayList<>());
         List<Firewall> fireWallBeans = firewallRepository.findAll();
         fireWallBeans.parallelStream().forEach(firewall -> {
             String firewallSta="ACTIVE";
-            float firewallMetricValue = 0;
+            firewallMetricValue = 0;
             if(!firewallService.ping(firewall.getIp())){
                 firewallSta="DOWN";
                 firewallMetricValue = 1;
+                sendInterval = 0;
             }
             String id = firewall.getId();
             MetricEntity fireWallMetricEntity = new MetricEntity();
@@ -120,15 +120,18 @@ public class MonitorServiceImpl implements MonitorService {
 
             Map<String, String> fireWallDimensions = new HashMap<>();
             fireWallDimensions.put("service", "eip");
-            fireWallDimensions.put("eip_server_status", eipSta);
+            fireWallDimensions.put("eip_server_status", eipStatus);
             fireWallDimensions.put("eip_firewall_status", firewallSta);
             fireWallMetricEntity.setDimensions(fireWallDimensions);
             eipMonitorMetric.add(fireWallMetricEntity);
 
         });
-        log.info("eip_pod_status result : " + JSONObject.toJSONString(eipMonitorMetric));
-        producerHandler.sendMetrics(eipMonitorMetric);
-        log.info("**************************end of task **************************");
+        if(sendInterval%6 == 0 ) {
+            log.info("eip_pod_status result : " + JSONObject.toJSONString(eipMonitorMetric));
+            producerHandler.sendMetrics(eipMonitorMetric);
+        }
+        log.debug("**************************end of task **************************");
+        sendInterval++;
     }
 
 
