@@ -39,6 +39,8 @@ public class EipController {
     @Autowired
     private EipServiceImpl eipService;
 
+    private String authScret = "kitlv7i2";
+
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
@@ -243,13 +245,20 @@ public class EipController {
      */
     @GetMapping(value = "/freeeipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity getFreeEipCount() { return  eipService.getFreeEipCount();
+    public ResponseEntity getFreeEipCount(@RequestParam String key) {
+        if(!key.equalsIgnoreCase(authScret)){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,"frobiden"), HttpStatus.FORBIDDEN);
+        }
+        return  eipService.getFreeEipCount();
     }
 
 
     @GetMapping(value = "/usingeipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity getUsingEipCount(@RequestParam(required = false )String status) {
+    public ResponseEntity getUsingEipCount(@RequestParam String key,@RequestParam(required = false )String status) {
+        if(!key.equalsIgnoreCase(authScret)){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,"frobiden"), HttpStatus.FORBIDDEN);
+        }
         if(status == null){
             return  eipService.getUsingEipCount();
         }else{
@@ -261,10 +270,12 @@ public class EipController {
 
     @GetMapping(value = "/totaleipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity getTotalEipCount() {
+    public ResponseEntity getTotalEipCount(@RequestParam String key) {
+        if(!key.equalsIgnoreCase(authScret)){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN,"frobiden"), HttpStatus.FORBIDDEN);
+        }
         return  eipService.getTotalEipCount();
     }
-
 
 
     @PostMapping(value = "/eips/{eip_id}/renew")
