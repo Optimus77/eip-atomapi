@@ -114,7 +114,7 @@ public class SbwDaoService {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbwEntity.getSbwId(), 0);
+        ipCount = eipRepository.countBySbwIdAndIsDelete(sbwEntity.getSbwId(), 0);
         if (ipCount != 0) {
             msg = "EIP in sbw so that sbw cannot be removed ，please remove first !,ipCount:{}" + ipCount;
             log.error(msg);
@@ -276,7 +276,7 @@ public class SbwDaoService {
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbwEntity);
 
-            Stream<Eip> stream = eipRepository.findByUserIdAndIsDeleteAndSharedBandWidthId(sbwEntity.getProjectId(), 0, sbwId).stream();
+            Stream<Eip> stream = eipRepository.findByUserIdAndIsDeleteAndSbwId(sbwEntity.getProjectId(), 0, sbwId).stream();
             stream.forEach(eip -> {
                 eip.setBandWidth(param.getBandWidth());
                 eip.setUpdateTime(CommonUtil.getGmtDate());
@@ -293,7 +293,7 @@ public class SbwDaoService {
     public MethodReturn addEipIntoSbw(String eipid, EipUpdateParam eipUpdateParam) {
 
 
-        String sbwId = eipUpdateParam.getSharedBandWidthId();
+        String sbwId = eipUpdateParam.getSbwId();
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String pipeId;
         if (null == eipEntity) {
@@ -318,8 +318,8 @@ public class SbwDaoService {
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BILLTYPE_NOT_HOURLYSETTLEMENT));
         }
         //3.check eip had not adding any Shared bandWidth
-        if ((null != eipEntity.getSharedBandWidthId() && !"".equals(eipEntity.getSharedBandWidthId().trim()))) {
-            log.error("The shared band id not null, this mean the eip had already added other SBW !", eipEntity.getSharedBandWidthId());
+        if (StringUtils.isNotBlank(eipEntity.getSbwId())) {
+            log.error("The shared band id not null, this mean the eip had already added other SBW !", eipEntity.getSbwId());
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_SHARED_BAND_WIDTH_ID_NOT_NULL));
         }
@@ -350,7 +350,7 @@ public class SbwDaoService {
         if (updateStatus || CommonUtil.qosDebug) {
             eipEntity.setPipId(sbwEntiy.getPipeId());
             eipEntity.setUpdateTime(new Date());
-            eipEntity.setSharedBandWidthId(sbwId);
+            eipEntity.setSbwId(sbwId);
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setChargeMode(HsConstants.SHAREDBANDWIDTH);
             eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
@@ -371,7 +371,7 @@ public class SbwDaoService {
     public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam) {
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String msg;
-        String sbwId = eipUpdateParam.getSharedBandWidthId();
+        String sbwId = eipUpdateParam.getSbwId();
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
             log.error("In removeEipFromSbw process,failed to find sbw by id:{} ", sbwId);
@@ -406,7 +406,7 @@ public class SbwDaoService {
             eipEntity.setUpdateTime(new Date());
             //update the eip table
             eipEntity.setPipId(newPipId);
-            eipEntity.setSharedBandWidthId(null);
+            eipEntity.setSbwId(null);
             eipEntity.setBandWidth(eipUpdateParam.getBandWidth());
             eipEntity.setChargeMode(HsConstants.BANDWIDTH);
             eipRepository.saveAndFlush(eipEntity);

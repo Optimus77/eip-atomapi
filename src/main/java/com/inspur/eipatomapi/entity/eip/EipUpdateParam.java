@@ -31,5 +31,5 @@ public class EipUpdateParam {
 
     private String chargemode;
 
-    private String sharedBandWidthId;
+    private String sbwId;
 }

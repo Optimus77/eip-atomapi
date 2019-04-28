@@ -29,14 +29,14 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     Page<Eip> findByUserIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 
-    List<Eip> findBySharedBandWidthIdAndIsDelete(String sharedBandWidthId, int isDelete);
+    List<Eip> findBySbwIdAndIsDelete(String sharedBandWidthId, int isDelete);
 
-    long countBySharedBandWidthIdAndIsDelete(String sharedBandWidthId, int isDelete);
+    long countBySbwIdAndIsDelete(String sharedBandWidthId, int isDelete);
 
-    Page<Eip> findByUserIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId, Pageable pageable);
+    Page<Eip> findByUserIdAndIsDeleteAndSbwId(String projectId, int isDelete, String sbwId, Pageable pageable);
 
-    List<Eip> findByUserIdAndIsDeleteAndSharedBandWidthId(String projectId, int isDelete, String sbwId);
+    List<Eip> findByUserIdAndIsDeleteAndSbwId(String projectId, int isDelete, String sbwId);
 
-    @Query(value = "SELECT * from eip where user_id=?1 and is_delete=?2 and bill_type=?3 and(shared_band_width_id is null or shared_band_width_id=?4)",nativeQuery = true)
+    @Query(value = "SELECT * from eip where user_id=?1 and is_delete=?2 and bill_type=?3 and(sbw_id is null or sbw_id=?4)",nativeQuery = true)
     List<Eip> getEipListNotBinding(String userId, int isDelete,String billType, String sbwId);
 }

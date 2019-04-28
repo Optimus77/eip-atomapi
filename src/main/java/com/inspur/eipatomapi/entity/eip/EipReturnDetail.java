@@ -38,8 +38,8 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("iptype")
     private String ipType;
 
-    @JsonProperty("sharedbandwidth_id")
-    private String sharedBandWidthId;
+    @JsonProperty("sbwId")
+    private String sbwId;
 
     @JsonProperty("private_ip_address")
     private String privateIpAddress;

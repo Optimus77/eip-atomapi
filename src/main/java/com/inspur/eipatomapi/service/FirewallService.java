@@ -309,7 +309,7 @@ public class FirewallService {
         String returnMsg;
         try {
             if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-                Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSharedBandWidthId());
+                Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSbwId());
                 if (null != sbwEntity) {
                     pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId());
                 }
