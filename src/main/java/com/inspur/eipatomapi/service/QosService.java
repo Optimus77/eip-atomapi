@@ -206,15 +206,17 @@ public class QosService {
         Set<IpRange> ipSet = new HashSet<>();
         ArrayList<RuleConfig> list = new ArrayList<>();
         JSONArray ipContent = getQosRuleId(pipeId);
-        if (ipContent.length() > 0 ){
-            for (int i = 0; i < ipContent.length(); i++) {
-                String json = ipContent.get(i).toString();
-                IpContent content = gson.fromJson(json, IpContent.class);
-                if (content != null) {
-                    if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin())) || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
-                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                        log.warn("Add ip to qos bug, this ip already exist this pipe:{}", pipeId);
-                        return res;
+        if(ipContent != null) {
+            if (ipContent.length() > 0) {
+                for (int i = 0; i < ipContent.length(); i++) {
+                    String json = ipContent.get(i).toString();
+                    IpContent content = gson.fromJson(json, IpContent.class);
+                    if (content != null) {
+                        if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin())) || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
+                            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                            log.warn("Add ip to qos bug, this ip already exist this pipe:{}", pipeId);
+                            return res;
+                        }
                     }
                 }
             }
@@ -274,6 +276,7 @@ public class QosService {
             //query qos pipe details by pipeId
             JSONArray ipContent = getQosRuleId(pipeId);
             log.info("The pipe id information:{}", ipContent);
+            if(ipContent != null) {
             if (ipContent.length() > 0) {
                 ConcurrentHashMap<String, IpRange> map = new ConcurrentHashMap(2);
                 for (int i = 0; i < ipContent.length(); i++) {
@@ -288,14 +291,15 @@ public class QosService {
                 for (String id : map.keySet()) {
                     Boolean result = deleteIpFromPipe(pipeId, id);
                     log.info("removeQosPipeBindEip  HttpPut jo:{}", result);
-                    if (result){
+                    if (result) {
                         log.info("QosService: remove floating ip success from Qos，PipeId:{}", result);
                         res.put(HsConstants.SUCCESS, HsConstants.TRUE);
-                    }else {
+                    } else {
                         res.put(HsConstants.SUCCESS, HsConstants.FALSE);
                         log.warn("QosService: remove floating ip failed from Qos，PipeId:{}", result);
                     }
                 }
+            }
             }else {
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
             }
