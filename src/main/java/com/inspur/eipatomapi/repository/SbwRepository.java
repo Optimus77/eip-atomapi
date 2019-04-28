@@ -24,7 +24,7 @@ public interface SbwRepository extends JpaRepository<Sbw, String> {
 
     Page<Sbw> findBySbwIdAndProjectIdAndIsDelete(String id, String projectId, int isDelete, Pageable pageable);
 
-    Page<Sbw> findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(String projectId, int isDelete, String name, Pageable pageable);
+    Page<Sbw> findByProjectIdAndIsDeleteAndSbwNameContaining(String projectId, int isDelete, String name, Pageable pageable);
 
     long countByProjectIdAndIsDelete(String projectId, int isDelete);
 }

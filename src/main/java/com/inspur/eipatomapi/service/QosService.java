@@ -182,10 +182,9 @@ public class QosService {
      * add Qos Pipe bind eip
      *
      * @param floatIp   fip
-     * @param sbwId id
      * @return ret
      */
-    HashMap<String, String> insertIpToPipe(String floatIp, String pipeId, String sbwId) {
+    HashMap<String, String> insertIpToPipe(String floatIp, String pipeId) {
         HashMap<String, String> res = new HashMap();
         Gson gson = new Gson();
         if (StringUtils.isBlank(floatIp)) {
@@ -206,20 +205,22 @@ public class QosService {
         Set<IpRange> ipSet = new HashSet<>();
         ArrayList<RuleConfig> list = new ArrayList<>();
         JSONArray ipContent = getQosRuleId(pipeId);
-        if(ipContent != null) {
-            if (ipContent.length() > 0) {
-                for (int i = 0; i < ipContent.length(); i++) {
-                    String json = ipContent.get(i).toString();
-                    IpContent content = gson.fromJson(json, IpContent.class);
-                    if (content != null) {
-                        if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin())) || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
-                            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                            log.warn("Add ip to qos bug, this ip already exist this pipe:{}", pipeId);
-                            return res;
-                        }
+        if (ipContent !=null && ipContent.length() > 0 ){
+            for (int i = 0; i < ipContent.length(); i++) {
+                String json = ipContent.get(i).toString();
+                IpContent content = gson.fromJson(json, IpContent.class);
+                if (content != null) {
+                    if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin()))
+                            || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
+                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                        log.warn("Add ip to qos bug, this ip already exist this pipe:{}", pipeId);
+                        return res;
                     }
                 }
             }
+        }else {
+            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+            throw  new NullPointerException("Can not find qos by pipeId");
         }
         ipSet.add(longIp);
         try {
@@ -235,7 +236,6 @@ public class QosService {
             gsonBuilder.registerTypeAdapter(String.class, STRING);
             String conditionStr = gsonBuilder.serializeNulls().create().toJson(condition);
             String retr = HsHttpClient.hsHttpPost(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, HsConstants.REST_IQOS_ROOT, conditionStr);
-            log.info("conditionStr" + conditionStr, "ipSet.size:{}", ipSet.size());
             JSONObject jo = new JSONObject(retr);
             log.info("insertIpToPipe http retr:{}", retr);
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
@@ -276,8 +276,7 @@ public class QosService {
             //query qos pipe details by pipeId
             JSONArray ipContent = getQosRuleId(pipeId);
             log.info("The pipe id information:{}", ipContent);
-            if(ipContent != null) {
-            if (ipContent.length() > 0) {
+            if (ipContent != null && ipContent.length() > 0) {
                 ConcurrentHashMap<String, IpRange> map = new ConcurrentHashMap(2);
                 for (int i = 0; i < ipContent.length(); i++) {
                     String json = ipContent.get(i).toString();
@@ -291,15 +290,14 @@ public class QosService {
                 for (String id : map.keySet()) {
                     Boolean result = deleteIpFromPipe(pipeId, id);
                     log.info("removeQosPipeBindEip  HttpPut jo:{}", result);
-                    if (result) {
+                    if (result){
                         log.info("QosService: remove floating ip success from Qos，PipeId:{}", result);
                         res.put(HsConstants.SUCCESS, HsConstants.TRUE);
-                    } else {
+                    }else {
                         res.put(HsConstants.SUCCESS, HsConstants.FALSE);
                         log.warn("QosService: remove floating ip failed from Qos，PipeId:{}", result);
                     }
                 }
-            }
             }else {
                 res.put(HsConstants.SUCCESS, HsConstants.FALSE);
             }
@@ -307,18 +305,6 @@ public class QosService {
             log.error("【Remove】 the floating ip in Qos Error! " + var8.getMessage());
         }
         return res;
-    }
-
-    String getNewQosCheck(String pipeId) {
-        String jsonStr = null;
-        try {
-            String params = "/rest/new_qos_qos_check?isDynamic=1&id=%7B%22pipe_id%22:%22" + pipeId + "%22,%22engine%22:%22first%22,%22type%22:0%7D&_dc=1544753559508";
-            jsonStr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
-            log.info("newQosCheck:------------" + jsonStr);
-        } catch (Exception var11) {
-            log.error(var11.getMessage());
-        }
-        return jsonStr;
     }
 
     String getQueryQosRuleByRest(String pipeId) {
@@ -358,12 +344,20 @@ public class QosService {
         }
         return false;
     }
-    MethodReturn controlPipe(String fireWallId, String pipeName, Boolean isDisable){
+
+    /**
+     * Enable or disable pipes in qos
+     * @param fireWallId
+     * @param pipeName
+     * @param action     //true :disable  false:no disable
+     * @return
+     */
+    MethodReturn controlPipe(String fireWallId, String pipeName, Boolean action){
         String msg = null;
         String returnStat = "200";
 
         String cmd =null;
-        if (isDisable){
+        if (action){
             cmd = disablePipe(pipeName);
         }else {
             cmd = noDisablePipe(pipeName);
@@ -386,6 +380,25 @@ public class QosService {
         String noDisableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
                 +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.NO_DISABLE +HillStoneConfigConsts.ENTER_END;
         return noDisableCmd;
+    }
+
+    /**
+     * get rule sequence by pipeId
+     * @param pipeId
+     * @return
+     */
+    private JSONArray getQosRuleId(String pipeId) {
+        String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22" + pipeId + "%22%7D%5D%7D&target=root.rule";
+        try {
+            String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
+//            String retr = HsHttpClient.hsHttpGet("10.110.29.206", "443", "hillstone", "hillstone", params);
+            if (retr != null) {
+                return new JSONArray(retr);
+            }
+        } catch (Exception e) {
+            log.error(String.valueOf(e));
+        }
+        return null;
     }
 
     //Customize the Strig adapter
@@ -423,24 +436,6 @@ public class QosService {
 
     void setFwPwd(String fwPwd) {
         this.fwPwd = fwPwd;
-    }
-
-
-    private JSONArray getQosRuleId(String pipeId) {
-        String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22" + pipeId + "%22%7D%5D%7D&target=root.rule";
-        try {
-            String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
-//            String retr = HsHttpClient.hsHttpGet("10.110.29.206", "443", "hillstone", "hillstone", params);
-            JSONArray jo = null;
-            if (retr != null) {
-                jo = new JSONArray(retr);
-            }
-            log.info("getQueryQosRuleByRest:------------" + retr + "++++END!");
-            return jo;
-        } catch (Exception e) {
-            log.error(String.valueOf(e));
-            return null;
-        }
     }
 
 }

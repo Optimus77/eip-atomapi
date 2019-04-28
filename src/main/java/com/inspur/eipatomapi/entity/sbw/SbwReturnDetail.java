@@ -13,8 +13,8 @@ public class SbwReturnDetail implements Serializable {
     @JsonProperty("sbwid")
     private String sbwId;
 
-    @JsonProperty("sharedbandwidthname")
-    private String sharedbandwidthName;
+    @JsonProperty("sbwName")
+    private String sbwName;
 
     @JsonProperty("billType")
     private String billType;

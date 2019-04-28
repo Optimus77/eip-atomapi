@@ -311,7 +311,7 @@ public class FirewallService {
             if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
                 Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSharedBandWidthId());
                 if (null != sbwEntity) {
-                    pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId(), eip.getSharedBandWidthId(), eip.getBandWidth());
+                    pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId());
                 }
             } else {
                 pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
@@ -379,7 +379,7 @@ public class FirewallService {
         String innerIp = eipEntity.getFloatingIp();
         boolean removeRet;
         if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getPipId() != null) {
-            removeRet = removeFloatingIpFromQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId(), eipEntity.getSharedBandWidthId());
+            removeRet = removeFloatingIpFromQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId());
         } else {
             removeRet = delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
             if (removeRet) {
@@ -402,11 +402,10 @@ public class FirewallService {
     /**
      * add the Qos bindind ip
      * @param firewallId id
-     * @param sbwId      bad id
      * @return ret
      */
-    public String addFloatingIPtoQos(String firewallId, String floatIp, String sbwPipeId, String sbwId, int iWidth) {
-        log.info("Param : FirewallId:{}, floatIp:{}, sbwPipeId：{}，sbwId：{} ，iWidth:{}", firewallId, floatIp, sbwPipeId, sbwId, iWidth);
+    public String addFloatingIPtoQos(String firewallId, String floatIp, String pipeId) {
+        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{} ", firewallId, floatIp, pipeId);
         Firewall fwBean = getFireWallById(firewallId);
         String retPipeId = null;
         if (fwBean != null) {
@@ -415,13 +414,12 @@ public class FirewallService {
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
 
-            HashMap<String, String> map = qosService.insertIpToPipe(floatIp, sbwPipeId, sbwId);
-            log.info("addFloatingIPtoQos:firewallId:{} fip:{} sbwId:{} reslut:{}", firewallId, floatIp, sbwId, map);
+            HashMap<String, String> map = qosService.insertIpToPipe(floatIp, pipeId);
             if (map.get(HsConstants.SUCCESS) != null && Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
-                log.info("addFloatingIPtoQos: " + firewallId + "floatIp: " + floatIp + " --success==sbwId：" + sbwId);
+                log.info("addFloatingIPtoQos: " + firewallId + "floatIp: " + floatIp + " --success：");
                 retPipeId = map.get("id");
             } else if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
-                log.warn("addFloatingIPtoQos: " + firewallId + HsConstants.FLOATIP + floatIp + " --fail==sbwId：" + sbwId);
+                log.warn("addFloatingIPtoQos: " + firewallId + HsConstants.FLOATIP + floatIp + " --fail" );
             }
         }
 
@@ -435,8 +433,8 @@ public class FirewallService {
      * @param pipeId     bandid
      * @return ret
      */
-    public boolean removeFloatingIpFromQos(String firewallId, String floatIp, String pipeId, String sbwId) {
-        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{}，sbwId：{} ", firewallId, floatIp, pipeId);
+    public boolean removeFloatingIpFromQos(String firewallId, String floatIp, String pipeId) {
+        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{} ", firewallId, floatIp, pipeId);
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
             qosService.setFwIp(fwBean.getIp());

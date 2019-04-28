@@ -54,10 +54,9 @@ public class SbwDaoService {
         Sbw sbwMo = null;
         try {
             String userId = CommonUtil.getUserId();
-
             sbwMo = new Sbw();
             sbwMo.setRegion(sbwConfig.getRegion());
-            sbwMo.setSharedbandwidthName(sbwConfig.getSbwName());
+            sbwMo.setSbwName(sbwConfig.getSbwName());
             sbwMo.setBandWidth(sbwConfig.getBandwidth());
             sbwMo.setBillType(sbwConfig.getBillType());
             sbwMo.setDuration(sbwConfig.getDuration());
@@ -73,11 +72,11 @@ public class SbwDaoService {
             if (StringUtils.isNotBlank(pipeId)) {
                 sbwMo.setPipeId(pipeId);
                 sbwRepository.saveAndFlush(sbwMo);
+                log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
             } else {
                 sbwRepository.deleteById(sbw.getSbwId());
-                log.info("Failed to CreateQos in FireWall,pipe create failure");
+                log.warn("Failed to CreateQos in FireWall,pipe create failure");
             }
-            log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
         } catch (KeycloakTokenException e) {
             log.error("KeycloakTokenException", e);
         } catch (Exception e) {
@@ -87,7 +86,6 @@ public class SbwDaoService {
     }
 
     public Sbw getSbwById(String id) {
-
         Sbw sbwEntity = null;
         Optional<Sbw> sbw = sbwRepository.findById(id);
         if (sbw.isPresent()) {
@@ -234,7 +232,7 @@ public class SbwDaoService {
             data.put(HsConstants.INTER_CODE, ReturnStatus.SC_FORBIDDEN);
             return data;
         }
-        sbw.setSharedbandwidthName(newSbwName);
+        sbw.setSbwName(newSbwName);
         sbw.setUpdateTime(CommonUtil.getGmtDate());
         sbwRepository.saveAndFlush(sbw);
         data.put(HsConstants.REASON, "");
@@ -338,10 +336,10 @@ public class SbwDaoService {
                 return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                         CodeInfo.getCodeMessage(CodeInfo.SBW_THE_NEW_BANDWIDTH_VALUE_ERROR));
             }
-            pipeId = firewallService.addFloatingIPtoQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntiy.getPipeId(), sbwId, eipUpdateParam.getBandWidth());
+            pipeId = firewallService.addFloatingIPtoQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntiy.getPipeId());
             if (null != pipeId) {
                 updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
-                if (sbwEntiy.getPipeId() == null || sbwEntiy.getPipeId().isEmpty()) {
+                if (StringUtils.isBlank(sbwEntiy.getPipeId())) {
                     sbwEntiy.setPipeId(pipeId);
                 }
             } else {
@@ -398,7 +396,7 @@ public class SbwDaoService {
             newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandWidth()),
                     eipEntity.getFirewallId());
             if (null != newPipId) {
-                removeStatus = firewallService.removeFloatingIpFromQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), eipEntity.getPipId(), sbwId);
+                removeStatus = firewallService.removeFloatingIpFromQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), eipEntity.getPipId());
             } else {
                 removeStatus = false;
             }
@@ -431,7 +429,7 @@ public class SbwDaoService {
 
     @Transactional
     public Page<Sbw> findByIsDeleteAndSbwName(String userId, int isDelete, String name, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDeleteAndSharedbandwidthNameContaining(userId, 0, name, pageable);
+        return sbwRepository.findByProjectIdAndIsDeleteAndSbwNameContaining(userId, 0, name, pageable);
     }
 
     @Transactional
