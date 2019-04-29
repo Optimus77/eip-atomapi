@@ -12,7 +12,7 @@ import java.util.Date;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SbwReturnBase implements Serializable {
-    @JsonProperty("sbwid")
+    @JsonProperty("sbwId")
     private String sbwId;
 
     @JsonProperty("bandwidth")

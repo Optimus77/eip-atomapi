@@ -10,7 +10,8 @@ import java.util.Date;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SbwReturnDetail implements Serializable {
-    @JsonProperty("sbwid")
+
+    @JsonProperty("sbwId")
     private String sbwId;
 
     @JsonProperty("sbwName")
