@@ -204,7 +204,7 @@ public class QosService {
         RuleConfig config = new RuleConfig();
         Set<IpRange> ipSet = new HashSet<>();
         ArrayList<RuleConfig> list = new ArrayList<>();
-        JSONArray ipContent = getQosRuleId(pipeId);
+        JSONArray ipContent = getQosRuleByPipeId(pipeId);
         if (ipContent !=null && ipContent.length() > 0 ){
             for (int i = 0; i < ipContent.length(); i++) {
                 String json = ipContent.get(i).toString();
@@ -218,9 +218,6 @@ public class QosService {
                     }
                 }
             }
-        }else {
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            throw  new NullPointerException("Can not find qos by pipeId");
         }
         ipSet.add(longIp);
         try {
@@ -274,7 +271,7 @@ public class QosService {
         Gson gson = new Gson();
         try {
             //query qos pipe details by pipeId
-            JSONArray ipContent = getQosRuleId(pipeId);
+            JSONArray ipContent = getQosRuleByPipeId(pipeId);
             log.info("The pipe id information:{}", ipContent);
             if (ipContent != null && ipContent.length() > 0) {
                 ConcurrentHashMap<String, IpRange> map = new ConcurrentHashMap(2);
@@ -387,11 +384,11 @@ public class QosService {
      * @param pipeId
      * @return
      */
-    private JSONArray getQosRuleId(String pipeId) {
+    private JSONArray getQosRuleByPipeId(String pipeId) {
         String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22" + pipeId + "%22%7D%5D%7D&target=root.rule";
         try {
-            String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
-//            String retr = HsHttpClient.hsHttpGet("10.110.29.206", "443", "hillstone", "hillstone", params);
+//            String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
+            String retr = HsHttpClient.hsHttpGet("10.110.29.206", "443", "hillstone", "hillstone", params);
             if (retr != null) {
                 return new JSONArray(retr);
             }
@@ -436,6 +433,12 @@ public class QosService {
 
     void setFwPwd(String fwPwd) {
         this.fwPwd = fwPwd;
+    }
+
+    public static void main(String[] args) {
+        QosService qosService = new QosService();
+        JSONArray qosRuleId = qosService.getQosRuleByPipeId("1555089410805920117");
+        System.out.println(qosRuleId);
     }
 
 }
