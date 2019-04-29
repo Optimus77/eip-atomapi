@@ -99,7 +99,7 @@ public class SbwServiceImpl implements ISbwService {
                 for (Sbw sbw : page.getContent()) {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
-                    long ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbw.getSbwId(), 0);
+                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
                     sbwReturnDetail.setIpCount((int)ipCount);
                     sbws.add(sbwReturnDetail);
                 }
@@ -116,7 +116,7 @@ public class SbwServiceImpl implements ISbwService {
                     }
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
-                    long ipCount = eipRepository.countBySharedBandWidthIdAndIsDelete(sbw.getSbwId(), 0);
+                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
                     sbwReturnDetail.setIpCount((int)ipCount);
                     sbws.add(sbwReturnDetail);
                 }
@@ -165,7 +165,7 @@ public class SbwServiceImpl implements ISbwService {
             if (null != sbwEntity) {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
-                sbwReturnDetail.setIpCount((int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0));
+                sbwReturnDetail.setIpCount((int)eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
                 log.debug("sbwReturnDetail:{}", sbwReturnDetail.toString());
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             } else {
@@ -244,7 +244,7 @@ public class SbwServiceImpl implements ISbwService {
             for (Sbw sbw : sbwList) {
 
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
-                long count = eipRepository.countBySharedBandWidthIdAndIsDelete(sbw.getSbwId(), 0);
+                long count = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
                 sbwReturnDetail.setIpCount((int)count);
                 BeanUtils.copyProperties(sbw, sbwReturnDetail);
                 sbws.add(sbwReturnDetail);
@@ -318,7 +318,7 @@ public class SbwServiceImpl implements ISbwService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId, pageable);
+                Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
@@ -333,7 +333,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put("currentPage", currentPage);
                 data.put("currentPagePer", limit);
             } else {
-                List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSharedBandWidthId(projcectid, 0, sbwId);
+                List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId);
                 for (Eip eip : eipList) {
 
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -379,7 +379,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 Sbw sbwEntity = (Sbw) result.get("data");
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
-                sbwReturnDetail.setIpCount((int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0));
+                sbwReturnDetail.setIpCount((int)eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
@@ -408,7 +408,7 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
 
             for (Eip eip: eipList){
-                if (null != eip.getSharedBandWidthId() && eip.getSharedBandWidthId().equals(sbwId)){
+                if (null != eip.getSbwId() && eip.getSbwId().equals(sbwId)){
                     continue;
                 }
                 EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eip.getEipAddress(), eip.getUserId(), 0);

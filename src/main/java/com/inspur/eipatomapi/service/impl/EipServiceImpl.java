@@ -55,7 +55,7 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
-            String sbwId = eipConfig.getSharedBandWidthId();
+            String sbwId = eipConfig.getSbwId();
             if(null != sbwId) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
                 if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))){
@@ -673,7 +673,7 @@ public class EipServiceImpl implements IEipService {
                     continue;
                 }
                 if(eip.getBandWidth()<=10){
-                    if(!StringUtils.isNotEmpty(eip.getSharedBandWidthId())){
+                    if(!StringUtils.isNotEmpty(eip.getSbwId())){
                         EipReturnByBandWidth eipReturnDetail = new EipReturnByBandWidth();
                         BeanUtils.copyProperties(eip, eipReturnDetail);
                         eips.add(eipReturnDetail);

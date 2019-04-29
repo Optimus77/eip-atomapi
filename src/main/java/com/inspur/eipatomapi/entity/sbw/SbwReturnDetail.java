@@ -10,11 +10,12 @@ import java.util.Date;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SbwReturnDetail implements Serializable {
-    @JsonProperty("sbwid")
+
+    @JsonProperty("sbwId")
     private String sbwId;
 
-    @JsonProperty("sharedbandwidthname")
-    private String sharedbandwidthName;
+    @JsonProperty("sbwName")
+    private String sbwName;
 
     @JsonProperty("billType")
     private String billType;

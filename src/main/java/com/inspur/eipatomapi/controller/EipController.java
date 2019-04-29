@@ -177,7 +177,7 @@ public class EipController {
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEipUpdateParam());
                 return eipService.eipUnbindWithInstacnce(eipId, null);
             }else if (updateParam.getBandWidth() != 0 && updateParam.getBillType() != null) {
-                if (updateParam.getSharedBandWidthId() != null) {
+                if (updateParam.getSbwId() != null) {
                     if (updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
                         log.info("add eip to shared bandWidth:{}", updateParam.toString());
                         return eipService.addEipToSbw(eipId, updateParam);
