@@ -492,6 +492,7 @@ public class EipServiceImpl implements IEipService {
                         case "2":
                         case "3":
                             actionResponse = eipDaoService.disassociateInstanceWithEip(eipEntity);
+                            break;
                         default:
                             //default ecs
                             code = ReturnStatus.SC_PARAM_ERROR;

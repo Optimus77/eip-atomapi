@@ -42,12 +42,16 @@ public class FirewallService {
 
     @Autowired
     private EipRepository eipRepository;
+
+    @Autowired
+    private FireWallCommondService fireWallCommondService;
+
     //    @Value("${jasypt.password}")
     private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
-    public Firewall getFireWallById(String id) {
+    Firewall getFireWallById(String id) {
         if (!firewallConfigMap.containsKey(id)) {
 
             Optional<Firewall> firewall = firewallRepository.findById(id);
@@ -305,6 +309,7 @@ public class FirewallService {
         String pipId = null;
         String dnatRuleId = null;
         String snatRuleId = null;
+        String bnatId = null;
         String returnStat;
         String returnMsg;
         try {
@@ -317,6 +322,15 @@ public class FirewallService {
                 pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
             }
             if (null != pipId || CommonUtil.qosDebug) {
+                bnatId = addBnat(fipAddress, eipAddress, firewallId);
+                if(null != bnatId){
+                    eip.setDnatId(bnatId);
+                    eip.setSnatId(bnatId);
+                    eip.setPipId(pipId);
+                    log.info("add bnat and qos successfully. snat:{}, dnat:{}, qos:{}",
+                            eip.getSnatId(), eip.getDnatId(), eip.getPipId());
+                    return MethodReturnUtil.success(eip);
+                }
                 dnatRuleId = addDnat(fipAddress, eipAddress, firewallId);
                 if (dnatRuleId != null) {
                     snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
@@ -345,12 +359,14 @@ public class FirewallService {
             returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
             returnMsg = e.getMessage();
         } finally {
-            if (null == snatRuleId) {
-                if (null != dnatRuleId) {
-                    delDnat(dnatRuleId, eip.getFirewallId());
-                }
-                if (null != pipId) {
-                    delQos(pipId, eip.getFirewallId());
+            if(null == bnatId) {
+                if (null == snatRuleId) {
+                    if (null != dnatRuleId) {
+                        delDnat(dnatRuleId, eip.getFirewallId());
+                    }
+                    if (null != pipId) {
+                        delQos(pipId, eip.getFirewallId());
+                    }
                 }
             }
         }
@@ -361,20 +377,30 @@ public class FirewallService {
 
         String msg = null;
         String returnStat = "200";
-        if (delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId())) {
-            eipEntity.setDnatId(null);
+        String snatId = eipEntity.getSnatId();
+        if (null != snatId && snatId.startsWith("B")){
+            if(delBnat(snatId, eipEntity.getFirewallId())) {
+                eipEntity.setDnatId(null);
+                eipEntity.setSnatId(null);
+            }else {
+                eipEntity.setStatus(HsConstants.ERROR);
+            }
         } else {
-            returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
-            msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getEipId() + "dnatId:" + eipEntity.getDnatId() + "";
-            log.error(msg);
-        }
+            if (delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId())) {
+                eipEntity.setDnatId(null);
+            } else {
+                returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
+                msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getEipId() + "dnatId:" + eipEntity.getDnatId() + "";
+                log.error(msg);
+            }
 
-        if (delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())) {
-            eipEntity.setSnatId(null);
-        } else {
-            returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
-            msg += "Failed to del snat in firewall, eipId:" + eipEntity.getEipId() + "snatId:" + eipEntity.getSnatId() + "";
-            log.error(msg);
+            if (delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())) {
+                eipEntity.setSnatId(null);
+            } else {
+                returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
+                msg += "Failed to del snat in firewall, eipId:" + eipEntity.getEipId() + "snatId:" + eipEntity.getSnatId() + "";
+                log.error(msg);
+            }
         }
         String innerIp = eipEntity.getFloatingIp();
         boolean removeRet;
@@ -394,6 +420,7 @@ public class FirewallService {
         if (msg == null) {
             return MethodReturnUtil.success();
         } else {
+            eipEntity.setStatus(HsConstants.ERROR);
             return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, msg);
         }
 
@@ -461,5 +488,48 @@ public class FirewallService {
         }catch (Exception e){
             return false;
         }
+    }
+
+    private Boolean delBnat(String id, String fireWallId)  {
+        String bnatId;
+        if(id == null ){
+            return true;
+        }
+        if(!id.startsWith("B")) {
+            bnatId = id.substring(1);
+        }else{
+            log.error("BnatId shoud begin with B, {}", id);
+            return false;
+        }
+
+        String disconnectDnat = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "ip vrouter trust-vr\r"
+                        + "no bnatrule id " + bnatId + "\r"
+                        + "# end",
+                null);
+        if (disconnectDnat != null) {
+            log.error("Failed to delete bnatId", bnatId);
+            return false;
+        }
+        return true;
+    }
+
+
+
+    private String addBnat(String fip, String eip, String fireWallId)  {
+        String bnatId;
+        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "ip vrouter trust-vr\r"
+                        + "bnatrule virtual ip " +eip+ "/32" + " real ip "  +fip+ "/32\r"
+                        + "end",
+                "rule ID=");
+        if(strDnatPtId == null){
+            log.error("Failed to add DnatPtId", strDnatPtId);
+            return null;
+        }
+        bnatId = strDnatPtId.split("=")[1].trim();
+        return "B"+bnatId;
     }
 }

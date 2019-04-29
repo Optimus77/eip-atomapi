@@ -408,6 +408,7 @@ public class EipDaoService {
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
                 eipEntity.setStatus(HsConstants.ACTIVE);
+                eipEntity.setDuration("1");
                 eipEntity.setUpdateTime(CommonUtil.getGmtDate());
                 eipRepository.saveAndFlush(eipEntity);
             }else{
