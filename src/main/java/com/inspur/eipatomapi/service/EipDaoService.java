@@ -89,7 +89,7 @@ public class EipDaoService {
         eipMo.setDuration(eipConfig.getDuration());
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
-        eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
+        eipMo.setSbwId(eipConfig.getSbwId());
         String userId = CommonUtil.getUserId();
         log.debug("get tenantid:{} from clientv3", userId);
         eipMo.setUserId(userId);
@@ -408,6 +408,7 @@ public class EipDaoService {
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
                 eipEntity.setStatus(HsConstants.ACTIVE);
+                eipEntity.setDuration("1");
                 eipEntity.setUpdateTime(CommonUtil.getGmtDate());
                 eipRepository.saveAndFlush(eipEntity);
             }else{
@@ -549,7 +550,7 @@ public class EipDaoService {
     }
 
     public int statisEipCountBySbw(String sbwId, int isDelete){
-        return (int)eipRepository.countBySharedBandWidthIdAndIsDelete(sbwId, 0);
+        return (int)eipRepository.countBySbwIdAndIsDelete(sbwId, 0);
     }
 
 

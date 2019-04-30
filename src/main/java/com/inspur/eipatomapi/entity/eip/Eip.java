@@ -53,7 +53,7 @@ public class Eip implements Serializable {
 
     private String ipType;
 
-    private String sharedBandWidthId;
+    private String sbwId;
 
     private String aclId;
 

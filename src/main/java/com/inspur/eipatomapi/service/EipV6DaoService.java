@@ -58,7 +58,7 @@ public class EipV6DaoService {
         if(StringUtils.isNotBlank(eip.getEipV6Id())){
             return null;
         }
-        if(StringUtils.isNotBlank(eip.getSharedBandWidthId())){
+        if(StringUtils.isNotBlank(eip.getSbwId())){
             return null;
         }
         if (!eipPoolv6.getState().equals("0")) {

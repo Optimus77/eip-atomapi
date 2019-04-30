@@ -17,7 +17,7 @@ public class Sbw implements Serializable {
     @Column(name ="sbw_id",nullable = false, insertable = false, updatable = false)
     private String sbwId;
 
-    private String sharedbandwidthName;
+    private String sbwName;
 
     //计费方式
     private String billType = "monthly";

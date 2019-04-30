@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Builder
-@JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Resourceset implements Serializable {
     public String resourcetype;
     public String resourceid;
