@@ -493,7 +493,7 @@ public class FirewallService {
         if(id == null ){
             return true;
         }
-        if(!id.startsWith("B")) {
+        if(id.startsWith("B")) {
             bnatId = id.substring(1);
         }else{
             log.error("BnatId shoud begin with B, {}", id);
