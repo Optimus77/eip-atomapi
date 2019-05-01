@@ -22,7 +22,7 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "no snatrule id " + snatPtId + "\r"
-                + "# end",
+                + "end",
                 null);
         if (disconnectSnat != null) {
             log.error("Failed to delete dnatPtId", snatPtId);
@@ -41,7 +41,7 @@ public class NatPtService {
                 "configure\r"
                 + "ip vrouter trust-vr\r"
                 + "no dnatrule id " + dnatPtId + "\r"
-                + "# end",
+                + "end",
                 null);
         if (disconnectDnat != null) {
             log.error("Failed to delete dnatPtId", dnatPtId);
