@@ -536,7 +536,7 @@ public class FirewallService {
                         + "end",
                 "rule ID=");
         if(strDnatPtId == null){
-            log.error("Failed to add DnatPtId", strDnatPtId);
+            log.error("Failed to add bnat", strDnatPtId);
             return null;
         }
         bnatId = strDnatPtId.split("=")[1].trim();
@@ -548,7 +548,7 @@ public class FirewallService {
         String ret = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
-                        + "root pipe  " + getRootPipeName(fip) + "\r"
+                        + "root-pipe  " + getRootPipeName(fip) + "\r"
                         + "no pipe  " + fip + "\r"
                         + "end",
                 "^-----");
@@ -567,7 +567,7 @@ public class FirewallService {
         String rootPipeNmae = getRootPipeName(fip);
         if(0 >= eipRepository.countByPipId(rootPipeNmae)){
             boolean result = cmdAddRootPipe(rootPipeNmae,eip, fip, inboundBandwidth, outboundBandwidth,fireWallId);
-            log.info("Add root pipe {}, result:{}", rootPipeNmae, result);
+            log.info("Add root-pipe {}, result:{}", rootPipeNmae, result);
             if(result){
                 return rootPipeNmae;
             }else {
@@ -578,7 +578,7 @@ public class FirewallService {
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
-                        + "root pipe  " + rootPipeNmae + "\r"
+                        + "root-pipe  " + rootPipeNmae + "\r"
                         + "pipe  " + eip + "\r"
                         + "pipe-map\r"
                         + "dst-ip " + fip + "/32\r"
@@ -599,7 +599,7 @@ public class FirewallService {
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
-                        + "root pipe  " + getRootPipeName(fip) + "\r"
+                        + "root-pipe  " + getRootPipeName(fip) + "\r"
                         + "pipe  " + fip + "\r"
                         + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ bandwidth+"\r"
                         + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps "+ bandwidth+"\r"
@@ -622,7 +622,7 @@ public class FirewallService {
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
-                        + "root pipe  " + rootPipeName + "\r"
+                        + "root-pipe  " + rootPipeName + "\r"
                         + "pipe-map\r"
                         + "dst-ip " + fip + "/24\r"
                         + "src-addr Any\r"
