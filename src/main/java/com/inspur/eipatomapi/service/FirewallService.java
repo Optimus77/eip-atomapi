@@ -547,7 +547,7 @@ public class FirewallService {
     public Boolean cmdDelQos(String fip, String fireWallId)  {
         String ret = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
-                        + "qos engine first\r"
+                        + "qos-engine first\r"
                         + "root pipe  " + getRootPipeName(fip) + "\r"
                         + "no pipe  " + fip + "\r"
                         + "end",
@@ -577,7 +577,7 @@ public class FirewallService {
         String retString = "Tip: Pipe "+fip+" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
-                        + "qos engine first\r"
+                        + "qos-engine first\r"
                         + "root pipe  " + rootPipeNmae + "\r"
                         + "pipe  " + eip + "\r"
                         + "pipe-map\r"
@@ -598,7 +598,7 @@ public class FirewallService {
         String retString = "Tip: Pipe "+fip+" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
-                        + "qos engine first\r"
+                        + "qos-engine first\r"
                         + "root pipe  " + getRootPipeName(fip) + "\r"
                         + "pipe  " + fip + "\r"
                         + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ bandwidth+"\r"
@@ -621,7 +621,7 @@ public class FirewallService {
         String retString = "Tip: Pipe "+fip+" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
-                        + "qos engine first\r"
+                        + "qos-engine first\r"
                         + "root pipe  " + rootPipeName + "\r"
                         + "pipe-map\r"
                         + "dst-ip " + fip + "/24\r"
