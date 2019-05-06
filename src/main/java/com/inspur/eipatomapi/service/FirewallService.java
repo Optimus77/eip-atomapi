@@ -510,15 +510,17 @@ public class FirewallService {
             return false;
         }
 
-        String disconnectDnat = fireWallCommondService.execCustomCommand(fireWallId,
+        String delResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "no bnatrule id " + bnatId + "\r"
                         + "end",
                 null);
-        if (disconnectDnat != null) {
+        if (delResult != null) {
+            if(!delResult.contains("cannot be found")){
+                return false;
+            }
             log.error("Failed to delete bnatId", bnatId);
-            return false;
         }
         return true;
     }
