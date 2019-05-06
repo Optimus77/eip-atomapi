@@ -230,10 +230,10 @@ public class FirewallService {
      * @param devId devid
      * @return ret
      */
-    boolean delQos(String pipid, String fip, String devId) {
+    boolean delQos(String pipid, String eip, String fip, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
-            if(null != fip && pipid.equals(getRootPipeName(fip))){
-                return cmdDelQos(fip,devId);
+            if(null != eip && pipid.equals(getRootPipeName(fip))){
+                return cmdDelQos(pipid,fip,devId);
             }
             Firewall fwBean = getFireWallById(devId);
             if (null != fwBean) {
@@ -375,7 +375,7 @@ public class FirewallService {
                         delDnat(dnatRuleId, eip.getFirewallId());
                     }
                     if (null != pipId) {
-                        delQos(pipId, fipAddress,eip.getFirewallId());
+                        delQos(pipId, eip.getEipAddress(), fipAddress,eip.getFirewallId());
                     }
                 }
             }
@@ -417,7 +417,7 @@ public class FirewallService {
         if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getPipId() != null) {
             removeRet = removeFloatingIpFromQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId());
         } else {
-            removeRet = delQos(eipEntity.getPipId(), eipEntity.getFloatingIp(), eipEntity.getFirewallId());
+            removeRet = delQos(eipEntity.getPipId(), eipEntity.getEipAddress(),eipEntity.getFloatingIp(), eipEntity.getFirewallId());
             if (removeRet) {
                 eipEntity.setPipId(null);
             }
@@ -544,12 +544,12 @@ public class FirewallService {
     }
 
 
-    public Boolean cmdDelQos(String fip, String fireWallId)  {
+    public Boolean cmdDelQos(String rootPipeName,String eip, String fireWallId)  {
         String ret = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
-                        + "root-pipe  " + getRootPipeName(fip) + "\r"
-                        + "no pipe  " + fip + "\r"
+                        + "root-pipe  " + rootPipeName + "\r"
+                        + "no pipe  " + eip + "\r"
                         + "end",
                 "^-----");
         if(ret == null){

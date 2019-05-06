@@ -128,7 +128,7 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbwEntity);
             return ActionResponse.actionSuccess();
         }
-        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), null,firewall.getId());
+        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), null,null,firewall.getId());
         if (delQos) {
             sbwEntity.setIsDelete(1);
             sbwEntity.setStatus(HsConstants.DELETE);
@@ -338,7 +338,7 @@ public class SbwDaoService {
             }
             pipeId = firewallService.addFloatingIPtoQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntiy.getPipeId());
             if (null != pipeId) {
-                updateStatus = firewallService.delQos(eipEntity.getPipId(),null, eipEntity.getFirewallId());
+                updateStatus = firewallService.delQos(eipEntity.getPipId(), null,null, eipEntity.getFirewallId());
                 if (StringUtils.isBlank(sbwEntiy.getPipeId())) {
                     sbwEntiy.setPipeId(pipeId);
                 }
