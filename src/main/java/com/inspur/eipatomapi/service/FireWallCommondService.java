@@ -102,7 +102,7 @@ public class FireWallCommondService {
                         return retStr;
                     }else {
                         log.error("Firewall not connect, end string:{}.");
-                        close();
+                        //close();
                         return "ERROR";
                     }
                 }
