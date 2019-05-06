@@ -91,7 +91,7 @@ public class FireWallCommondService {
                 }
 
                 if (line.contains("end")) {
-                    if(line.contains("# end")){
+                    if(line.contains("#")){
                         String endStr = stdout.readLine();
                         if(null == retStr && null != expectStr){
                             if (null != endStr && endStr.contains(expectStr)){
