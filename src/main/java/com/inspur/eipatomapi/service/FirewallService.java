@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -159,7 +160,14 @@ public class FirewallService {
 
     String addQos(String innerip, String name, String bandwidth, String fireWallId) {
         String pipid = null;
-
+        String inBandWidth = "50";
+        if(Integer.valueOf(bandwidth)>50) {
+            inBandWidth = bandwidth;
+        }
+        pipid = cmdAddQos(name, innerip, inBandWidth, bandwidth,fireWallId);
+        if(null != pipid){
+            return pipid;
+        }
         Firewall fwBean = getFireWallById(fireWallId);
         if (fwBean != null) {
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
@@ -172,10 +180,6 @@ public class FirewallService {
             map.put("mgNetCardName", fwBean.getParam3());
             map.put("serNetCardName", fwBean.getParam2());
             map.put("bandWidth", bandwidth);
-            String inBandWidth = "50";
-            if(Integer.valueOf(bandwidth)>50) {
-                inBandWidth = bandwidth;
-            }
             map.put("inBandWidth", inBandWidth);
             HashMap<String, String> res = qs.createQosPipe(map);
             JSONObject resJson = (JSONObject) JSONObject.toJSON(res);
@@ -198,10 +202,13 @@ public class FirewallService {
      * @param firewallId firewall id
      * @param bindwidth  bind width
      */
-    boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth) {
+    boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip) {
 
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
+            if(null != fip && pipId.equals(getRootPipeName(fip))) {
+                return cmdUpdateQosBandWidth(fip,bindwidth, firewallId);
+            }
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> map = qs.updateQosPipe(pipId, pipNmae, bindwidth);
             JSONObject resJson = (JSONObject) JSONObject.toJSON(map);
@@ -223,8 +230,11 @@ public class FirewallService {
      * @param devId devid
      * @return ret
      */
-    boolean delQos(String pipid, String devId) {
+    boolean delQos(String pipid, String fip, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
+            if(null != fip && pipid.equals(getRootPipeName(fip))){
+                return cmdDelQos(fip,devId);
+            }
             Firewall fwBean = getFireWallById(devId);
             if (null != fwBean) {
                 QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
@@ -365,7 +375,7 @@ public class FirewallService {
                         delDnat(dnatRuleId, eip.getFirewallId());
                     }
                     if (null != pipId) {
-                        delQos(pipId, eip.getFirewallId());
+                        delQos(pipId, fipAddress,eip.getFirewallId());
                     }
                 }
             }
@@ -407,7 +417,7 @@ public class FirewallService {
         if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getPipId() != null) {
             removeRet = removeFloatingIpFromQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId());
         } else {
-            removeRet = delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
+            removeRet = delQos(eipEntity.getPipId(), eipEntity.getFloatingIp(), eipEntity.getFirewallId());
             if (removeRet) {
                 eipEntity.setPipId(null);
             }
@@ -504,7 +514,7 @@ public class FirewallService {
                 "configure\r"
                         + "ip vrouter trust-vr\r"
                         + "no bnatrule id " + bnatId + "\r"
-                        + "# end",
+                        + "end",
                 null);
         if (disconnectDnat != null) {
             log.error("Failed to delete bnatId", bnatId);
@@ -530,4 +540,107 @@ public class FirewallService {
         bnatId = strDnatPtId.split("=")[1].trim();
         return "B"+bnatId;
     }
+
+
+    public Boolean cmdDelQos(String fip, String fireWallId)  {
+        String ret = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "qos engine first\r"
+                        + "root pipe  " + getRootPipeName(fip) + "\r"
+                        + "no pipe  " + fip + "\r"
+                        + "end",
+                "^-----");
+        if(ret == null){
+            log.error("Failed to del qos by cmd:{]", ret);
+            return true;
+        }
+
+        return false;
+    }
+
+    private String cmdAddQos(String eip, String fip, String inboundBandwidth,String outboundBandwidth, String fireWallId)  {
+        if(null == fip || null == eip){
+            return null;
+        }
+        String rootPipeNmae = getRootPipeName(fip);
+        if(0 >= eipRepository.countByPipId(rootPipeNmae)){
+            boolean result = cmdAddRootPipe(rootPipeNmae,fip, inboundBandwidth, outboundBandwidth,fireWallId);
+            log.info("Add root pipe {}, result:{}", rootPipeNmae, result);
+            if(result){
+                return rootPipeNmae;
+            }else {
+                return null;
+            }
+        }
+        String retString = "Tip: Pipe "+fip+" is enabled";
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "qos engine first\r"
+                        + "root pipe  " + rootPipeNmae + "\r"
+                        + "pipe  " + fip + "\r"
+                        + "pipe-map\r"
+                        + "dst-ip " + fip + "/32\r"
+                        + "exit\r"
+                        + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ inboundBandwidth+"\r"
+                        + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps "+ outboundBandwidth+"\r"
+                        + "end",
+                retString);
+        if(strResult == null || !strResult.contains(retString)){
+            log.error("Failed to add cmd qos", strResult);
+           return null;
+        }
+        return rootPipeNmae;
+    }
+    boolean cmdUpdateQosBandWidth(String fip, String bandwidth, String fireWallId){
+
+        String retString = "Tip: Pipe "+fip+" is enabled";
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "qos engine first\r"
+                        + "root pipe  " + getRootPipeName(fip) + "\r"
+                        + "pipe  " + fip + "\r"
+                        + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ bandwidth+"\r"
+                        + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps "+ bandwidth+"\r"
+                        + "end",
+                retString);
+        if(strResult == null || !strResult.contains(retString)){
+            log.error("Failed to update cmd qos", strResult);
+            return false;
+        }
+        return true;
+    }
+    private String getRootPipeName(String fip){
+        String[] ipSplit = fip.split(".");
+        return ipSplit[0]+"."+ ipSplit[1]+"."+ ipSplit[2]+"0";
+    }
+
+    private boolean cmdAddRootPipe(String rootPipeName, String fip, String inBwd, String outBwd, String fireWallId)  {
+
+        String retString = "Tip: Pipe "+fip+" is enabled";
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "qos engine first\r"
+                        + "root pipe  " + rootPipeName + "\r"
+                        + "pipe-map\r"
+                        + "dst-ip " + fip + "/24\r"
+                        + "src-addr Any\r"
+                        + "service Any\r "
+                        + "exit\r"
+                        + "pipe-rule forward reserve-bandwidth Gbps 1\r"
+                        + "pipe-rule backward reserve-bandwidth Gbps 1\r"
+                        + "pipe  " + fip + "\r"
+                        + "pipe-map\r"
+                        + "dst-ip " + fip + "/32\r"
+                        + "exit\r"
+                        + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ inBwd+"\r"
+                        + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps "+ outBwd+"\r"
+                        + "end",
+                retString);
+        if(strResult == null || !strResult.contains(retString)){
+            log.error("Failed to add cmd qos", strResult);
+            return false;
+        }
+        return true;
+    }
+
 }

@@ -128,7 +128,7 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbwEntity);
             return ActionResponse.actionSuccess();
         }
-        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), firewall.getId());
+        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), null,firewall.getId());
         if (delQos) {
             sbwEntity.setIsDelete(1);
             sbwEntity.setStatus(HsConstants.DELETE);
@@ -269,7 +269,7 @@ public class SbwDaoService {
             return MethodReturnUtil.successSbw(sbwEntity);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
-        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandWidth()));
+        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandWidth()), null);
         if (updateStatus || CommonUtil.qosDebug) {
             sbwEntity.setBandWidth(param.getBandWidth());
             sbwEntity.setBillType(param.getBillType());
@@ -338,7 +338,7 @@ public class SbwDaoService {
             }
             pipeId = firewallService.addFloatingIPtoQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntiy.getPipeId());
             if (null != pipeId) {
-                updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
+                updateStatus = firewallService.delQos(eipEntity.getPipId(),null, eipEntity.getFirewallId());
                 if (StringUtils.isBlank(sbwEntiy.getPipeId())) {
                     sbwEntiy.setPipeId(pipeId);
                 }

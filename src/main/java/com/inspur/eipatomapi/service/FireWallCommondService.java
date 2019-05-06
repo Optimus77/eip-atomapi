@@ -67,7 +67,7 @@ public class FireWallCommondService {
         stderr = new BufferedReader(new InputStreamReader(new StreamGobbler(session.getStderr()), StandardCharsets.UTF_8));
         printWriter = new PrintWriter(session.getStdin());
 
-        TimeUnit.MILLISECONDS.sleep(400);
+        TimeUnit.MILLISECONDS.sleep(500);
     }
 
     synchronized String execCustomCommand(String fireWallId, String cmd, String expectStr) {
@@ -92,7 +92,13 @@ public class FireWallCommondService {
 
                 if (line.contains("end")) {
                     if(line.contains("# end")){
-                        log.info("Command return:{}, end string:{}", retStr, stdout.readLine());
+                        String endStr = stdout.readLine();
+                        if(null == retStr && null != expectStr){
+                            if (null != endStr && endStr.contains(expectStr)){
+                                retStr = endStr;
+                            }
+                        }
+                        log.info("Command return:{}, end string:{}", retStr, endStr);
                         return retStr;
                     }else {
                         log.error("Firewall not connect, end string:{}.");
