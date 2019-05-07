@@ -553,10 +553,10 @@ public class FirewallService {
                         + "end",
                 "^-----");
         if(ret == null){
-            log.error("Failed to del qos by cmd:{]", ret);
+            log.info("Del qos by cmd successfully:");
             return true;
         }
-
+        log.error("Failed to del qos by cmd:{}", ret);
         return false;
     }
 
@@ -570,9 +570,8 @@ public class FirewallService {
             log.info("Add root-pipe {}, result:{}", rootPipeNmae, result);
             if(result){
                 return rootPipeNmae;
-            }else {
-                return null;
             }
+            return null;
         }
         String retString = "Tip: Pipe \""+eip+"\" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
