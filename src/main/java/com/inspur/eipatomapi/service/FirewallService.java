@@ -553,10 +553,10 @@ public class FirewallService {
                         + "end",
                 "^-----");
         if(ret == null){
-            log.error("Failed to del qos by cmd:{]", ret);
+            log.info("Del qos by cmd successfully:");
             return true;
         }
-
+        log.error("Failed to del qos by cmd:{}", ret);
         return false;
     }
 
@@ -570,9 +570,8 @@ public class FirewallService {
             log.info("Add root-pipe {}, result:{}", rootPipeNmae, result);
             if(result){
                 return rootPipeNmae;
-            }else {
-                return null;
             }
+            return null;
         }
         String retString = "Tip: Pipe \""+eip+"\" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
@@ -580,7 +579,7 @@ public class FirewallService {
                         + "qos-engine first\r"
                         + "root-pipe  " + rootPipeNmae + "\r"
                         + "pipe  " + eip + "\r"
-                        + "pipe-map 1\r"
+                        + "pipe-map \r"
                         + "dst-ip " + fip + "/32\r"
                         + "exit\r"
                         + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ inboundBandwidth+"\r"
@@ -623,7 +622,7 @@ public class FirewallService {
                 "configure\r"
                         + "qos-engine first\r"
                         + "root-pipe  " + rootPipeName + "\r"
-                        + "pipe-map 1\r"
+                        + "pipe-map \r"
                         + "dst-ip " + fip + "/24\r"
                         + "src-addr Any\r"
                         + "service Any\r "
@@ -631,7 +630,7 @@ public class FirewallService {
                         + "pipe-rule forward bandwidth Gbps 1\r"
                         + "pipe-rule backward bandwidth Gbps 1\r"
                         + "pipe  " + eip + "\r"
-                        + "pipe-map 1\r"
+                        + "pipe-map \r"
                         + "dst-ip " + fip + "/32\r"
                         + "exit\r"
                         + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ inBwd+"\r"

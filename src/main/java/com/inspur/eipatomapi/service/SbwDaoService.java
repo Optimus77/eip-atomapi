@@ -338,7 +338,7 @@ public class SbwDaoService {
             }
             pipeId = firewallService.addFloatingIPtoQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntiy.getPipeId());
             if (null != pipeId) {
-                updateStatus = firewallService.delQos(eipEntity.getPipId(), null,null, eipEntity.getFirewallId());
+                updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getEipAddress(),eipEntity.getFloatingIp(), eipEntity.getFirewallId());
                 if (StringUtils.isBlank(sbwEntiy.getPipeId())) {
                     sbwEntiy.setPipeId(pipeId);
                 }
