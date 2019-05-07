@@ -269,7 +269,7 @@ public class SbwDaoService {
             return MethodReturnUtil.successSbw(sbwEntity);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
-        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandWidth()), null);
+        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandWidth()), null, null);
         if (updateStatus || CommonUtil.qosDebug) {
             sbwEntity.setBandWidth(param.getBandWidth());
             sbwEntity.setBillType(param.getBillType());

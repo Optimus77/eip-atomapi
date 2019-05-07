@@ -378,7 +378,10 @@ public class EipDaoService {
         if(null == eipEntity.getPipId() || eipEntity.getPipId().isEmpty()){
             updateStatus = true;
         }else{
-            updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()), eipEntity.getFloatingIp());
+            updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
+                    eipEntity.getPipId(), eipEntity.getEipId(),
+                    String.valueOf(param.getEipUpdateParam().getBandWidth()),
+                    eipEntity.getFloatingIp(), eipEntity.getEipAddress());
         }
 
         if (updateStatus ||CommonUtil.qosDebug) {

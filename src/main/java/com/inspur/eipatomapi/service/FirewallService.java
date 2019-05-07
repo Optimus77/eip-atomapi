@@ -202,12 +202,12 @@ public class FirewallService {
      * @param firewallId firewall id
      * @param bindwidth  bind width
      */
-    boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip) {
+    boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip, String eip) {
 
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
             if(null != fip && pipId.equals(getRootPipeName(fip))) {
-                return cmdUpdateQosBandWidth(fip,bindwidth, firewallId);
+                return cmdUpdateQosBandWidth(eip,fip,bindwidth, firewallId);
             }
             QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
             HashMap<String, String> map = qs.updateQosPipe(pipId, pipNmae, bindwidth);
@@ -593,14 +593,14 @@ public class FirewallService {
         }
         return rootPipeNmae;
     }
-    boolean cmdUpdateQosBandWidth(String fip, String bandwidth, String fireWallId){
+    boolean cmdUpdateQosBandWidth(String eip, String fip, String bandwidth, String fireWallId){
 
-        String retString = "Tip: Pipe \""+fip+"\" is enabled";
+        String retString = "Tip: Pipe \""+eip+"\" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
                         + "root-pipe  " + getRootPipeName(fip) + "\r"
-                        + "pipe  " + fip + "\r"
+                        + "pipe  " + eip + "\r"
                         + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ bandwidth+"\r"
                         + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps "+ bandwidth+"\r"
                         + "end",
@@ -618,7 +618,7 @@ public class FirewallService {
 
     private boolean cmdAddRootPipe(String rootPipeName, String eip, String fip, String inBwd, String outBwd, String fireWallId)  {
 
-        String retString = "Tip: Pipe \""+fip+"\" is enabled";
+        String retString = "Tip: Pipe \""+eip+"\" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
