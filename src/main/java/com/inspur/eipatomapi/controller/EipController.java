@@ -135,7 +135,7 @@ public class EipController {
             log.debug("EipController get eip by ip:{} ", eipaddress);
             if(null != key){
                 if (key.equals("1709d6c6")) {
-                    return eipService.getEipDetailsByIpAddress(eipaddress, key);
+                    return eipService.getEipDetailsByIpAddress(eipaddress);
                 }
             }
             return eipService.getEipByIpAddress(eipaddress);

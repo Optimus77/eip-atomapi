@@ -233,7 +233,7 @@ public class FirewallService {
     boolean delQos(String pipid, String eip, String fip, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
             if(null != eip && pipid.equals(getRootPipeName(fip))){
-                return cmdDelQos(pipid,fip,devId);
+                return cmdDelQos(pipid,eip,devId);
             }
             Firewall fwBean = getFireWallById(devId);
             if (null != fwBean) {

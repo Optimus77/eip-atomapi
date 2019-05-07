@@ -700,7 +700,7 @@ public class EipServiceImpl implements IEipService {
 
     }
     @Override
-    public ResponseEntity getEipDetailsByIpAddress(String eipAddress, String key) {
+    public ResponseEntity getEipDetailsByIpAddress(String eipAddress) {
         JSONObject data=new JSONObject();
         JSONArray eips=new JSONArray();
         if(eipAddress!=null){
