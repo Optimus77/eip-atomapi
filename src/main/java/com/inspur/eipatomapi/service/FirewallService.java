@@ -574,13 +574,13 @@ public class FirewallService {
                 return null;
             }
         }
-        String retString = "Tip: Pipe "+fip+" is enabled";
+        String retString = "Tip: Pipe \""+eip+"\" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
                         + "root-pipe  " + rootPipeNmae + "\r"
                         + "pipe  " + eip + "\r"
-                        + "pipe-map\r"
+                        + "pipe-map 1\r"
                         + "dst-ip " + fip + "/32\r"
                         + "exit\r"
                         + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ inboundBandwidth+"\r"
@@ -595,7 +595,7 @@ public class FirewallService {
     }
     boolean cmdUpdateQosBandWidth(String fip, String bandwidth, String fireWallId){
 
-        String retString = "Tip: Pipe "+fip+" is enabled";
+        String retString = "Tip: Pipe \""+fip+"\" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
@@ -618,12 +618,12 @@ public class FirewallService {
 
     private boolean cmdAddRootPipe(String rootPipeName, String eip, String fip, String inBwd, String outBwd, String fireWallId)  {
 
-        String retString = "Tip: Pipe "+fip+" is enabled";
+        String retString = "Tip: Pipe \""+fip+"\" is enabled";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
                         + "root-pipe  " + rootPipeName + "\r"
-                        + "pipe-map\r"
+                        + "pipe-map 1\r"
                         + "dst-ip " + fip + "/24\r"
                         + "src-addr Any\r"
                         + "service Any\r "
@@ -631,7 +631,7 @@ public class FirewallService {
                         + "pipe-rule forward bandwidth Gbps 1\r"
                         + "pipe-rule backward bandwidth Gbps 1\r"
                         + "pipe  " + eip + "\r"
-                        + "pipe-map\r"
+                        + "pipe-map 1\r"
                         + "dst-ip " + fip + "/32\r"
                         + "exit\r"
                         + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps "+ inBwd+"\r"

@@ -423,9 +423,6 @@ public class EipDaoService {
     }
 
     public  Eip findByEipAddress(String eipAddr) throws KeycloakTokenException {
-        if(CommonUtil.getUserId().equals("1709d6c6-55cd-45be-b261-df9cb15db0df")){
-            return eipRepository.findByEipAddressAndIsDelete(eipAddr,  0);
-        }
         return eipRepository.findByEipAddressAndUserIdAndIsDelete(eipAddr, CommonUtil.getUserId(), 0);
     }
 
