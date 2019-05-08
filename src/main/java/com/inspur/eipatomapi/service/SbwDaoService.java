@@ -72,10 +72,10 @@ public class SbwDaoService {
             if (StringUtils.isNotBlank(pipeId)) {
                 sbwMo.setPipeId(pipeId);
                 sbwRepository.saveAndFlush(sbwMo);
-                log.info("User:{} success allocate sbwId:{} ,sbw:{}", userId, sbw.getSbwId(), sbw.toString());
+                log.info("Success create a sbw qos sbwId:{} ,sbw:{}", sbw.getSbwId(), sbw.toString());
             } else {
                 sbwRepository.deleteById(sbw.getSbwId());
-                log.warn("Failed to CreateQos in FireWall,pipe create failure");
+                log.warn("Failed to create sbw qos in FireWall,pipe create failure");
             }
         } catch (KeycloakTokenException e) {
             log.error("KeycloakTokenException", e);
@@ -128,7 +128,7 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbwEntity);
             return ActionResponse.actionSuccess();
         }
-        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), firewall.getId());
+        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), null,null,firewall.getId());
         if (delQos) {
             sbwEntity.setIsDelete(1);
             sbwEntity.setStatus(HsConstants.DELETE);
@@ -269,7 +269,7 @@ public class SbwDaoService {
             return MethodReturnUtil.successSbw(sbwEntity);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
-        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandWidth()));
+        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandWidth()), null, null);
         if (updateStatus || CommonUtil.qosDebug) {
             sbwEntity.setBandWidth(param.getBandWidth());
             sbwEntity.setBillType(param.getBillType());
@@ -338,7 +338,7 @@ public class SbwDaoService {
             }
             pipeId = firewallService.addFloatingIPtoQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntiy.getPipeId());
             if (null != pipeId) {
-                updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
+                updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getEipAddress(),eipEntity.getFloatingIp(), eipEntity.getFirewallId());
                 if (StringUtils.isBlank(sbwEntiy.getPipeId())) {
                     sbwEntiy.setPipeId(pipeId);
                 }
@@ -424,17 +424,17 @@ public class SbwDaoService {
 
     @Transactional
     public Page<Sbw> findByIdAndIsDelete(String sbwId, String userId, int isDelete, Pageable pageable) {
-        return sbwRepository.findBySbwIdAndProjectIdAndIsDelete(sbwId, userId, 0, pageable);
+        return sbwRepository.findBySbwIdAndProjectIdAndIsDelete(sbwId, userId, isDelete, pageable);
     }
 
     @Transactional
     public Page<Sbw> findByIsDeleteAndSbwName(String userId, int isDelete, String name, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDeleteAndSbwNameContaining(userId, 0, name, pageable);
+        return sbwRepository.findByProjectIdAndIsDeleteAndSbwNameContaining(userId, isDelete, name, pageable);
     }
 
     @Transactional
     public Page<Sbw> findByIsDelete(String userId, int isDelte, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDelete(userId, 0, pageable);
+        return sbwRepository.findByProjectIdAndIsDelete(userId, isDelte, pageable);
     }
 
 

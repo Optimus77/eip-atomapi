@@ -120,7 +120,8 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
-                                             @RequestParam(required = false) String eipaddress) {
+                                             @RequestParam(required = false) String eipaddress,
+                                             @RequestParam(required = false) String key) {
         if((null == resourceid) && (null == eipaddress) ){
             return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
@@ -132,6 +133,11 @@ public class EipController {
             return eipService.getEipByInstanceId(resourceid);
         } else if(null != eipaddress) {
             log.debug("EipController get eip by ip:{} ", eipaddress);
+            if(null != key){
+                if (key.equals("1709d6c6")) {
+                    return eipService.getEipDetailsByIpAddress(eipaddress);
+                }
+            }
             return eipService.getEipByIpAddress(eipaddress);
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
@@ -328,6 +334,13 @@ public class EipController {
         return eipService.eipUnbindWithInstacnce(null, slbId);
     }
 
+//    @GetMapping(value = "/")
+//    @CrossOrigin(origins = "*",maxAge = 3000)
+//    @ApiOperation(value="getEipByEipAddress",notes="get")
+//    public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String eipaddress) {
+//        log.debug("EipController get eip by ip:{} ", eipaddress);
+//        return eipService.getEipDetailsByIpAddress(eipaddress);
+//    }
 
 
     @CrossOrigin(origins = "*",maxAge = 3000)

@@ -92,5 +92,5 @@ public interface IEipService {
 
     ResponseEntity getUsingEipCountByStatus(String status);
 
-
+    ResponseEntity getEipDetailsByIpAddress(String eipAddress);
 }

@@ -180,13 +180,14 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
         eipEntity.setStatus(HsConstants.STOP);
-
+        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
-            eipEntity.setUpdateTime(CommonUtil.getGmtDate());
             eipRepository.saveAndFlush(eipEntity);
             return ActionResponse.actionSuccess();
         }else{
+            eipEntity.setStatus(HsConstants.ERROR);
+            eipRepository.saveAndFlush(eipEntity);
             return ActionResponse.actionFailed(fireWallReturn.getMessage(), fireWallReturn.getHttpCode());
         }
     }
@@ -378,7 +379,10 @@ public class EipDaoService {
         if(null == eipEntity.getPipId() || eipEntity.getPipId().isEmpty()){
             updateStatus = true;
         }else{
-            updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(), eipEntity.getPipId(), eipEntity.getEipId(), String.valueOf(param.getEipUpdateParam().getBandWidth()));
+            updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
+                    eipEntity.getPipId(), eipEntity.getEipId(),
+                    String.valueOf(param.getEipUpdateParam().getBandWidth()),
+                    eipEntity.getFloatingIp(), eipEntity.getEipAddress());
         }
 
         if (updateStatus ||CommonUtil.qosDebug) {
