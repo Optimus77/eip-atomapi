@@ -76,8 +76,10 @@ public class FirewallService {
     }
 
     String addDnat(String innerip, String extip, String equipid) {
-        String ruleid = null;
-
+        String ruleid = cmdAddDnat(innerip, extip, equipid);
+        if(ruleid != null){
+            return ruleid;
+        }
         //添加弹性IP
         FwDnatVo dnatVo = new FwDnatVo();
         Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
@@ -116,7 +118,11 @@ public class FirewallService {
     }
 
     String addSnat(String innerip, String extip, String equipid) {
-        String ruleid = null;
+
+        String ruleid = cmdAddSnat(innerip, extip, equipid);
+        if(ruleid != null){
+            return ruleid;
+        }
 
         FwSnatVo vo = new FwSnatVo();
         Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
@@ -254,8 +260,8 @@ public class FirewallService {
 
     boolean delDnat(String ruleid, String devId) {
         boolean bSuccess = true;
-        if ("offline".equals(ruleid)) {
-            return bSuccess;
+        if(cmdDelDnat(ruleid, devId)){
+            return true;
         }
 
         if (StringUtils.isNotEmpty(ruleid)) {
@@ -286,6 +292,10 @@ public class FirewallService {
 
     boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = true;
+        if(cmdDelSnat(ruleid, devId)){
+            return true;
+        }
+
         if (StringUtils.isNotEmpty(ruleid)) {
 
             FwSnatVo vo = new FwSnatVo();
@@ -332,15 +342,6 @@ public class FirewallService {
                 pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
             }
             if (null != pipId || CommonUtil.qosDebug) {
-                bnatId = addBnat(fipAddress, eipAddress, firewallId);
-                if(null != bnatId){
-                    eip.setDnatId(bnatId);
-                    eip.setSnatId(bnatId);
-                    eip.setPipId(pipId);
-                    log.info("add bnat and qos successfully. snat:{}, dnat:{}, qos:{}",
-                            eip.getSnatId(), eip.getDnatId(), eip.getPipId());
-                    return MethodReturnUtil.success(eip);
-                }
                 dnatRuleId = addDnat(fipAddress, eipAddress, firewallId);
                 if (dnatRuleId != null) {
                     snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
@@ -387,31 +388,23 @@ public class FirewallService {
 
         String msg = null;
         String returnStat = "200";
-        String snatId = eipEntity.getSnatId();
-        if (null != snatId && snatId.startsWith("B")){
-            if(delBnat(snatId, eipEntity.getFirewallId())) {
-                eipEntity.setDnatId(null);
-                eipEntity.setSnatId(null);
-            }else {
-                eipEntity.setStatus(HsConstants.ERROR);
-            }
-        } else {
-            if (delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId())) {
-                eipEntity.setDnatId(null);
-            } else {
-                returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
-                msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getEipId() + "dnatId:" + eipEntity.getDnatId() + "";
-                log.error(msg);
-            }
 
-            if (delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())) {
-                eipEntity.setSnatId(null);
-            } else {
-                returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
-                msg += "Failed to del snat in firewall, eipId:" + eipEntity.getEipId() + "snatId:" + eipEntity.getSnatId() + "";
-                log.error(msg);
-            }
+        if (delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId())) {
+            eipEntity.setDnatId(null);
+        } else {
+            returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
+            msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getEipId() + "dnatId:" + eipEntity.getDnatId() + "";
+            log.error(msg);
         }
+
+        if (delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId())) {
+            eipEntity.setSnatId(null);
+        } else {
+            returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
+            msg += "Failed to del snat in firewall, eipId:" + eipEntity.getEipId() + "snatId:" + eipEntity.getSnatId() + "";
+            log.error(msg);
+        }
+
         String innerIp = eipEntity.getFloatingIp();
         boolean removeRet;
         if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getPipId() != null) {
@@ -498,49 +491,71 @@ public class FirewallService {
         }
     }
 
-    private Boolean delBnat(String id, String fireWallId)  {
-        String bnatId;
-        if(id == null ){
-            return true;
-        }
-        if(id.startsWith("B")) {
-            bnatId = id.substring(1);
-        }else{
-            log.error("BnatId shoud begin with B, {}", id);
-            return false;
-        }
-
-        String delResult = fireWallCommondService.execCustomCommand(fireWallId,
-                "configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "no bnatrule id " + bnatId + "\r"
-                        + "end",
-                null);
-        if (delResult != null) {
-            if(!delResult.contains("cannot be found")){
-                return false;
+    private Boolean cmdDelSnat(String snatId, String fireWallId) {
+        if (snatId != null) {
+            String delResult = fireWallCommondService.execCustomCommand(fireWallId,
+                    "configure\r"
+                            + "ip vrouter trust-vr\r"
+                            + "no Snatrule id " + snatId + "\r"
+                            + "end",
+                    null);
+            if (delResult != null) {
+                if (!delResult.contains("cannot be found")) {
+                    return false;
+                }
+                log.error("Failed to delete bnatId.");
             }
-            log.error("Failed to delete bnatId", bnatId);
+        }
+        return true;
+    }
+    private Boolean cmdDelDnat(String dnatId, String fireWallId) {
+        if(null != dnatId) {
+            String delResult = fireWallCommondService.execCustomCommand(fireWallId,
+                    "configure\r"
+                            + "ip vrouter trust-vr\r"
+                            + "no dnatrule id " + dnatId + "\r"
+                            + "end",
+                    null);
+            if (delResult != null) {
+                if (!delResult.contains("cannot be found")) {
+                    return false;
+                }
+                log.error("Failed to delete bnatId.");
+            }
         }
         return true;
     }
 
 
 
-    private String addBnat(String fip, String eip, String fireWallId)  {
-        String bnatId;
+    private String cmdAddDnat(String fip, String eip, String fireWallId)  {
+
         String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "ip vrouter trust-vr\r"
-                        + "bnatrule virtual ip " +eip+ "/32" + " real ip "  +fip+ "/32\r"
+                        + "dnatrule from  Any to "+eip+"/32  service Any trans-to "+ fip+ "/32\r"
                         + "end",
                 "rule ID=");
         if(strDnatPtId == null){
             log.error("Failed to add bnat", strDnatPtId);
             return null;
         }
-        bnatId = strDnatPtId.split("=")[1].trim();
-        return "B"+bnatId;
+        return strDnatPtId.split("=")[1].trim();
+    }
+
+    private String cmdAddSnat(String fip, String eip, String fireWallId)  {
+
+        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "ip vrouter trust-vr\r"
+                        + "snatrule from " +fip+ "/32" + " to Any service Any trans-to "  +eip+ "/32 mode static\r"
+                        + "end",
+                "rule ID=");
+        if(strDnatPtId == null){
+            log.error("Failed to add bnat", strDnatPtId);
+            return null;
+        }
+        return strDnatPtId.split("=")[1].trim();
     }
 
 
