@@ -329,7 +329,6 @@ public class FirewallService {
         String pipId = null;
         String dnatRuleId = null;
         String snatRuleId = null;
-        String bnatId = null;
         String returnStat;
         String returnMsg;
         try {
@@ -370,14 +369,12 @@ public class FirewallService {
             returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
             returnMsg = e.getMessage();
         } finally {
-            if(null == bnatId) {
-                if (null == snatRuleId) {
-                    if (null != dnatRuleId) {
-                        delDnat(dnatRuleId, eip.getFirewallId());
-                    }
-                    if (null != pipId) {
-                        delQos(pipId, eip.getEipAddress(), fipAddress,eip.getFirewallId());
-                    }
+            if (null == snatRuleId) {
+                if (null != dnatRuleId) {
+                    delDnat(dnatRuleId, eip.getFirewallId());
+                }
+                if (null != pipId) {
+                    delQos(pipId, eip.getEipAddress(), fipAddress,eip.getFirewallId());
                 }
             }
         }
