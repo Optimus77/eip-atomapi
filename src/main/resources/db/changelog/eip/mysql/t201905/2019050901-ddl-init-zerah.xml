@@ -1,0 +1,62 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+<!--eip表-->
+    <changeSet author="zerah" id="2019050901-staging-cn-south-1" context="staging-cn-south-1">
+        <addColumn tableName="eip">
+            <column name="sbw_id" type="varchar(255)"/>
+        </addColumn>
+        <comment>eip表加入sbw_id字段</comment>
+    </changeSet>
+    <changeSet author="zerah" id="2019050901-staging-cn-north-3" context="staging-cn-north-3">
+        <addColumn tableName="eip">
+            <column name="sbw_id" type="varchar(255)"/>
+        </addColumn>
+        <comment>eip表加入sbw_id字段</comment>
+    </changeSet>
+    <changeSet author="zerah" id="2019050901-pro-cn-north-3" context="pro-cn-north-3">
+        <addColumn tableName="eip">
+            <column name="sbw_id" type="varchar(255)"/>
+        </addColumn>
+        <comment>eip表加入sbw_id字段</comment>
+    </changeSet>
+    <changeSet author="zerah" id="2019050901-pro-cn-north-3" context="pro-cn-north-3">
+        <addColumn tableName="eip">
+            <column name="sbw_id" type="varchar(255)"/>
+        </addColumn>
+        <comment>eip表加入sbw_id字段</comment>
+    </changeSet>
+
+
+<!--sbw表-->
+    <changeSet author="zerah" id="2019050901-staging-cn-south-1" context="staging-cn-south-1">
+        <addColumn tableName="sbw">
+            <column name="sbw_name" type="varchar(255)"/>
+        </addColumn>
+        <comment>sbw表加入sbw_name字段</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="2019050901-staging-cn-north-3" context="staging-cn-north-3">
+        <addColumn tableName="sbw">
+        <column name="sbw_name" type="varchar(255)"/>
+    </addColumn>
+        <comment>sbw表加入sbw_name字段</comment>
+    </changeSet>
+    <changeSet author="zerah" id="2019050901-pro-cn-north-3" context="pro-cn-north-3">
+        <addColumn tableName="sbw">
+            <column name="sbw_name" type="varchar(255)"/>
+        </addColumn>
+        <comment>sbw表加入sbw_name字段</comment>
+    </changeSet>
+    <changeSet author="zerah" id="2019050901-pro-cn-north-3" context="pro-cn-north-3">
+        <addColumn tableName="sbw">
+            <column name="sbw_name" type="varchar(255)"/>
+        </addColumn>
+        <comment>sbw表加入sbw_name字段</comment>
+    </changeSet>
+
+
+</databaseChangeLog>

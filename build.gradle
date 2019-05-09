@@ -15,7 +15,6 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath group: 'com.inspur.cloud', name: 'cloud-gradle-plugin', version: '3.0.0-SNAPSHOT'
-
     }
 }
 
@@ -73,6 +72,13 @@ dependencies {
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
+    // https://mvnrepository.com/artifact/org.liquibase/liquibase-core
+    runtimeOnly('org.liquibase:liquibase-core:3.6.2') {
+        exclude(module: 'logback-classic')
+    }
+    runtimeOnly("com.inspur.cloud:liquibase-schema:3.6")
+
+
 }
 
 dependencyManagement {

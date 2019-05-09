@@ -1,0 +1,52 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <!--EIP表数据迁移-->
+    <changeSet author="zerah" id="2019050903-staging-cn-south-1" context="staging-cn-south-1">
+        <sql>UPDATE eip eip1, eip eip2
+            SET eip1.sbw_id = eip2.shared_band_width_id  where eip1.eip_id =eip2.eip_id;
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019050903-staging-cn-north-3" context="staging-cn-north-3">
+        <sql>UPDATE eip eip1, eip eip2
+            SET eip1.sbw_id = eip2.shared_band_width_id  where eip1.eip_id =eip2.eip_id;
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019050903-pro-cn-north-3" context="pro-cn-north-3">
+        <sql>UPDATE eip eip1, eip eip2
+            SET eip1.sbw_id = eip2.shared_band_width_id  where eip1.eip_id =eip2.eip_id;
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019050903-pro-cn-north-3" context="pro-cn-north-3">
+        <sql>UPDATE eip eip1, eip eip2
+            SET eip1.sbw_id = eip2.shared_band_width_id  where eip1.eip_id =eip2.eip_id;
+        </sql>
+    </changeSet>
+
+
+    <!--Sbw字段数据迁移-->
+    <changeSet author="zerah" id="2019050903-staging-cn-south-1" context="staging-cn-south-1">
+        <sql>UPDATE sbw sbw1, sbw sbw2
+            SET sbw1.sbw_name = sbw2.sharedbandwidth_name  where sbw1.sbw_id =sbw2.sbw_id;
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019050903-staging-cn-north-3" context="staging-cn-north-3">
+        <sql>UPDATE sbw sbw1, sbw sbw2
+            SET sbw1.sbw_name = sbw2.sharedbandwidth_name  where sbw1.sbw_id =sbw2.sbw_id;
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019050903-pro-cn-north-3" context="pro-cn-north-3">
+        <sql>UPDATE sbw sbw1, sbw sbw2
+            SET sbw1.sbw_name = sbw2.sharedbandwidth_name  where sbw1.sbw_id =sbw2.sbw_id;
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019050903-pro-cn-north-3" context="pro-cn-north-3">
+        <sql>UPDATE sbw sbw1, sbw sbw2
+            SET sbw1.sbw_name = sbw2.sharedbandwidth_name  where sbw1.sbw_id =sbw2.sbw_id;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

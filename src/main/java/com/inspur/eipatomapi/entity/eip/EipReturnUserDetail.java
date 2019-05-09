@@ -29,4 +29,7 @@ public class EipReturnUserDetail implements Serializable {
 
     @JsonProperty("userName")
     private String projectId;
+
+    @JsonProperty("status")
+    private String status;
 }
