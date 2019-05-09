@@ -403,7 +403,6 @@ public class SbwServiceImpl implements ISbwService {
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             List<Eip> eipList = eipRepository.getEipListNotBinding(userId,0,HsConstants.HOURLYSETTLEMENT, "");
-            log.info("get the other eips size:{}",eipList.toString());
             JSONArray eips = new JSONArray();
             JSONObject data = new JSONObject();
 
