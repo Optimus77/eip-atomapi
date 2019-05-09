@@ -3,7 +3,7 @@
 #      path: db/changelog/slb/mysql
 
 databaseChangeLog:
-  - include:
-      file: db/changelog/eip/mysql/t201905/2019050901-ddl-init-zerah.xml
-  - include:
-      file: db/changelog/eip/mysql/t201905/2019050901-dml-change-sbwName_and_sbwId-zerah.xml
+#  - include:
+#      file: db/changelog/eip/mysql/t201905/2019050901-ddl-init-zerah.xml
+#  - include:
+#      file: db/changelog/eip/mysql/t201905/2019050901-dml-change-sbwName_and_sbwId-zerah.xml
