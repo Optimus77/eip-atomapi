@@ -172,9 +172,6 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(StringUtils.isNotBlank(eipEntity.getEipV6Id())){
-            return ActionResponse.actionFailed(CodeInfo.EIP_BIND_EIPV6_ERROR, HttpStatus.SC_NOT_FOUND);
-        }
         if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
