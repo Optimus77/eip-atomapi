@@ -256,5 +256,30 @@ public class CommonUtil {
         }
     }
 
+    /**
+     * 是否是超级管理员权限
+     * @return
+     */
+    public static boolean isSuperAccount() {
+
+        String token = getKeycloackToken();
+        if(null == token){
+            log.error("User has no token.");
+            return false;
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String clientId = null;
+        if(jsonObject.has("clientId")) {
+            clientId = jsonObject.getString("clientId");
+        }
+        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
+            log.info("Client token, User has right to operation, client:{}", clientId);
+            return true;
+        }else{
+            log.error("User has no right to operation.{}", jsonObject.toString());
+            return false;
+        }
+    }
+
 
 }

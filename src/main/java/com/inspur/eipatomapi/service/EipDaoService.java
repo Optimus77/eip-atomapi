@@ -112,11 +112,18 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionSuccess();
         }
-
-        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
-            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+        if (StringUtils.isNotBlank(eipEntity.getBillType()) && HsConstants.MONTHLY.equalsIgnoreCase(eipEntity.getBillType())){
+            if (!CommonUtil.isSuperAccount()) {
+                log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+                return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+            }
+        }else {
+            if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
+                log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+                return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+            }
         }
+
 
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
