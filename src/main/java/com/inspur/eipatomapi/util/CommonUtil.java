@@ -135,12 +135,6 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
-            if (jsonObject.has("realm_access")){
-                String realmAccess = jsonObject.getJSONObject("realm_access").toString();
-                if (StringUtils.isNotBlank(realmAccess) && realmAccess.contains("OPERATE_ADMIN")){
-                    return getOsClientV3();
-                }
-            }
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
             String clientId = jsonObject.getString("clientId");
