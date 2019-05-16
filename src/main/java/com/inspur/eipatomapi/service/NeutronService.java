@@ -28,6 +28,14 @@ public  class NeutronService {
     @Autowired
     private  SlbService slbService;
 
+    /**
+     * 创建FloatingIp
+     * @param region
+     * @param networkId
+     * @param portId
+     * @return
+     * @throws KeycloakTokenException
+     */
     public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
@@ -56,6 +64,14 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
+    /**
+     * 删除FloatingIp
+     * @param region
+     * @param fipId
+     * @param instanceId
+     * @return
+     * @throws KeycloakTokenException
+     */
     synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws KeycloakTokenException {
 
         if (slbService.isFipInUse(instanceId)) {
@@ -66,6 +82,16 @@ public  class NeutronService {
         return osClientV3.networking().floatingip().delete(fipId).isSuccess();
     }
 
+    /**
+     * 创建并且关联FloatingIp
+     * @param region
+     * @param networkId
+     * @param portId
+     * @param eip
+     * @param serverId
+     * @return
+     * @throws KeycloakTokenException
+     */
     synchronized  NetFloatingIP createAndAssociateWithFip(String region, String networkId, String portId,
                                                           Eip eip, String serverId) throws KeycloakTokenException {
 
@@ -122,6 +148,14 @@ public  class NeutronService {
         return netFloatingIP;
     }
 
+    /**
+     * 关联实例和floatingIp
+     * @param eip
+     * @param serverId
+     * @param portId
+     * @return
+     * @throws KeycloakTokenException
+     */
     synchronized ActionResponse associaInstanceWithFloatingIp(Eip eip, String serverId,
                                                                      String portId) throws KeycloakTokenException {
 
@@ -158,6 +192,14 @@ public  class NeutronService {
         return result;
     }
 
+    /**
+     * 分离实例和FloatingIp
+     * @param floatingIp
+     * @param serverId
+     * @param region
+     * @return
+     * @throws KeycloakTokenException
+     */
     public synchronized ActionResponse disassociateInstanceWithFloatingIp(String floatingIp, String serverId,
                                                                           String region) throws KeycloakTokenException {
 
@@ -205,12 +247,21 @@ public  class NeutronService {
         return osClientV3.compute().servers().list(filteringParams);
     }
 
+    /**
+     * 关联port和floatingIp
+     * @param floatingIpId
+     * @param portId
+     * @param region
+     * @return
+     * @throws KeycloakTokenException
+     */
     public synchronized NetFloatingIP associaPortWithFloatingIp(String floatingIpId, String portId, String region) throws KeycloakTokenException {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
         return osClientV3.networking().floatingip().associateToPort(floatingIpId, portId);
     }
+
 
     public NetFloatingIP getFloatingIpAddrByPortId(String serverPortId,String region ) throws KeycloakTokenException {
 
@@ -245,7 +296,11 @@ public  class NeutronService {
         return eip.getPrivateIpAddress();
     }
 
-
+    /**
+     * 通过portId获取FloatingIp 地址
+     * @return
+     * @throws KeycloakTokenException
+     */
     private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId) {
 
         Map<String, String> filteringParams = new HashMap<>(4);
