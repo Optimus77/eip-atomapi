@@ -81,7 +81,22 @@ public  class NeutronService {
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         return osClientV3.networking().floatingip().delete(fipId).isSuccess();
     }
+    /**
+     * 超级管理员删除FloatingIp
+     * @param fipId
+     * @param instanceId
+     * @return
+     * @throws KeycloakTokenException
+     */
+    synchronized Boolean superDeleteFloatingIp( String fipId, String instanceId) {
 
+        if (slbService.isFipInUse(instanceId)) {
+            return true;
+        }
+
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3();
+        return osClientV3.networking().floatingip().delete(fipId).isSuccess();
+    }
     /**
      * 创建并且关联FloatingIp
      * @param region
