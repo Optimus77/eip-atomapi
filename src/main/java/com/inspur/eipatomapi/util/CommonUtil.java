@@ -5,6 +5,7 @@ import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
@@ -134,6 +135,12 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
+            if (jsonObject.has("realm_access")){
+                String realmAccess = jsonObject.getJSONObject("realm_access").toString();
+                if (StringUtils.isNotBlank(realmAccess) && realmAccess.contains("OPERATE_ADMIN")){
+                    return getOsClientV3();
+                }
+            }
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
             String clientId = jsonObject.getString("clientId");
@@ -268,12 +275,12 @@ public class CommonUtil {
             return false;
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String clientId = null;
-        if(jsonObject.has("clientId")) {
-            clientId = jsonObject.getString("clientId");
+        String  realmAccess = null;
+        if (jsonObject.has("realm_access")){
+            realmAccess = jsonObject.getJSONObject("realm_access").toString();
         }
-        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-            log.info("Client token, User has right to operation, client:{}", clientId);
+        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
+            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
             return true;
         }else{
             log.error("User has no right to operation.{}", jsonObject.toString());
