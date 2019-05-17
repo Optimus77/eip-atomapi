@@ -112,12 +112,6 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionSuccess();
         }
-
-        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
-            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
-        }
-
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
                 || (null != eipEntity.getSnatId())) {
@@ -125,12 +119,26 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-
-        if (null != eipEntity.getFloatingIpId() && !neutronService.deleteFloatingIp(eipEntity.getRegion(),
-                eipEntity.getFloatingIpId(),
-                eipEntity.getInstanceId())) {
-            msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
-            log.error(msg);
+        if (StringUtils.isNotBlank(eipEntity.getBillType()) && HsConstants.MONTHLY.equalsIgnoreCase(eipEntity.getBillType())){
+            if (!CommonUtil.isSuperAccount()) {
+                log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+                return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+            }
+            if (null != eipEntity.getFloatingIpId() && !neutronService.superDeleteFloatingIp(eipEntity.getFloatingIpId(), eipEntity.getInstanceId())) {
+                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                log.error(msg);
+            }
+        }else {
+            if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
+                log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+                return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+            }
+            if (null != eipEntity.getFloatingIpId() && !neutronService.deleteFloatingIp(eipEntity.getRegion(),
+                    eipEntity.getFloatingIpId(),
+                    eipEntity.getInstanceId())) {
+                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                log.error(msg);
+            }
         }
         ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id());
         if(!delV6Ret.isSuccess()){
@@ -171,9 +179,6 @@ public class EipDaoService {
             msg= "Faild to find eip by id:"+eipid+" ";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
-        }
-        if(StringUtils.isNotBlank(eipEntity.getEipV6Id())){
-            return ActionResponse.actionFailed(CodeInfo.EIP_BIND_EIPV6_ERROR, HttpStatus.SC_NOT_FOUND);
         }
         if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);

@@ -324,7 +324,6 @@ public class FirewallService {
         return bSuccess;
     }
 
-
     MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
         String pipId = null;
         String dnatRuleId = null;
@@ -332,19 +331,19 @@ public class FirewallService {
         String returnStat;
         String returnMsg;
         try {
-            if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-                Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSbwId());
-                if (null != sbwEntity) {
-                    pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId());
-                }
-            } else {
-                pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
-            }
-            if (null != pipId || CommonUtil.qosDebug) {
-                dnatRuleId = addDnat(fipAddress, eipAddress, firewallId);
-                if (dnatRuleId != null) {
-                    snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
-                    if (snatRuleId != null) {
+            dnatRuleId = addDnat(fipAddress, eipAddress, firewallId);
+            if (dnatRuleId != null) {
+                snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
+                if (snatRuleId != null) {
+                    if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
+                        Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSbwId());
+                        if (null != sbwEntity) {
+                            pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId());
+                        }
+                    } else {
+                        pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
+                    }
+                    if (null != pipId || CommonUtil.qosDebug) {
                         eip.setDnatId(dnatRuleId);
                         eip.setSnatId(snatRuleId);
                         eip.setPipId(pipId);
@@ -352,34 +351,36 @@ public class FirewallService {
                                 eip.getSnatId(), eip.getDnatId(), eip.getPipId());
 
                         return MethodReturnUtil.success(eip);
-                    } else {
-                        returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
-                        returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR);
+                    }else {
+                        returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
+                        returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR);
                     }
                 } else {
-                    returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
-                    returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR);
+                    returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
+                    returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_SNAT_ERROR);
                 }
             } else {
-                returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
-                returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_QOS_ERROR);
+                returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
+                returnMsg = CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_FIREWALL_DNAT_ERROR);
             }
+
         } catch (Exception e) {
             log.error("band server exception", e);
             returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
             returnMsg = e.getMessage();
         } finally {
-            if (null == snatRuleId) {
+            if (null == pipId) {
                 if (null != dnatRuleId) {
                     delDnat(dnatRuleId, eip.getFirewallId());
                 }
-                if (null != pipId) {
-                    delQos(pipId, eip.getEipAddress(), fipAddress,eip.getFirewallId());
+                if (null != snatRuleId) {
+                    delSnat(snatRuleId, eip.getFirewallId());
                 }
             }
         }
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
     }
+
 
     MethodReturn delNatAndQos(Eip eipEntity) {
 
