@@ -246,7 +246,7 @@ public class EipController {
     @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity getEipStatistics() {
-        return  eipService.getEipStatictics();
+        return  eipService.getEipStatistics();
     }
 
 

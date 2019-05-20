@@ -551,7 +551,7 @@ public class EipServiceImpl implements IEipService {
     }
 
 
-    public ResponseEntity getEipStatictics() {
+    public ResponseEntity getEipStatistics() {
         JSONObject data=new JSONObject();
         try {
             int  freeCount = eipDaoService.getFreeEipCount();
@@ -563,7 +563,7 @@ public class EipServiceImpl implements IEipService {
             data.put("usingEip", usingCount);
             data.put("totalEip", freeCount+usingCount);
             data.put("tatalBandWidth", totalBandWidth);
-            return new ResponseEntity<>(data, HttpStatus.OK);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get statistics success", data), HttpStatus.OK);
         } catch (Exception e) {
             log.info("error", e);
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
