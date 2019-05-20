@@ -491,6 +491,18 @@ public class EipDaoService {
 
     }
 
+    public int getTotalBandWidth(){
+        String sql ="select sum(band_width) as sum from eip where is_delete=0 and charge_mode='Bandwidth'";
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+
+        String sbwSql ="select sum(band_width) as sbwsum from sbw where is_delete=0";
+        Map<String, Object> sbwMap=jdbcTemplate.queryForMap(sbwSql);
+        int bandWidth = Integer.parseInt(map.get("sum").toString());
+        int sbwBandWidth = Integer.parseInt(sbwMap.get("sbwsum").toString());
+        log.info("sbw band width:{}, eip band width:{}",sbwBandWidth, bandWidth);
+        return bandWidth + sbwBandWidth;
+
+    }
 
     public int getUsingEipCountByStatus(String status){
 
