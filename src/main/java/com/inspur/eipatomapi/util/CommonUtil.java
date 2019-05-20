@@ -102,7 +102,7 @@ public class CommonUtil {
     }
 
     //administrator rights
-    private static OSClientV3 getOsClientV3(){
+    public static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
         return OSFactory.builderV3()
                 .endpoint(userConfig.get("openstackUrl"))
