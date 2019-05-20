@@ -569,6 +569,10 @@ public class FirewallService {
             log.info("Del qos by cmd successfully:");
             return true;
         }
+        if(ret.contains("^-----")){
+            log.error("Can not find {} in {}", eip ,rootPipeName);
+            return true;
+        }
         log.error("Failed to del qos by cmd:{}", ret);
         return false;
     }
