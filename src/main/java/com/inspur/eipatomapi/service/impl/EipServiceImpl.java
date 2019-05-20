@@ -562,7 +562,7 @@ public class EipServiceImpl implements IEipService {
             data.put("errorEip", errorCount);
             data.put("usingEip", usingCount);
             data.put("totalEip", freeCount+usingCount);
-            data.put("tatalBandWidth", totalBandWidth);
+            data.put("totalBandWidth", totalBandWidth);
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get statistics success", data), HttpStatus.OK);
         } catch (Exception e) {
             log.info("error", e);
