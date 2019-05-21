@@ -504,6 +504,7 @@ public class FirewallService {
                 log.error("Failed to delete bnatId.");
             }
         }
+        log.info("Cmd delete snat {} successfully", snatId);
         return true;
     }
     private Boolean cmdDelDnat(String dnatId, String fireWallId) {
@@ -521,6 +522,7 @@ public class FirewallService {
                 log.error("Failed to delete bnatId.");
             }
         }
+        log.info("Cmd delete dnat {} successfully", dnatId);
         return true;
     }
 
