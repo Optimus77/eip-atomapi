@@ -408,7 +408,7 @@ public class FirewallService {
         if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getPipId() != null) {
             removeRet = removeFloatingIpFromQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId());
         } else {
-            removeRet = delQos(eipEntity.getPipId(), eipEntity.getEipAddress(),eipEntity.getFloatingIp(), eipEntity.getFirewallId());
+            removeRet = delQos(eipEntity.getPipId(), eipEntity.getEipAddress(),innerIp, eipEntity.getFirewallId());
             if (removeRet) {
                 eipEntity.setPipId(null);
             }
