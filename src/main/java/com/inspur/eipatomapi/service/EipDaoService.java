@@ -318,8 +318,6 @@ public class EipDaoService {
                     log.error(msg);
                     return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 }
-                eipEntity.setFloatingIp(null);
-                eipEntity.setFloatingIpId(null);
             }
 
             MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
