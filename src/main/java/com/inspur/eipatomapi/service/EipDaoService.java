@@ -290,11 +290,10 @@ public class EipDaoService {
 
 
     @Transactional
-    public ActionResponse disassociateInstanceWithEip(Eip  eipEntity) throws Exception {
+    public ActionResponse disassociateInstanceWithEip(Eip  eipEntity)  {
 
         String msg = null;
 
-        String status= HsConstants.DOWN;
         if(null == eipEntity){
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip ");
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
@@ -309,46 +308,51 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionSuccess();
         }
+        try {
+            if (null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
+                ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
+                        eipEntity.getFloatingIpId(),
+                        eipEntity.getInstanceId(), eipEntity.getRegion());
+                if (!actionResponse.isSuccess()) {
+                    msg = "Failed to disassociate port with fip:" + eipEntity.toString();
+                    log.error(msg);
+                    return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                }
+                eipEntity.setFloatingIp(null);
+                eipEntity.setFloatingIpId(null);
+            }
 
-        MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
-        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
-            msg += fireWallReturn.getMessage();
-            status = HsConstants.ERROR;
-        }
-
-        if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
-            ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
-                    eipEntity.getFloatingIpId(),
-                    eipEntity.getInstanceId(), eipEntity.getRegion());
-            if (!actionResponse.isSuccess()) {
-                msg = "Failed to disassociate port with fip:"+eipEntity.toString();
+            MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+            if (fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+                msg += fireWallReturn.getMessage();
+                eipEntity.setStatus(HsConstants.ERROR);
+            } else {
+                eipEntity.setStatus(HsConstants.DOWN);
+            }
+            eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+            String eipAddress = eipEntity.getEipAddress();
+            boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getUserId());
+            if (!unbindIpv6Ret) {
+                neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
+                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                        eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
+                msg = "Failed to disassociate  with natPt";
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
+
+            eipEntity.setInstanceId(null);
+            eipEntity.setInstanceType(null);
+            eipEntity.setPrivateIpAddress(null);
+            eipEntity.setPortId(null);
+            eipEntity.setFloatingIp(null);
+            eipEntity.setFloatingIpId(null);
+            eipRepository.saveAndFlush(eipEntity);
+        }catch (Exception e) {
+            log.error("Exception  when disassociateInstanceWithEip", e);
+            msg += e.getMessage() + "";
+            eipRepository.saveAndFlush(eipEntity);
         }
-
-        String eipAddress = eipEntity.getEipAddress();
-        boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getUserId());
-        if (!unbindIpv6Ret) {
-            neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
-            firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
-                    eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
-            msg = "Failed to disassociate  with natPt";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        }
-
-        eipEntity.setInstanceId(null);
-        eipEntity.setInstanceType(null);
-        eipEntity.setPrivateIpAddress(null);
-        eipEntity.setPortId(null);
-        eipEntity.setFloatingIp(null);
-        eipEntity.setFloatingIpId(null);
-
-        eipEntity.setStatus(status);
-        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
-        eipRepository.saveAndFlush(eipEntity);
-
         if(null != msg ) {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }else {
