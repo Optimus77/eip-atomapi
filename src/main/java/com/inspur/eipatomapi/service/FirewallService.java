@@ -17,16 +17,11 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 @Slf4j
 @Service
@@ -533,7 +528,7 @@ public class FirewallService {
         String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "ip vrouter trust-vr\r"
-                        + "dnatrule from  Any to "+eip+"/32  service Any trans-to "+ fip+ "/32\r"
+                        + "dnatrule top from  Any to "+eip+"/32  service Any trans-to "+ fip+ "/32\r"
                         + "end",
                 "rule ID=");
         if(strDnatPtId == null){
@@ -548,7 +543,7 @@ public class FirewallService {
         String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "ip vrouter trust-vr\r"
-                        + "snatrule from " +fip+ "/32" + " to Any service Any trans-to "  +eip+ "/32 mode static\r"
+                        + "snatrule top from " +fip+ "/32" + " to Any service Any trans-to "  +eip+ "/32 mode static\r"
                         + "end",
                 "rule ID=");
         if(strDnatPtId == null){

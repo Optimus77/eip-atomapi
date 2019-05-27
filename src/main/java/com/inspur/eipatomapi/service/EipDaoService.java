@@ -208,6 +208,7 @@ public class EipDaoService {
         NetFloatingIP floatingIP ;
         String returnStat;
         String returnMsg ;
+        MethodReturn  fireWallReturn = null;
 
         Eip eip = eipRepository.findByEipId(eipid);
         if (null == eip) {
@@ -220,6 +221,8 @@ public class EipDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
         }
+        eip.setStatus(HsConstants.BINDING);
+        eipRepository.saveAndFlush(eip);
 
         try {
             if (!eip.getUserId().equals(CommonUtil.getUserId())) {
@@ -247,7 +250,7 @@ public class EipDaoService {
             }else {
                 eip.setFloatingIp(fip);
             }
-            MethodReturn  fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
+            fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                                                     eip.getBandWidth(), eip.getFirewallId());
             returnMsg = fireWallReturn.getMessage();
             returnStat = fireWallReturn.getInnerCode();
@@ -259,7 +262,7 @@ public class EipDaoService {
                             eip.getFloatingIpId(), serverId, eip.getRegion());
                     eip.setFloatingIp(null);
                     eip.setFloatingIpId(null);
-                    eipRepository.saveAndFlush(eip);
+                    eip.setStatus(HsConstants.DOWN);
                     return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
                 }
 
@@ -268,7 +271,7 @@ public class EipDaoService {
                 eip.setPortId(portId);
                 eip.setStatus(HsConstants.ACTIVE);
                 eip.setUpdateTime(CommonUtil.getGmtDate());
-                eipRepository.saveAndFlush(eip);
+
                 log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}",
                         eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
                 return MethodReturnUtil.success(eip);
@@ -277,12 +280,16 @@ public class EipDaoService {
                         eip.getFloatingIpId(), serverId, eip.getRegion());
                 eip.setFloatingIp(null);
                 eip.setFloatingIpId(null);
-                eipRepository.saveAndFlush(eip);
             }
         } catch (Exception e) {
             log.error("band server exception", e);
             returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
             returnMsg = e.getMessage();
+        }finally {
+            if(null == fireWallReturn || fireWallReturn.getHttpCode() != HttpStatus.SC_OK){
+                eip.setStatus(HsConstants.DOWN);
+            }
+            eipRepository.saveAndFlush(eip);
         }
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
     }
