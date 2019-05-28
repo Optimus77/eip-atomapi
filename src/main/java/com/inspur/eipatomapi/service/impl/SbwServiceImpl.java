@@ -12,6 +12,7 @@ import com.inspur.eipatomapi.repository.SbwRepository;
 import com.inspur.eipatomapi.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,19 +51,17 @@ public class SbwServiceImpl implements ISbwService {
         String code;
         String msg;
         try {
-            Sbw sbwMo = sbwDaoService.allocateSbw(sbwConfig);
-            if (null != sbwMo) {
+            Sbw sbwVo = sbwDaoService.allocateSbw(sbwConfig);
+            if (null != sbwVo) {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
-                BeanUtils.copyProperties(sbwMo, sbwInfo);
-                log.info("Atom create a sbw success:{}", sbwMo);
+                BeanUtils.copyProperties(sbwVo, sbwInfo);
+                log.info("Atom create a sbw success:{}", sbwVo);
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                msg = "Failed to create sbw :" + sbwConfig.getRegion();
+                msg = "Failed to create sbw :" + sbwVo.toString();
                 log.error(msg);
             }
-        //} catch (KeycloakTokenException e){
-           // return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch ( Exception e) {
             return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -87,7 +86,7 @@ public class SbwServiceImpl implements ISbwService {
             if (pageIndex != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
-                if (searchValue != null) {
+                if (StringUtils.isNotBlank(searchValue)) {
                     if (searchValue.matches(matche)) {
                         page = sbwDaoService.findByIdAndIsDelete(searchValue, projectid, 0, pageable);
                     } else {
@@ -111,7 +110,7 @@ public class SbwServiceImpl implements ISbwService {
             } else {
                 List<Sbw> sbwList = sbwDaoService.findByProjectId(projectid);
                 for (Sbw sbw : sbwList) {
-                    if (null != searchValue) {
+                    if (StringUtils.isNotBlank(searchValue)) {
                         continue;
                     }
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();

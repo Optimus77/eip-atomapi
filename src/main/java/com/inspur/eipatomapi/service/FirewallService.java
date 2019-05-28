@@ -360,7 +360,7 @@ public class FirewallService {
             }
 
         } catch (Exception e) {
-            log.error("band server exception", e);
+            log.error("bind server exception", e);
             returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
             returnMsg = e.getMessage();
         } finally {
@@ -496,7 +496,7 @@ public class FirewallService {
                 if (!delResult.contains("cannot be found")) {
                     return false;
                 }
-                log.error("Failed to delete bnatId.");
+                log.error("Failed to delete snatId.");
             }
         }
         log.info("Cmd delete snat {} successfully", snatId);
@@ -514,7 +514,7 @@ public class FirewallService {
                 if (!delResult.contains("cannot be found")) {
                     return false;
                 }
-                log.error("Failed to delete bnatId.");
+                log.error("Failed to delete dnatId.");
             }
         }
         log.info("Cmd delete dnat {} successfully", dnatId);
@@ -528,11 +528,11 @@ public class FirewallService {
         String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "ip vrouter trust-vr\r"
-                        + "dnatrule top from  Any to "+eip+"/32  service Any trans-to "+ fip+ "/32\r"
+                        + "dnatrule top from  Any to "+eip+" service Any trans-to "+ fip+ "\r"
                         + "end",
                 "rule ID=");
         if(strDnatPtId == null){
-            log.error("Failed to add bnat", strDnatPtId);
+            log.error("Failed to add dnat", strDnatPtId);
             return null;
         }
         return strDnatPtId.split("=")[1].trim();
@@ -543,11 +543,11 @@ public class FirewallService {
         String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "ip vrouter trust-vr\r"
-                        + "snatrule top from " +fip+ "/32" + " to Any service Any trans-to "  +eip+ "/32 mode static\r"
+                        + "snatrule top from " +fip+  " to Any service Any trans-to "  +eip+ " mode static\r"
                         + "end",
                 "rule ID=");
         if(strDnatPtId == null){
-            log.error("Failed to add bnat", strDnatPtId);
+            log.error("Failed to add snat", strDnatPtId);
             return null;
         }
         return strDnatPtId.split("=")[1].trim();

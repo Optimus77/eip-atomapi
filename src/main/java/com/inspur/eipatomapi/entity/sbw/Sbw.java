@@ -1,5 +1,7 @@
 package com.inspur.eipatomapi.entity.sbw;
 
+import com.inspur.eipatomapi.util.HsConstants;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -10,6 +12,7 @@ import java.util.Date;
 @Entity
 @Table(name="sbw")
 @Data
+@Builder
 public class Sbw implements Serializable {
     @Id
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
@@ -20,7 +23,7 @@ public class Sbw implements Serializable {
     private String sbwName;
 
     //计费方式
-    private String billType = "monthly";
+    private String billType ;
 
     private String duration;
 
@@ -29,18 +32,20 @@ public class Sbw implements Serializable {
     private String region;
 
     @Column(name="create_time" ,nullable = false)
-    private Date createTime  = new Date(System.currentTimeMillis());
+    private Date createTime  ;
 
     @Column(name="update_time" ,nullable = false)
-    private Date updateTime  = new Date(System.currentTimeMillis());
-
+    @Builder.Default
+    private Date updateTime  = new Date(System.currentTimeMillis());;
+    //project id : uuid
     private String projectId;
 
-    private int isDelete =0;
+    private int isDelete;
 
     private String pipeId;
 
-    private String status ="ACTIVE";      //
-
+    @Builder.Default
+    private String status = HsConstants.ACTIVE;
+    //username :login name
     private String projectName;
 }
