@@ -1,0 +1,41 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <!--Sbw字段数据迁移-->
+    <changeSet author="zerah" id="2019052801-dev" context="dev">
+        <sql>
+            UPDATE sbw SET is_delete=1,status='DELETE'  WHERE sbw_id in('78aa4ec7-dd34-4d45-a6dd-91a5e270a451') AND is_delete='0';
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019052801-test" context="test">
+        <sql>
+            UPDATE sbw SET is_delete=1,status='DELETE'  WHERE sbw_id in('78aa4ec7-dd34-4d45-a6dd-91a5e270a451') AND is_delete='0';
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019052801-staging-cn-south-1" context="staging-cn-south-1">
+        <sql>
+            UPDATE sbw SET is_delete=1,status='DELETE'  WHERE sbw_id in('9b6b027f-4d83-4efc-8fc6-b040c3796d56','1cba8082-c6c8-4640-8d25-e3f333b36c1f
+            ','6059fa55-a089-4656-a301-45f4ff5d9352','25fe79cc-4326-48c1-81a9-6304a8c978a2') AND is_delete='0';
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019052801-staging-cn-north-3" context="staging-cn-north-3">
+        <sql>
+            UPDATE sbw SET is_delete=1,status='DELETE'  WHERE sbw_id in('78aa4ec7-dd34-4d45-a6dd-91a5e270a451') AND is_delete='0';
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019052801-pro-cn-south-1" context="pro-cn-south-1">
+        <sql>
+            UPDATE sbw SET is_delete=1,status='DELETE'  WHERE sbw_id in('78aa4ec7-dd34-4d45-a6dd-91a5e270a451') AND is_delete='0';
+        </sql>
+    </changeSet>
+    <changeSet author="zerah" id="2019052801-pro-cn-north-3" context="pro-cn-north-3">
+        <sql>
+            UPDATE sbw SET is_delete=1,status='DELETE'  WHERE sbw_id in('9b6b027f-4d83-4efc-8fc6-b040c3796d56','1cba8082-c6c8-4640-8d25-e3f333b36c1f
+            ','6059fa55-a089-4656-a301-45f4ff5d9352','25fe79cc-4326-48c1-81a9-6304a8c978a2','7e74f477-e785-4f06-8a26-6ae6bbf83d33') AND is_delete='0';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

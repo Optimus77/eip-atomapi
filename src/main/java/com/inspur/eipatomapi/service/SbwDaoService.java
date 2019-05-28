@@ -49,40 +49,43 @@ public class SbwDaoService {
         return sbwRepository.findByProjectIdAndIsDelete(projectId, 0);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Sbw allocateSbw(SbwAllocateParam sbwConfig) {
-        Sbw sbwMo = null;
+        Sbw sbw= null;
         try {
-            String userId = CommonUtil.getUserId();
-            sbwMo = new Sbw();
-            sbwMo.setRegion(sbwConfig.getRegion());
-            sbwMo.setSbwName(sbwConfig.getSbwName());
-            sbwMo.setBandWidth(sbwConfig.getBandwidth());
-            sbwMo.setBillType(sbwConfig.getBillType());
-            sbwMo.setDuration(sbwConfig.getDuration());
-            sbwMo.setProjectId(userId);
-            sbwMo.setProjectName(CommonUtil.getProjectName());
-            sbwMo.setIsDelete(0);
-            sbwMo.setCreateTime(CommonUtil.getGmtDate());
-            Sbw sbw = sbwRepository.saveAndFlush(sbwMo);
-
+            sbw = Sbw.builder().sbwName(sbwConfig.getSbwName())
+                    .billType(sbwConfig.getBillType())
+                    .duration(sbwConfig.getDuration())
+                    .bandWidth(sbwConfig.getBandwidth())
+                    .region(sbwConfig.getRegion())
+                    .createTime(CommonUtil.getGmtDate())
+                    .updateTime(CommonUtil.getGmtDate())
+                    .projectId(CommonUtil.getUserId())
+                    .isDelete(0)
+//                    .status(HsConstants.ACTIVE)
+                    .projectName(CommonUtil.getProjectName())
+                    .build();
+            sbw = sbwRepository.saveAndFlush(sbw);
             Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
 
             String pipeId = firewallService.addQos(null, sbw.getSbwId(), String.valueOf(sbw.getBandWidth()), firewall.getId());
             if (StringUtils.isNotBlank(pipeId)) {
-                sbwMo.setPipeId(pipeId);
-                sbwRepository.saveAndFlush(sbwMo);
+                sbw.setPipeId(pipeId);
+                sbwRepository.saveAndFlush(sbw);
                 log.info("Success create a sbw qos sbwId:{} ,sbw:{}", sbw.getSbwId(), sbw.toString());
             } else {
                 sbwRepository.deleteById(sbw.getSbwId());
-                log.warn("Failed to create sbw qos in FireWall,pipe create failure");
+                log.warn("Failed to create sbw qos ,qos pipe create failure");
+                return null;
             }
-        } catch (KeycloakTokenException e) {
-            log.error("KeycloakTokenException", e);
         } catch (Exception e) {
-            log.error("Exception", e);
+            sbw.setStatus(HsConstants.ERROR);
+            sbw.setIsDelete(1);
+            sbwRepository.saveAndFlush(sbw);
+            log.error("Create Sbw Exception in add qos ", e);
+            return null;
         }
-        return sbwMo;
+        return sbw;
     }
 
     public Sbw getSbwById(String id) {
@@ -146,7 +149,7 @@ public class SbwDaoService {
         String msg;
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
-            msg = "Faild to find sbw by id:{} in softDown method" + sbwId ;
+            msg = "Faild to find sbw by id:{} in softDown" + sbwId ;
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
@@ -368,7 +371,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam) {
+    public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam) throws Exception {
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String msg;
         String sbwId = eipUpdateParam.getSbwId();
