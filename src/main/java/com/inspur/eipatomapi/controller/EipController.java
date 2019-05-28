@@ -243,9 +243,14 @@ public class EipController {
 
     }
 
+    @GetMapping(value = "/statistics")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity getEipStatistics() {
+        return  eipService.getEipStatistics();
+    }
 
 
-    /**
+    /**statistics
      * get number of user
      * @return response
      */
@@ -334,13 +339,6 @@ public class EipController {
         return eipService.eipUnbindWithInstacnce(null, slbId);
     }
 
-//    @GetMapping(value = "/")
-//    @CrossOrigin(origins = "*",maxAge = 3000)
-//    @ApiOperation(value="getEipByEipAddress",notes="get")
-//    public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String eipaddress) {
-//        log.debug("EipController get eip by ip:{} ", eipaddress);
-//        return eipService.getEipDetailsByIpAddress(eipaddress);
-//    }
 
 
     @CrossOrigin(origins = "*",maxAge = 3000)

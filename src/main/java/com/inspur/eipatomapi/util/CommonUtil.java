@@ -5,6 +5,7 @@ import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.core.transport.Config;
@@ -101,7 +102,7 @@ public class CommonUtil {
     }
 
     //administrator rights
-    private static OSClientV3 getOsClientV3(){
+    public static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
         return OSFactory.builderV3()
                 .endpoint(userConfig.get("openstackUrl"))
@@ -123,7 +124,7 @@ public class CommonUtil {
 
         if(isDebug){
             userRegion = userConfig.get("debugRegionS");
-            log.info("=============={}", userRegion);
+            log.debug("=============={}", userRegion);
         }
         if(token.startsWith("Bearer Bearer")){
             token = token.substring(7);
@@ -249,6 +250,31 @@ public class CommonUtil {
         }
         if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
             log.info("Client token, User has right to operation, client:{}", clientId);
+            return true;
+        }else{
+            log.error("User has no right to operation.{}", jsonObject.toString());
+            return false;
+        }
+    }
+
+    /**
+     * 是否是超级管理员权限
+     * @return
+     */
+    public static boolean isSuperAccount() {
+
+        String token = getKeycloackToken();
+        if(null == token){
+            log.error("User has no token.");
+            return false;
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String  realmAccess = null;
+        if (jsonObject.has("realm_access")){
+            realmAccess = jsonObject.getJSONObject("realm_access").toString();
+        }
+        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
+            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
             return true;
         }else{
             log.error("User has no right to operation.{}", jsonObject.toString());

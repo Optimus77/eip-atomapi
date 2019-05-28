@@ -112,12 +112,6 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionSuccess();
         }
-
-        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
-            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
-        }
-
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
                 || (null != eipEntity.getSnatId())) {
@@ -125,12 +119,26 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-
-        if (null != eipEntity.getFloatingIpId() && !neutronService.deleteFloatingIp(eipEntity.getRegion(),
-                eipEntity.getFloatingIpId(),
-                eipEntity.getInstanceId())) {
-            msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
-            log.error(msg);
+        if (StringUtils.isNotBlank(eipEntity.getBillType()) && HsConstants.MONTHLY.equalsIgnoreCase(eipEntity.getBillType())){
+            if (!CommonUtil.isSuperAccount()) {
+                log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+                return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+            }
+            if (null != eipEntity.getFloatingIpId() && !neutronService.superDeleteFloatingIp(eipEntity.getFloatingIpId(), eipEntity.getInstanceId())) {
+                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                log.error(msg);
+            }
+        }else {
+            if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
+                log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+                return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+            }
+            if (null != eipEntity.getFloatingIpId() && !neutronService.deleteFloatingIp(eipEntity.getRegion(),
+                    eipEntity.getFloatingIpId(),
+                    eipEntity.getInstanceId())) {
+                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                log.error(msg);
+            }
         }
         ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id());
         if(!delV6Ret.isSuccess()){
@@ -171,9 +179,6 @@ public class EipDaoService {
             msg= "Faild to find eip by id:"+eipid+" ";
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
-        }
-        if(StringUtils.isNotBlank(eipEntity.getEipV6Id())){
-            return ActionResponse.actionFailed(CodeInfo.EIP_BIND_EIPV6_ERROR, HttpStatus.SC_NOT_FOUND);
         }
         if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
@@ -292,11 +297,10 @@ public class EipDaoService {
 
 
     @Transactional
-    public ActionResponse disassociateInstanceWithEip(Eip  eipEntity) throws Exception {
+    public ActionResponse disassociateInstanceWithEip(Eip  eipEntity)  {
 
         String msg = null;
 
-        String status= HsConstants.DOWN;
         if(null == eipEntity){
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip ");
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
@@ -311,46 +315,49 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionSuccess();
         }
+        try {
+            if (null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
+                ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
+                        eipEntity.getFloatingIpId(),
+                        eipEntity.getInstanceId(), eipEntity.getRegion());
+                if (!actionResponse.isSuccess()) {
+                    msg = "Failed to disassociate port with fip:" + eipEntity.toString();
+                    log.error(msg);
+                    return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                }
+            }
 
-        MethodReturn fireWallReturn =  firewallService.delNatAndQos(eipEntity);
-        if(fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
-            msg += fireWallReturn.getMessage();
-            status = HsConstants.ERROR;
-        }
-
-        if(null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
-            ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
-                    eipEntity.getFloatingIpId(),
-                    eipEntity.getInstanceId(), eipEntity.getRegion());
-            if (!actionResponse.isSuccess()) {
-                msg = "Failed to disassociate port with fip:"+eipEntity.toString();
+            MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+            if (fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+                msg += fireWallReturn.getMessage();
+                eipEntity.setStatus(HsConstants.ERROR);
+            } else {
+                eipEntity.setStatus(HsConstants.DOWN);
+            }
+            eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+            String eipAddress = eipEntity.getEipAddress();
+            boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getUserId());
+            if (!unbindIpv6Ret) {
+                neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
+                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                        eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
+                msg = "Failed to disassociate  with natPt";
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
+
+            eipEntity.setInstanceId(null);
+            eipEntity.setInstanceType(null);
+            eipEntity.setPrivateIpAddress(null);
+            eipEntity.setPortId(null);
+            eipEntity.setFloatingIp(null);
+            eipEntity.setFloatingIpId(null);
+            eipRepository.saveAndFlush(eipEntity);
+        }catch (Exception e) {
+            log.error("Exception  when disassociateInstanceWithEip", e);
+            msg += e.getMessage() + "";
+            eipRepository.saveAndFlush(eipEntity);
         }
-
-        String eipAddress = eipEntity.getEipAddress();
-        boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getUserId());
-        if (!unbindIpv6Ret) {
-            neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
-            firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
-                    eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
-            msg = "Failed to disassociate  with natPt";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        }
-
-        eipEntity.setInstanceId(null);
-        eipEntity.setInstanceType(null);
-        eipEntity.setPrivateIpAddress(null);
-        eipEntity.setPortId(null);
-        eipEntity.setFloatingIp(null);
-        eipEntity.setFloatingIpId(null);
-
-        eipEntity.setStatus(status);
-        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
-        eipRepository.saveAndFlush(eipEntity);
-
         if(null != msg ) {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }else {
@@ -493,6 +500,18 @@ public class EipDaoService {
 
     }
 
+    public int getTotalBandWidth(){
+        String sql ="select sum(band_width) as sum from eip where is_delete=0 and charge_mode='Bandwidth'";
+        Map<String, Object> map=jdbcTemplate.queryForMap(sql);
+
+        String sbwSql ="select sum(band_width) as sbwsum from sbw where is_delete=0";
+        Map<String, Object> sbwMap=jdbcTemplate.queryForMap(sbwSql);
+        int bandWidth = Integer.parseInt(map.get("sum").toString());
+        int sbwBandWidth = Integer.parseInt(sbwMap.get("sbwsum").toString());
+        log.info("sbw band width:{}, eip band width:{}",sbwBandWidth, bandWidth);
+        return bandWidth + sbwBandWidth;
+
+    }
 
     public int getUsingEipCountByStatus(String status){
 
