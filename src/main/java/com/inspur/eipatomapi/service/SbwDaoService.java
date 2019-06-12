@@ -68,7 +68,7 @@ public class SbwDaoService {
             sbw = sbwRepository.saveAndFlush(sbw);
             Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
 
-            String pipeId = firewallService.addQos(null, sbw.getSbwId(), String.valueOf(sbw.getBandWidth()), firewall.getId());
+            String pipeId = firewallService.cmdAddSbwQos(sbw.getSbwId(),String.valueOf(sbw.getBandWidth()), firewall.getId());
             if (StringUtils.isNotBlank(pipeId)) {
                 sbw.setPipeId(pipeId);
                 sbwRepository.saveAndFlush(sbw);
@@ -79,9 +79,11 @@ public class SbwDaoService {
                 return null;
             }
         } catch (Exception e) {
-            sbw.setStatus(HsConstants.ERROR);
-            sbw.setIsDelete(1);
-            sbwRepository.saveAndFlush(sbw);
+            if(null != sbw) {
+                sbw.setStatus(HsConstants.ERROR);
+                sbw.setIsDelete(1);
+                sbwRepository.saveAndFlush(sbw);
+            }
             log.error("Create Sbw Exception in add qos ", e);
             return null;
         }
@@ -131,7 +133,7 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbwEntity);
             return ActionResponse.actionSuccess();
         }
-        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), null,null,firewall.getId());
+        boolean delQos = firewallService.cmdDelSbwQos(sbwEntity.getSbwId(),firewall.getId());
         if (delQos) {
             sbwEntity.setIsDelete(1);
             sbwEntity.setStatus(HsConstants.DELETE);
@@ -371,7 +373,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam) throws Exception {
+    public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam)  {
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String msg;
         String sbwId = eipUpdateParam.getSbwId();

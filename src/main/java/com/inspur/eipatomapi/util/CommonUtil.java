@@ -134,6 +134,15 @@ public class CommonUtil {
         log.info("decode::"+jsonObject);
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
+
+            if (jsonObject.has("realm_access")) {
+                String realmAccess ;
+                realmAccess = jsonObject.getJSONObject("realm_access").toString();
+                if (realmAccess != null && realmAccess.contains("OPERATE_ADMIN")) {
+                    log.info("admin token, operate admin user:{}", project);
+                    return getOsClientV3();
+                }
+            }
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
@@ -244,24 +253,28 @@ public class CommonUtil {
         if(userId.equals(projectId)){
             return true;
         }
-        String clientId = null;
+        String clientId ;
         if(jsonObject.has("clientId")) {
             clientId = jsonObject.getString("clientId");
+            if (null != clientId && clientId.equalsIgnoreCase("iaas-server")) {
+                log.info("Client token, User has right to operation, client:{}", clientId);
+                return true;
+            }
         }
-        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-            log.info("Client token, User has right to operation, client:{}", clientId);
-            return true;
-        }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
-            return false;
+        String realmAccess ;
+        if (jsonObject.has("realm_access")) {
+            realmAccess = jsonObject.getJSONObject("realm_access").toString();
+            if (realmAccess != null && realmAccess.contains("OPERATE_ADMIN")) {
+                log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+                return true;
+            }
         }
+        log.error("User has no right to operation.{}", jsonObject.toString());
+        return false;
+
     }
 
-    /**
-     * 是否是超级管理员权限
-     * @return
-     */
-    public static boolean isSuperAccount() {
+    public static boolean isOwner(String projectId) {
 
         String token = getKeycloackToken();
         if(null == token){
@@ -269,18 +282,13 @@ public class CommonUtil {
             return false;
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String  realmAccess = null;
-        if (jsonObject.has("realm_access")){
-            realmAccess = jsonObject.getJSONObject("realm_access").toString();
-        }
-        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
-            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+        String userId = (String) jsonObject.get("sub");
+        if(userId.equals(projectId)){
             return true;
-        }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
-            return false;
         }
-    }
+        log.info("User has is not owner:{}", jsonObject.toString());
+        return false;
 
+    }
 
 }
