@@ -58,6 +58,9 @@ public class MonitorServiceImpl implements MonitorService {
     public void scheculeTask() {
 
         log.debug("**************************start timed task : eip check**************************");
+        if (minEipNum.equals("0")) {
+            return;
+        }
         List<MetricEntity> podMonitorMetric = Collections.synchronizedList(new ArrayList<>());
 
         Long timestamp = System.currentTimeMillis();
