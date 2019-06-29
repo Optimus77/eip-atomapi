@@ -119,7 +119,7 @@ public class CommonUtil {
         String token = getKeycloackToken();
         if(null == token){
             log.error("can't get token.");
-            return getOsClientV3();
+            throw  new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
         }
 
         if(isDebug){
@@ -135,14 +135,6 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
 
-            if (jsonObject.has("realm_access")) {
-                String realmAccess ;
-                realmAccess = jsonObject.getJSONObject("realm_access").toString();
-                if (realmAccess != null && realmAccess.contains("OPERATE_ADMIN")) {
-                    log.info("admin token, operate admin user:{}", project);
-                    return getOsClientV3();
-                }
-            }
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
