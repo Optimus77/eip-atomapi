@@ -648,7 +648,6 @@ public class FirewallService {
                         + "pipe-map \r"
                         + "dst-ip " + fip + "/24\r"
                         + "src-addr Any\r"
-                        + "service Any\r "
                         + "exit\r"
                         + "pipe-rule forward bandwidth Gbps 1\r"
                         + "pipe-rule backward bandwidth Gbps 1\r"
