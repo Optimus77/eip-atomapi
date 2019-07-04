@@ -39,8 +39,6 @@ public class Eip implements Serializable {
 
     private String instanceType;
 
-    private String vpcId;
-
     private String billType = "hourlySettlement";
 
     private String chargeMode = "BandWidth";
@@ -54,8 +52,6 @@ public class Eip implements Serializable {
     private String ipType;
 
     private String sbwId;
-
-    private String aclId;
 
     private String pipId;
 
