@@ -8,14 +8,16 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RepositoryRestResource(collectionResourceRel = "eipv6", path = "eipv6")
 public interface EipV6Repository extends JpaRepository<EipV6,String> {
 
-    EipV6 findByEipV6Id(String id);
+    @Override
+    Optional<EipV6> findById(String s);
 
-    EipV6 findByEipV6IdAndIsDelete(String eipV6Id,int isDelete);
+    EipV6 findByIdAndIsDelete(String eipV6Id,int isDelete);
 
     List<EipV6> findByUserIdAndIsDelete(String projectId, int isDelete);
 

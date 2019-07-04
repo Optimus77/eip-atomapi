@@ -14,7 +14,7 @@ import java.util.Date;
 public class EipReturnDetail implements Serializable {
 
     @JsonProperty("eipid")
-    private String eipId;
+    private String id;
 
     @Column(name="eip_address")
     @JsonProperty("eip_address")

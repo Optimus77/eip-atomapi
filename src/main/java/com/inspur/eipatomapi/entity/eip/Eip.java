@@ -17,8 +17,8 @@ public class Eip implements Serializable {
     @Id
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     @GeneratedValue(generator = "system-uuid")
-    @Column(name ="eip_id",nullable = false, insertable = false, updatable = false)
-    private String eipId;
+    @Column(name ="id",nullable = false, insertable = false, updatable = false)
+    private String id;
 
     private String name;
 
@@ -73,10 +73,10 @@ public class Eip implements Serializable {
 
     private String region;
 
-    @Column(name="create_time" ,nullable = false)
-    private Date createTime  = new Date(System.currentTimeMillis());
+    @Column(name="created_time" ,nullable = false)
+    private Date createdTime  = new Date(System.currentTimeMillis());
 
-    private Date updateTime;
+    private Date updatedTime;
 
     private int isDelete=0;
 

@@ -111,20 +111,20 @@ public  class NeutronService {
                                                           Eip eip, String serverId) throws KeycloakTokenException {
 
         if(portId.isEmpty()){
-            log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getEipId());
+            log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getId());
             return null;
         }
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
         Port port = osClientV3.networking().port().get(portId);
         if(null == port) {
-            log.error("Can not get port by id:{} in associate with server:{}, eipId:{}",portId, serverId, eip.getEipId());
+            log.error("Can not get port by id:{} in associate with server:{}, eipId:{}",portId, serverId, eip.getId());
             return null;
         }
 
         Server server = osClientV3.compute().servers().get(serverId);
         if(null == server) {
-            log.error("Can not get server when associate with serverId:{}, eipId:{}", serverId, eip.getEipId());
+            log.error("Can not get server when associate with serverId:{}, eipId:{}", serverId, eip.getId());
             return null;
         }
         String projectId = CommonUtil.getProjectId(region, osClientV3);

@@ -10,13 +10,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.inspur.eipatomapi.entity.sbw.Sbw;
 import javax.persistence.LockModeType;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RepositoryRestResource(collectionResourceRel = "sbw", path = "sbw")
 public interface SbwRepository extends JpaRepository<Sbw, String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Sbw findBySbwId(String id);
+    Optional<Sbw> findById(String id);
 
     List<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete);
 

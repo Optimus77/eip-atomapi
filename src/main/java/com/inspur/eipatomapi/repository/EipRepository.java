@@ -11,13 +11,14 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RepositoryRestResource(collectionResourceRel = "eip", path = "eip")
 public interface EipRepository extends JpaRepository<Eip,String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Eip findByEipId(String id);
+    Optional<Eip> findById(String id);
 
     Eip findByInstanceIdAndIsDelete (String instanceId,int isDelete);
 
