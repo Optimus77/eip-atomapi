@@ -468,6 +468,7 @@ public class EipDaoService {
         return eipRepository.findByInstanceIdAndIsDelete(instanceId,0);
     }
 
+    @Transactional
     public Eip getEipById(String id){
 
         Eip eipEntity = null;
