@@ -15,7 +15,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipV6ReturnBase implements Serializable {
     @JsonProperty("eip_v6_id")
-    private String eipV6Id;
+    private String id;
 
     @Column(name="ipv6")
     @JsonProperty("ipv6")
@@ -26,7 +26,7 @@ public class EipV6ReturnBase implements Serializable {
 
     @JsonProperty("create_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
+    private Date createdTime;
 
     @Column(name="ipv4")
     @JsonProperty("ipv4")

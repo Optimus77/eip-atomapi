@@ -109,7 +109,12 @@ public class SbwDaoService {
     public ActionResponse deleteSbw(String sbwId) {
         String msg;
         long ipCount;
-        Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
+//        Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
+        Sbw sbwEntity = null;
+        Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
+        if(sbwOptional.isPresent()){
+            sbwEntity = sbwOptional.get();
+        }
         if (null == sbwEntity) {
             msg = "Faild to find sbw by id:" + sbwId;
             log.error(msg);
@@ -149,7 +154,13 @@ public class SbwDaoService {
     @Transactional
     public ActionResponse softDownSbw(String sbwId) {
         String msg;
-        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+//        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        Sbw sbw = null;
+        Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
+        if(sbwOptional.isPresent()){
+            sbw = sbwOptional.get();
+        }
+
         if (null == sbw) {
             msg = "Faild to find sbw by id:{} in softDown" + sbwId ;
             log.error(msg);
@@ -186,7 +197,13 @@ public class SbwDaoService {
     @Transactional
     public ActionResponse renewSbwEntity(String sbwId) {
         String msg;
-        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+//        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        Sbw sbw = null;
+        Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
+        if(sbwOptional.isPresent()){
+            sbw = sbwOptional.get();
+        }
+
         if (null == sbw) {
             log.info("Faild to find sbw by id:{} in renewSbwEntity method" + sbwId );
             return ActionResponse.actionFailed("Can not find the sbw by id:{}" + sbwId, HttpStatus.SC_NOT_FOUND);
@@ -222,7 +239,13 @@ public class SbwDaoService {
     public JSONObject renameSbw(String sbwId, SbwUpdateParam param) {
         JSONObject data = new JSONObject();
         String newSbwName = param.getSbwName();
-        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+//        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        Sbw sbw = null;
+        Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
+        if(sbwOptional.isPresent()){
+            sbw = sbwOptional.get();
+        }
+
         if (null == sbw) {
             log.error("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
             data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
@@ -250,7 +273,13 @@ public class SbwDaoService {
     @Transactional
     public MethodSbwReturn updateSbwEntity(String sbwId, SbwUpdateParam param) {
 
-        Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
+//        Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
+        Sbw sbwEntity = null;
+        Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
+        if(sbwOptional.isPresent()){
+            sbwEntity = sbwOptional.get();
+        }
+
         if (null == sbwEntity) {
             log.error("In update sbw bandWidth  process,failed to find the sbw by id:{} ", sbwId);
             return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
@@ -284,7 +313,7 @@ public class SbwDaoService {
             Stream<Eip> stream = eipRepository.findByUserIdAndIsDeleteAndSbwId(sbwEntity.getProjectId(), 0, sbwId).stream();
             stream.forEach(eip -> {
                 eip.setBandWidth(param.getBandWidth());
-                eip.setUpdateTime(CommonUtil.getGmtDate());
+                eip.setUpdatedTime(CommonUtil.getGmtDate());
                 eipRepository.saveAndFlush(eip);
             });
             return MethodReturnUtil.successSbw(sbwEntity);
@@ -299,7 +328,12 @@ public class SbwDaoService {
 
 
         String sbwId = eipUpdateParam.getSbwId();
-        Eip eipEntity = eipRepository.findByEipId(eipid);
+//        Eip eipEntity = eipRepository.findByEipId(eipid);
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(eipid);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
         String pipeId;
         if (null == eipEntity) {
             log.error("In addEipIntoSbw process,failed to find the eip by id:{} ", eipid);
@@ -328,7 +362,12 @@ public class SbwDaoService {
             return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_SHARED_BAND_WIDTH_ID_NOT_NULL));
         }
-        Sbw sbwEntiy = sbwRepository.findBySbwId(sbwId);
+//        Sbw sbwEntiy = sbwRepository.findBySbwId(sbwId);
+        Sbw sbwEntiy = null;
+        Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
+        if(sbwOptional.isPresent()){
+            sbwEntiy = sbwOptional.get();
+        }
         if (null == sbwEntiy) {
             log.error("Failed to find sbw by id:{} ", sbwId);
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
@@ -354,7 +393,7 @@ public class SbwDaoService {
 
         if (updateStatus || CommonUtil.qosDebug) {
             eipEntity.setPipId(sbwEntiy.getPipeId());
-            eipEntity.setUpdateTime(new Date());
+            eipEntity.setUpdatedTime(new Date());
             eipEntity.setSbwId(sbwId);
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setChargeMode(HsConstants.SHAREDBANDWIDTH);
@@ -374,10 +413,21 @@ public class SbwDaoService {
 
     @Transactional
     public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam)  {
-        Eip eipEntity = eipRepository.findByEipId(eipid);
+//        Eip eipEntity = eipRepository.findByEipId(eipid);
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(eipid);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
         String msg;
         String sbwId = eipUpdateParam.getSbwId();
-        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+//        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        Sbw sbw = null;
+        Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
+        if(sbwOptional.isPresent()){
+            sbw = sbwOptional.get();
+        }
+
         if (null == sbw) {
             log.error("In removeEipFromSbw process,failed to find sbw by id:{} ", sbwId);
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);
@@ -408,7 +458,7 @@ public class SbwDaoService {
         }
 
         if (removeStatus || CommonUtil.qosDebug) {
-            eipEntity.setUpdateTime(new Date());
+            eipEntity.setUpdatedTime(new Date());
             //update the eip table
             eipEntity.setPipId(newPipId);
             eipEntity.setSbwId(null);
@@ -421,7 +471,7 @@ public class SbwDaoService {
             return ActionResponse.actionSuccess();
         }
 
-        msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getEipId() + " sharedBandWidthId:" + sbwId + "";
+        msg = "Failed to remove ip in sharedBand,eipId:" + eipEntity.getId() + " sharedBandWidthId:" + sbwId + "";
         log.error(msg);
         return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
 

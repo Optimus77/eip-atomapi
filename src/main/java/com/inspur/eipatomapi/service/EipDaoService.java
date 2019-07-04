@@ -74,7 +74,7 @@ public class EipDaoService {
         Eip eipEntity = eipRepository.findByEipAddressAndIsDelete(eip.getIp(), 0);
         if (null != eipEntity) {
             log.error("Fatal Error! get a duplicate eip from eip pool, eip_address:{} eipId:{}.",
-                    eipEntity.getEipAddress(), eipEntity.getEipId());
+                    eipEntity.getEipAddress(), eipEntity.getId());
             return null;
         }
 
@@ -96,9 +96,9 @@ public class EipDaoService {
         eipMo.setProjectId(CommonUtil.getProjectName());
         eipMo.setIsDelete(0);
 
-        eipMo.setCreateTime(CommonUtil.getGmtDate());
+        eipMo.setCreatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipMo);
-        log.info("User:{} success allocate eip:{}", userId, eipMo.getEipId());
+        log.info("User:{} success allocate eip:{}", userId, eipMo.getId());
         return eipMo;
     }
 
@@ -106,7 +106,12 @@ public class EipDaoService {
     @Transactional
     public ActionResponse deleteEip(String eipid) throws KeycloakTokenException {
         String msg;
-        Eip eipEntity = eipRepository.findByEipId(eipid);
+//        Eip eipEntity = eipRepository.findByEipId(eipid);
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(eipid);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
         if ((null == eipEntity) || (eipEntity.getIsDelete() == 1) ){
             msg = "Faild to find eip by id:" + eipid;
             log.error(msg);
@@ -142,7 +147,7 @@ public class EipDaoService {
         }
 
         eipEntity.setIsDelete(1);
-        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+        eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
         eipEntity.setEipV6Id(null);
         eipRepository.saveAndFlush(eipEntity);
         if(eipEntity.getStatus().equals(HsConstants.ERROR)){
@@ -170,7 +175,12 @@ public class EipDaoService {
     @Transactional
     public ActionResponse softDownEip(String  eipid) {
         String msg;
-        Eip eipEntity = eipRepository.findByEipId(eipid);
+//        Eip eipEntity = eipRepository.findByEipId(eipid);
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(eipid);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
         if (null == eipEntity) {
             msg= "Faild to find eip by id:"+eipid+" ";
             log.error(msg);
@@ -181,7 +191,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
         eipEntity.setStatus(HsConstants.STOP);
-        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+        eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
         if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
             eipRepository.saveAndFlush(eipEntity);
@@ -206,7 +216,11 @@ public class EipDaoService {
         String returnMsg ;
         MethodReturn  fireWallReturn = null;
 
-        Eip eip = eipRepository.findByEipId(eipid);
+        Eip eip = null;
+        Optional<Eip> eipOptional = eipRepository.findById(eipid);
+        if(eipOptional.isPresent()){
+            eip = eipOptional.get();
+        }
         if (null == eip) {
             log.error("In associate process, failed to find the eip by id:{} ", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
@@ -266,7 +280,7 @@ public class EipDaoService {
                 eip.setInstanceType(instanceType);
                 eip.setPortId(portId);
                 eip.setStatus(HsConstants.ACTIVE);
-                eip.setUpdateTime(CommonUtil.getGmtDate());
+                eip.setUpdatedTime(CommonUtil.getGmtDate());
 
                 log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}",
                         eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
@@ -302,7 +316,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
         if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
-            log.error("User have no write to delete eip:{}", eipEntity.getEipId());
+            log.error("User have no write to delete eip:{}", eipEntity.getId());
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
 
@@ -330,7 +344,7 @@ public class EipDaoService {
             } else {
                 eipEntity.setStatus(HsConstants.DOWN);
             }
-            eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             String eipAddress = eipEntity.getEipAddress();
             boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getUserId());
             if (!unbindIpv6Ret) {
@@ -364,7 +378,12 @@ public class EipDaoService {
     @Transactional
     public MethodReturn updateEipEntity(String eipid, EipUpdateParamWrapper param) {
 
-        Eip eipEntity = eipRepository.findByEipId(eipid);
+//        Eip eipEntity = eipRepository.findByEipId(eipid);
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(eipid);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
         if (null == eipEntity) {
             log.error("updateEipEntity In disassociate process,failed to find the eip by id:{} ", eipid);
             return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
@@ -390,7 +409,7 @@ public class EipDaoService {
             updateStatus = true;
         }else{
             updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
-                    eipEntity.getPipId(), eipEntity.getEipId(),
+                    eipEntity.getPipId(), eipEntity.getId(),
                     String.valueOf(param.getEipUpdateParam().getBandWidth()),
                     eipEntity.getFloatingIp(), eipEntity.getEipAddress());
         }
@@ -399,7 +418,7 @@ public class EipDaoService {
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
             eipEntity.setBandWidth(param.getEipUpdateParam().getBandWidth());
             eipEntity.setBillType(param.getEipUpdateParam().getBillType());
-            eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipRepository.saveAndFlush(eipEntity);
             return MethodReturnUtil.success(eipEntity);
         }else{
@@ -412,7 +431,12 @@ public class EipDaoService {
     @Transactional
     public ActionResponse reNewEipEntity(String eipId, String addTime)  {
 
-        Eip eipEntity = eipRepository.findByEipId(eipId);
+//        Eip eipEntity = eipRepository.findByEipId(eipId);
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(eipId);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
         if (null == eipEntity) {
             return ActionResponse.actionFailed("Can not find the eip by id:{}"+eipId, HttpStatus.SC_NOT_FOUND);
         }
@@ -423,7 +447,7 @@ public class EipDaoService {
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
                 eipEntity.setStatus(HsConstants.ACTIVE);
                 eipEntity.setDuration("1");
-                eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+                eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
                 eipRepository.saveAndFlush(eipEntity);
             }else{
                 log.error("renew eip error {}", fireWallReturn.getMessage());

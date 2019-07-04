@@ -329,7 +329,12 @@ public class FirewallService {
                 snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
                 if (snatRuleId != null) {
                     if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-                        Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSbwId());
+//                        Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSbwId());
+                        Sbw sbwEntity = null;
+                        Optional<Sbw> sbwOptional = sbwRepository.findById(eip.getSbwId());
+                        if(sbwOptional.isPresent()){
+                            sbwEntity = sbwOptional.get();
+                        }
                         if (null != sbwEntity) {
                             pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId());
                         }
@@ -384,7 +389,7 @@ public class FirewallService {
             eipEntity.setDnatId(null);
         } else {
             returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
-            msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getEipId() + "dnatId:" + eipEntity.getDnatId() + "";
+            msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getId() + "dnatId:" + eipEntity.getDnatId() + "";
             log.error(msg);
         }
 
@@ -392,7 +397,7 @@ public class FirewallService {
             eipEntity.setSnatId(null);
         } else {
             returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
-            msg += "Failed to del snat in firewall, eipId:" + eipEntity.getEipId() + "snatId:" + eipEntity.getSnatId() + "";
+            msg += "Failed to del snat in firewall, eipId:" + eipEntity.getId() + "snatId:" + eipEntity.getSnatId() + "";
             log.error(msg);
         }
 
@@ -408,7 +413,7 @@ public class FirewallService {
         }
         if (!removeRet) {
             returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
-            msg += "Failed to del qos, eipId:" + eipEntity.getEipId() + " pipId:" + eipEntity.getPipId() + "";
+            msg += "Failed to del qos, eipId:" + eipEntity.getId() + " pipId:" + eipEntity.getPipId() + "";
             log.error(msg);
         }
         if (msg == null) {

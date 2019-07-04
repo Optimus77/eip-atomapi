@@ -50,7 +50,12 @@ public class EipV6DaoService {
     @Transactional
     public EipV6 allocateEipV6(String  eipV4Id, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
 
-        Eip eip = eipRepository.findByEipId(eipV4Id);
+//        Eip eip = eipRepository.findByEipId(eipV4Id);
+        Eip eip = null;
+        Optional<Eip> eipOptional = eipRepository.findById(eipV4Id);
+        if (eipOptional.isPresent()) {
+            eip = eipOptional.get();
+        }
         if(null == eip){
             log.error("Faild to find eip by id:{}",eipV4Id);
             return null;
@@ -77,7 +82,7 @@ public class EipV6DaoService {
         EipV6 eipV6Entity = eipV6Repository.findByIpv6AndIsDelete(eipPoolv6.getIp(), 0);
         if(null != eipV6Entity){
             log.error("Fatal Error! get a duplicate eipv6 from eip pool v6, eip_v6_address:{} eipv6Id:{}.",
-                    eipV6Entity.getIpv6(), eipV6Entity.getEipV6Id());
+                    eipV6Entity.getIpv6(), eipV6Entity.getId());
             return null;
         }
         EipV6 eipMo = new EipV6();
@@ -110,12 +115,12 @@ public class EipV6DaoService {
         log.debug("get tenantid:{} from clientv3", userId);
         eipMo.setUserId(userId);
         eipMo.setIsDelete(0);
-        eipMo.setCreateTime(CommonUtil.getGmtDate());
+        eipMo.setCreatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
-        eip.setEipV6Id(eipMo.getEipV6Id());
-        eip.setUpdateTime(CommonUtil.getGmtDate());
+        eip.setEipV6Id(eipMo.getId());
+        eip.setUpdatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
-        log.info("User:{} success allocate eipv6:{}",userId, eipMo.getEipV6Id());
+        log.info("User:{} success allocate eipv6:{}",userId, eipMo.getId());
         return eipMo;
     }
 
@@ -135,7 +140,7 @@ public class EipV6DaoService {
     }
 
     public EipV6 findByEipV6IdAndIsDelete(String eipV6Id, int isDelete){
-        return eipV6Repository.findByEipV6IdAndIsDelete(eipV6Id,0);
+        return eipV6Repository.findByIdAndIsDelete(eipV6Id,0);
     }
 
 
@@ -146,7 +151,7 @@ public class EipV6DaoService {
             return ActionResponse.actionSuccess();
         }
 
-        EipV6 eipV6Entity = eipV6Repository.findByEipV6IdAndIsDelete(eipv6id,0);
+        EipV6 eipV6Entity = eipV6Repository.findByIdAndIsDelete(eipv6id,0);
         if (null == eipV6Entity) {
             msg= "Faild to find eipV6 by id:"+eipv6id;
             log.error(msg);
@@ -176,7 +181,7 @@ public class EipV6DaoService {
         eipV6Entity.setDnatptId(null);
         eipV6Entity.setSnatptId(null);
         eipV6Entity.setIsDelete(1);
-        eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
+        eipV6Entity.setUpdatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
         Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getUserId(), 0);
         if(eip == null){
@@ -185,7 +190,7 @@ public class EipV6DaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
         }
         eip.setEipV6Id(null);
-        eip.setUpdateTime(CommonUtil.getGmtDate());
+        eip.setUpdatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
         EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6Entity.getIpv6());
         if(null != eipV6Pool){
@@ -217,7 +222,7 @@ public class EipV6DaoService {
             eipV6.setFloatingIp(floatingIp);
             eipV6.setDnatptId(natPtV6.getNewDnatPtId());
             eipV6.setSnatptId(natPtV6.getNewSnatPtId());
-            eipV6.setUpdateTime(CommonUtil.getGmtDate());
+            eipV6.setUpdatedTime(CommonUtil.getGmtDate());
             eipV6Repository.saveAndFlush(eipV6);
             log.info("Bind eipv6 with instance successfully. eip:{}", eipV6.toString());
         }
@@ -236,7 +241,7 @@ public class EipV6DaoService {
             eipV6.setSnatptId(null);
             eipV6.setDnatptId(null);
             eipV6.setFloatingIp(null);
-            eipV6.setUpdateTime(CommonUtil.getGmtDate());
+            eipV6.setUpdatedTime(CommonUtil.getGmtDate());
             eipV6Repository.saveAndFlush(eipV6);
             log.info("unbind ipv6 with instance successful, {}---{}", eipAddress, eipV6.getIpv6());
         }
@@ -258,7 +263,7 @@ public class EipV6DaoService {
     public EipV6 updateIp(String newIpv4 ,EipV6 eipV6){
 
         eipV6.setIpv4(newIpv4);
-        eipV6.setUpdateTime(CommonUtil.getGmtDate());
+        eipV6.setUpdatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6);
         return eipV6;
     }
