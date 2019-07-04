@@ -90,6 +90,7 @@ public class SbwDaoService {
         return sbw;
     }
 
+    @Transactional
     public Sbw getSbwById(String id) {
         Sbw sbwEntity = null;
         Optional<Sbw> sbw = sbwRepository.findById(id);
